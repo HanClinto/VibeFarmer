@@ -151,11 +151,14 @@ test("interact_at uses an adjacent target without walking away first", () => {
   assert.equal(state.world.entities["tree-1"].hitPoints, GAME_CONFIG.treeHitPoints - 1);
 });
 
-test("holding matching produce harvests a mature crop for either actor", () => {
-  for (const actorId of ["player", "robot"]) {
+test("mature crops harvest before held-item use for either actor", () => {
+  for (const [actorId, heldItem] of [
+    ["player", { itemId: "axe", quantity: 1 }],
+    ["robot", { itemId: "corn", quantity: 2 }],
+  ]) {
     const state = createParityState(actorId);
     const actor = state.world.entities[actorId];
-    actor.inventory[4] = { itemId: "turnip", quantity: 2 };
+    actor.inventory[4] = heldItem;
     actor.selectedSlot = 5;
     const plant = createPlant({
       id: `turnip-${actorId}`,
@@ -178,8 +181,31 @@ test("holding matching produce harvests a mature crop for either actor", () => {
     });
     runToCompletion(controller, submission.operationId);
     assert.equal(state.world.entities[plant.id], undefined);
-    assert.deepEqual(actor.inventory[4], { itemId: "turnip", quantity: 3 });
+    assert.deepEqual(actor.inventory[4], heldItem);
+    assert.ok(actor.inventory.some(
+      (stack) => stack?.itemId === "turnip" && stack.quantity === 1,
+    ));
   }
+});
+
+test("held items retain normal behavior on immature crops", () => {
+  const state = createParityState("player");
+  const plant = createPlant({
+    id: "immature-turnip",
+    cropType: "turnip",
+    position: { x: 3, y: 4 },
+  });
+  addWorldEntity(state.world, plant);
+
+  const result = createController(state).submit({
+    type: "interact_at",
+    actorId: "player",
+    target: { x: 3, y: 4 },
+  });
+
+  assert.equal(result.success, false);
+  assert.equal(result.code, "INVALID_AXE_TARGET");
+  assert.equal(state.world.entities[plant.id], plant);
 });
 
 test("a one-tile move remains active while its final interpolation settles", async () => {

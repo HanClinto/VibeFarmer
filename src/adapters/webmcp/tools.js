@@ -376,7 +376,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     {
       name: "interact_at",
       title: "Use robot item",
-      description: "Move adjacent to a target and perform exactly one normal item use or harvest. Identify an owned item by slot or itemId; omit both to use the selected slot. Holding produce that matches a mature crop harvests it.",
+      description: "Move adjacent to a target and perform exactly one normal item use or harvest. Mature crops are harvested regardless of the held item. Otherwise, identify an owned item by slot or itemId; omit both to use the selected slot.",
       inputSchema: {
         type: "object",
         properties: {

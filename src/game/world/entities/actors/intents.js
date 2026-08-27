@@ -3,11 +3,9 @@ import {
   getActor,
   isWalkable,
   normalizeActorTarget,
-  resolveItem,
   validateHarvest,
   validateUseItem,
 } from "../../../actions/actions.js";
-import { getItemType } from "../items/item-types.js";
 import { findPath } from "../../pathfinding.js";
 import { getEntityLocation, getWorldObject } from "../../world.js";
 
@@ -100,11 +98,7 @@ function interactionRoute(state, actorId, target) {
 function resolvedInteractionSelector(state, actorId, target, selector) {
   if (selector.action === "harvest") return selector;
   const plant = getWorldObject(state.world, target);
-  if (plant?.type !== "plant" || plant.growthStage < plant.matureStage) return selector;
-  const resolved = resolveItem(getActor(state, actorId), selector);
-  if (!resolved.success) return selector;
-  const itemType = getItemType(resolved.item.itemId);
-  return itemType?.category === "produce" && itemType.cropType === plant.cropType
+  return plant?.type === "plant" && plant.growthStage >= plant.matureStage
     ? { action: "harvest" }
     : selector;
 }
