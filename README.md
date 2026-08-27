@@ -32,6 +32,8 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000>.
 
+For testing expensive purchases, add `?cheatMoney=10000` to the URL. It sets shared money on load and is visibly reported in the status strip. Values are limited to 1,000,000g.
+
 Run the deterministic game-core tests with:
 
 ```sh

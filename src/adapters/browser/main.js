@@ -28,6 +28,7 @@ import { actionForCanvasClick, actionTargetForPointer } from "./pointer-controls
 import { marketListings, marketStateSignature } from "./market.js";
 import { createGameAudio } from "./audio.js";
 import { createSleepWaitFlow } from "./sleep-wait.js";
+import { applyMoneyCheat } from "./development-cheats.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 import { inspectGame } from "../webmcp/tools.js";
 
@@ -94,7 +95,9 @@ makeWindowDraggable(sleepAnywayWindow);
 
 const persistence = createPersistence(window.localStorage);
 const restoredSave = persistence.load();
-const controller = createController(restoredSave.state ?? createFarmState());
+const initialState = restoredSave.state ?? createFarmState();
+const cheatMoney = applyMoneyCheat(initialState, window.location.search);
+const controller = createController(initialState);
 let activeStorageTargetId = null;
 let contextualActionsSignature = null;
 let marketSignature = null;
@@ -193,7 +196,9 @@ const initialStatusMessages = {
   SAVE_UNSUPPORTED: "Save was created by a newer version",
   SAVE_CORRUPT: "Invalid save removed; new game started",
 };
-let statusMessage = initialStatusMessages[restoredSave.code];
+let statusMessage = cheatMoney === null
+  ? initialStatusMessages[restoredSave.code]
+  : `Money cheat: ${cheatMoney}g`;
 let tickProgress = 1;
 let camera = { x: 0, y: 0 };
 let hotbarSignature = null;
@@ -638,8 +643,12 @@ document.querySelector("#new-game-button").addEventListener("click", () => {
   hotbarSignature = null;
   storageSignature = null;
   marketSignature = null;
-  controller.replaceState(createFarmState());
-  refresh("New game started");
+  const state = createFarmState();
+  const newGameCheatMoney = applyMoneyCheat(state, window.location.search);
+  controller.replaceState(state);
+  refresh(newGameCheatMoney === null
+    ? "New game started"
+    : `New game started · Money cheat: ${newGameCheatMoney}g`);
 });
 
 document.querySelector("#robot-demo-button").addEventListener("click", () => {
