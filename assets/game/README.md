@@ -18,6 +18,7 @@ Missing production frames include the robot companion, directional actor movemen
 - Original tile size: 16x16
 - License copy: `licenses/kenney-tiny-farm.txt`
 - Imported files are semantically renamed copies of official individual tiles. `catalog.json` records the original `tile_NNNN` ID for every file.
+- Runtime crop art covers Turnip, Potato, Corn, and Pumpkin. Generic early growth tiles are explicitly marked as reused in the catalog; the mature Pumpkin and item icon are documented project recolors of CC0 `tile_0056`.
 
 ### Kenney Tiny Town 1.1
 

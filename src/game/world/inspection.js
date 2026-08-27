@@ -1,6 +1,7 @@
 import { GAME_CONFIG } from "../config.js";
 import { getTerrainAt, TERRAIN_TYPES } from "./terrain/terrain.js";
 import { getEntityLocation, getWorldEntity, isInBounds, normalizeLocation } from "./world.js";
+import { getCropType } from "./entities/plants/crop-types.js";
 
 function isAdjacent(first, second) {
   return first.mapId === second.mapId
@@ -36,14 +37,18 @@ function inspectEntity(viewer, entity, terrainType) {
     };
   }
   if (entity.type === "plant") {
+    const crop = getCropType(entity.cropType);
     return {
       ...base,
-      name: entity.cropType === "turnip" ? "Turnip" : entity.cropType,
+      name: crop.name,
       cropType: entity.cropType,
       growthStage: entity.growthStage,
       matureStage: entity.matureStage,
       watered: terrainType === "wet_tilled",
       harvestReady: entity.growthStage >= entity.matureStage,
+      regrows: Boolean(crop.regrowDays),
+      regrowDays: crop.regrowDays,
+      yield: { ...crop.yield },
     };
   }
   if (entity.type === "chest") {

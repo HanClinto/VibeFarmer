@@ -3,6 +3,9 @@ import test from "node:test";
 
 import { buyItem, sellItem } from "../src/game/actions/actions.js";
 import { createFarmState } from "../src/game/farm.js";
+import { CROP_TYPES } from "../src/game/world/entities/plants/crop-types.js";
+import { ITEM_TYPES } from "../src/game/world/entities/items/item-types.js";
+import { marketListings } from "../src/adapters/browser/market.js";
 
 function createMarketState() {
   const state = createFarmState();
@@ -51,4 +54,15 @@ test("both farmhands are rejected when they try to trade away from the market", 
     "MARKET_NOT_ADJACENT",
   );
   assert.equal(sellItem(state, "robot", "logs", 1).code, "MARKET_NOT_ADJACENT");
+});
+
+test("market listings include every configured crop seed and produce item", () => {
+  const listings = marketListings(ITEM_TYPES);
+  assert.deepEqual(
+    new Set(listings.buy.map((item) => item.id)),
+    new Set(Object.values(CROP_TYPES).map((crop) => crop.seedItemId)),
+  );
+  assert.ok(Object.values(CROP_TYPES).every(
+    (crop) => listings.sell.some((item) => item.id === crop.produceItemId),
+  ));
 });

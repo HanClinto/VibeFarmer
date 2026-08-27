@@ -1,6 +1,7 @@
 import { createController } from "../../application/controller.js";
 import {
   GAME_CONFIG,
+  CROP_TYPES,
   ITEM_TYPES,
   createFarmState,
   inspectLocation,
@@ -24,6 +25,7 @@ import { renderDaySummary } from "./day-summary.js";
 import { createSceneTransition } from "./scene-transition.js";
 import { contextualActions } from "./contextual-actions.js";
 import { actionForCanvasClick } from "./pointer-controls.js";
+import { marketListings } from "./market.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 
 const canvas = document.querySelector("#game-canvas");
@@ -40,6 +42,8 @@ const marketWindow = document.querySelector("#market-window");
 const marketStatus = document.querySelector("#market-status");
 const marketMoneyValue = document.querySelector("#market-money-value");
 const marketCoinIcon = document.querySelector("#market-coin-icon");
+const marketBuyItems = document.querySelector("#market-buy-items");
+const marketSellItems = document.querySelector("#market-sell-items");
 const storageWindow = document.querySelector("#storage-window");
 const storageTargetName = document.querySelector("#storage-target-name");
 const storagePlayerItems = document.querySelector("#storage-player-items");
@@ -52,6 +56,18 @@ const daySummaryWindow = document.querySelector("#day-summary-window");
 const sceneTransition = createSceneTransition(document.querySelector("#scene-transition"));
 const windowManager = createWindowManager();
 const sprites = await loadSpriteCatalog();
+
+function marketButton(item, action) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.dataset.marketAction = action;
+  button.dataset.itemId = item.id;
+  return button;
+}
+
+const listings = marketListings(ITEM_TYPES);
+marketBuyItems.replaceChildren(...listings.buy.map((item) => marketButton(item, "buy")));
+marketSellItems.replaceChildren(...listings.sell.map((item) => marketButton(item, "sell")));
 
 makeWindowDraggable(marketWindow);
 makeWindowDraggable(storageWindow);
@@ -310,7 +326,19 @@ function updateMarketWindow(state) {
     name.textContent = itemType.name;
     const ownedText = document.createElement("small");
     ownedText.textContent = `Owned: ${owned}`;
-    copy.append(name, ownedText);
+    copy.append(name);
+    if (itemType.category === "seed") {
+      const crop = CROP_TYPES[itemType.cropType];
+      const cropDetails = document.createElement("small");
+      const yieldText = crop.yield.minimum === crop.yield.maximum
+        ? `${crop.yield.minimum} yield`
+        : `${crop.yield.minimum}-${crop.yield.maximum} yield`;
+      cropDetails.textContent = crop.regrowDays
+        ? `${crop.matureStage} nights · ${yieldText} · regrows in ${crop.regrowDays}`
+        : `${crop.matureStage} nights · ${yieldText}`;
+      copy.append(cropDetails);
+    }
+    copy.append(ownedText);
     const trade = document.createElement("span");
     trade.className = "market-trade";
     const priceLine = document.createElement("span");

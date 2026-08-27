@@ -1,4 +1,5 @@
 import { GAME_CONFIG } from "../../game/config.js";
+import { getCropType } from "../../game/world/entities/plants/crop-types.js";
 import { getWorldMap } from "../../game/world/world.js";
 import { computeCamera } from "./camera.js";
 
@@ -98,10 +99,15 @@ function drawPlant(context, plant, scale, sprites) {
   const left = plant.position.x * scale;
   const top = plant.position.y * scale;
   const stage = plant.growthStage;
+  const definition = getCropType(plant.cropType);
+  const frameIndex = Math.floor(
+    (Math.min(stage, plant.matureStage) / plant.matureStage)
+      * (definition.spriteStages.length - 1),
+  );
   if (drawSprite(
     context,
     sprites,
-    `crop.turnip.${Math.min(stage, plant.matureStage)}`,
+    definition.spriteStages[frameIndex],
     left,
     top,
     scale,

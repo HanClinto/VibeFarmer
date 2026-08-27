@@ -52,6 +52,13 @@ test("registerWebMcp registers the compact primitive surface", async () => {
   ]);
   assert.equal(names.some((name) => /plan|all|batch/.test(name)), false);
   assert.ok(registered.every(({ options }) => options.signal instanceof AbortSignal));
+  const buySchema = registered.find(({ tool }) => tool.name === "buy_item").tool.inputSchema;
+  assert.deepEqual(buySchema.properties.itemId.enum, [
+    "turnip_seeds",
+    "potato_seeds",
+    "corn_seeds",
+    "pumpkin_seeds",
+  ]);
 });
 
 test("unsupported browsers retain locally invokable tool definitions", async () => {

@@ -37,7 +37,7 @@ export function createGameState({
   addWorldEntity(world, createActor("robot", robotPosition, true));
 
   return {
-    version: 4,
+    version: 5,
     tick: 0,
     day: 1,
     money: 100,

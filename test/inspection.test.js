@@ -37,8 +37,17 @@ test("inspection exposes tree health and crop growth with water state", () => {
       matureStage: crop.entities[0].matureStage,
       watered: crop.entities[0].watered,
       harvestReady: crop.entities[0].harvestReady,
+      yield: crop.entities[0].yield,
+      regrows: crop.entities[0].regrows,
     },
-    { growthStage: 2, matureStage: 3, watered: true, harvestReady: false },
+    {
+      growthStage: 2,
+      matureStage: 3,
+      watered: true,
+      harvestReady: false,
+      yield: { minimum: 1, maximum: 1 },
+      regrows: false,
+    },
   );
 });
 

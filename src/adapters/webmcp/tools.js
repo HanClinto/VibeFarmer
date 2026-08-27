@@ -2,6 +2,13 @@ function result(success, code, details = {}) {
   return { success, code, ...details };
 }
 
+import { CROP_TYPES, getCropType } from "../../game/world/entities/plants/crop-types.js";
+
+const SEED_ITEM_IDS = Object.freeze(Object.values(CROP_TYPES).map((crop) => crop.seedItemId));
+const PRODUCE_ITEM_IDS = Object.freeze(Object.values(CROP_TYPES).map(
+  (crop) => crop.produceItemId,
+));
+
 const DEFAULT_INSPECTION_TYPES = Object.freeze([
   "actor",
   "bed",
@@ -101,10 +108,13 @@ function publicEntity(entity, robot, map) {
   };
   if (entity.type === "tree") base.hitPoints = entity.hitPoints;
   if (entity.type === "plant") {
+    const crop = getCropType(entity.cropType);
     base.cropType = entity.cropType;
     base.growthStage = entity.growthStage;
     base.matureStage = entity.matureStage;
     base.watered = map.terrain[entity.position.y][entity.position.x] === "wet_tilled";
+    base.regrows = Boolean(crop.regrowDays);
+    base.yield = { ...crop.yield };
   }
   if (entity.type === "portal") base.destination = { ...entity.destination };
   if (entity.type === "bed") base.actorId = entity.actorId;
@@ -224,8 +234,12 @@ export function inspectGame(controller, {
     .filter((entity) => mode === "detailed" || inBounds(entity, bounds, selectedMapId))
     .sort((first, second) => first.id.localeCompare(second.id));
   const entityCounts = {};
+  const cropCounts = {};
   for (const entity of mapEntities) {
     entityCounts[entity.type] = (entityCounts[entity.type] ?? 0) + 1;
+    if (entity.type === "plant") {
+      cropCounts[entity.cropType] = (cropCounts[entity.cropType] ?? 0) + 1;
+    }
   }
   const activeOperations = Object.values(state.operations).filter(
     (operation) => !["completed", "failed", "cancelled"].includes(operation.status),
@@ -237,6 +251,7 @@ export function inspectGame(controller, {
     robot: robotState(state),
     map: { id: selectedMapId, width: map.width, height: map.height },
     entityCounts,
+    cropCounts,
     view: {
       center,
       radius: boundedRadius,
@@ -384,11 +399,11 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     },
     {
       name: "buy_item",
-      title: "Buy one item",
-      description: "Buy exactly one item for the robot from the shared-money farm market.",
+      title: "Buy one seed packet",
+      description: "Buy exactly one seed packet for the robot while it is adjacent to the shared-money farm market.",
       inputSchema: {
         type: "object",
-        properties: { itemId: { type: "string", enum: ["turnip_seeds"] } },
+        properties: { itemId: { type: "string", enum: SEED_ITEM_IDS } },
         required: ["itemId"],
         additionalProperties: false,
       },
@@ -405,10 +420,10 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     {
       name: "sell_item",
       title: "Sell one item",
-      description: "Sell exactly one robot-held turnip or log to the shared-money farm market.",
+      description: "Sell exactly one robot-held crop or log while adjacent to the shared-money farm market.",
       inputSchema: {
         type: "object",
-        properties: { itemId: { type: "string", enum: ["turnip", "logs"] } },
+        properties: { itemId: { type: "string", enum: [...PRODUCE_ITEM_IDS, "logs"] } },
         required: ["itemId"],
         additionalProperties: false,
       },

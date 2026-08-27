@@ -297,6 +297,15 @@ canvas {
   background: #fff;
 }
 
+.market-items {
+  display: grid;
+  gap: 4px;
+}
+
+.market-item-copy small {
+  display: block;
+}
+
 .market-wallet img {
   width: 22px;
   height: 22px;

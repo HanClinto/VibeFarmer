@@ -71,6 +71,13 @@ Movement and work now advance through fixed simulation ticks. Pausing stops tick
 
 Clear land, till soil, plant and water seeds, sleep through several days, harvest crops, and sell crops or logs. The human and robot have separate ten-slot inventories and stamina but share money. Fixed farm chests provide shared storage, and the adjacent robot can also act as player-accessible storage.
 
+- Turnip: 3 nights, one crop, inexpensive baseline.
+- Potato: 4 nights, deterministic 2-4 crop yield.
+- Corn: 5 nights, two-crop harvest, then regrows every 2 watered nights.
+- Pumpkin: 6 nights, expensive seed and high-value one-crop harvest.
+
+Daily requests and changing market prices are intentionally deferred; crop economics remain deterministic and visible.
+
 ## Scope
 
 The challenge release targets one fixed farm, a 3-4 day crop cycle, lumber, a simple market, local autosave, WebMCP tools, and a transparent Robot Inspector. Procedural worlds, animals, crafting, cooking, buildings, customization, multiplayer networking, seasons, weather, and mobile support are deferred.

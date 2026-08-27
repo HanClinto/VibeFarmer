@@ -9,6 +9,12 @@ export const CROP_TYPES = Object.freeze({
     regrowDays: null,
     seedPrice: 5,
     sellPrice: 15,
+    spriteStages: Object.freeze([
+      "crop.turnip.0",
+      "crop.turnip.1",
+      "crop.turnip.2",
+      "crop.turnip.3",
+    ]),
   }),
   potato: Object.freeze({
     id: "potato",
@@ -20,6 +26,12 @@ export const CROP_TYPES = Object.freeze({
     regrowDays: null,
     seedPrice: 12,
     sellPrice: 9,
+    spriteStages: Object.freeze([
+      "crop.potato.0",
+      "crop.potato.1",
+      "crop.potato.2",
+      "crop.potato.3",
+    ]),
   }),
   corn: Object.freeze({
     id: "corn",
@@ -31,6 +43,12 @@ export const CROP_TYPES = Object.freeze({
     regrowDays: 2,
     seedPrice: 30,
     sellPrice: 18,
+    spriteStages: Object.freeze([
+      "crop.corn.0",
+      "crop.corn.1",
+      "crop.corn.2",
+      "crop.corn.3",
+    ]),
   }),
   pumpkin: Object.freeze({
     id: "pumpkin",
@@ -42,6 +60,12 @@ export const CROP_TYPES = Object.freeze({
     regrowDays: null,
     seedPrice: 35,
     sellPrice: 80,
+    spriteStages: Object.freeze([
+      "crop.pumpkin.0",
+      "crop.pumpkin.1",
+      "crop.pumpkin.2",
+      "crop.pumpkin.3",
+    ]),
   }),
 });
 

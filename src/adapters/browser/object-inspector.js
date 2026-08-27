@@ -13,6 +13,13 @@ export function objectInspectionView(inspection) {
       fields.push(["Growth", `${entity.growthStage}/${entity.matureStage}`]);
       fields.push(["Watered today", entity.watered ? "Yes" : "No"]);
       fields.push(["Harvest ready", entity.harvestReady ? "Yes" : "No"]);
+      fields.push([
+        "Expected yield",
+        entity.yield.minimum === entity.yield.maximum
+          ? String(entity.yield.minimum)
+          : `${entity.yield.minimum}-${entity.yield.maximum}`,
+      ]);
+      fields.push(["Regrows", entity.regrows ? `Every ${entity.regrowDays} nights` : "No"]);
     } else if (entity.type === "chest") {
       fields.push(["Capacity", `${entity.usedSlots}/${entity.capacity} slots`]);
       fields.push(["Contents visible", entity.inventory ? "Yes" : "Move closer"]);

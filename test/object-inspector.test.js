@@ -16,6 +16,9 @@ test("object inspection view presents crop state and terrain without parsing raw
       matureStage: 3,
       watered: true,
       harvestReady: false,
+      yield: { minimum: 1, maximum: 1 },
+      regrows: false,
+      regrowDays: null,
     }],
   });
 
@@ -25,6 +28,8 @@ test("object inspection view presents crop state and terrain without parsing raw
     ["Growth", "2/3"],
     ["Watered today", "Yes"],
     ["Harvest ready", "No"],
+    ["Expected yield", "1"],
+    ["Regrows", "No"],
   ]);
   assert.equal(view.sections.at(-1).title, "Terrain");
   assert.equal(view.storageEntityId, null);

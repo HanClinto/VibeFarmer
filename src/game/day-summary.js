@@ -53,8 +53,9 @@ export function recordDayEvent(state, event) {
   }
   if (event.type === "use_item") statsForActor(stats, actorId).toolUses += 1;
   if (event.type === "crop_harvested") {
-    statsForActor(stats, actorId).cropsHarvested += 1;
-    stats.world.cropsHarvested += 1;
+    const quantity = event.quantity ?? 1;
+    statsForActor(stats, actorId).cropsHarvested += quantity;
+    stats.world.cropsHarvested += quantity;
   }
   if (event.type === "item_bought") {
     statsForActor(stats, actorId).itemsBought += event.quantity;

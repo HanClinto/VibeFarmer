@@ -70,3 +70,28 @@ test("day advance returns complete player and robot activity statistics", () => 
   assert.equal(state.dayStats.day, 2);
   assert.equal(state.dayStats.actors.player.tilesTraversed, 0);
 });
+
+test("daily harvest totals count produce units from variable yields", () => {
+  const state = createFarmState();
+  const player = state.world.entities.player;
+  const robot = state.world.entities.robot;
+  const plant = createPlant({
+    id: "potato-a",
+    cropType: "potato",
+    position: { x: 5, y: 6 },
+  });
+  plant.growthStage = plant.matureStage;
+  addWorldEntity(state.world, plant);
+  assert.equal(harvest(state, "player", { x: 5, y: 6 }).quantity, 3);
+
+  player.mapId = "farmhouse";
+  player.position = { x: 1, y: 3 };
+  robot.sleeping = false;
+  robot.mapId = "farmhouse";
+  robot.position = { x: 5, y: 3 };
+  sleepActor(state, "player");
+  const result = sleepActor(state, "robot");
+
+  assert.equal(result.summary.actors.player.cropsHarvested, 3);
+  assert.equal(result.summary.world.cropsHarvested, 3);
+});

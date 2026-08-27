@@ -8,6 +8,7 @@ import {
   operationWorkView,
   terrainFrameId,
 } from "../src/adapters/browser/renderer.js";
+import { CROP_TYPES } from "../src/game/world/entities/plants/crop-types.js";
 
 test("actor rendering interpolates a tile transition without changing game position", () => {
   const actor = {
@@ -69,6 +70,13 @@ test("path terrain uses the stepping-stone route frame", () => {
 
 test("interior floor terrain uses the wood floor frame", () => {
   assert.equal(terrainFrameId({ terrain: [["floor"]] }, 0, 0), "interior.floor_wood");
+});
+
+test("every crop defines a complete renderer frame sequence", () => {
+  for (const crop of Object.values(CROP_TYPES)) {
+    assert.equal(crop.spriteStages.length, 4);
+    assert.ok(crop.spriteStages.every((frameId) => frameId.startsWith(`crop.${crop.id}.`)));
+  }
 });
 
 test("operation preview exposes only current-map route steps and destination", () => {

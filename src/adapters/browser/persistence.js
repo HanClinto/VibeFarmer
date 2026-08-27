@@ -1,8 +1,8 @@
 import { FARM_DEFINITION_VERSION } from "../../game/farm.js";
 
 const STORAGE_KEY = "vibe-farmer.save";
-const SAVE_VERSION = 3;
-const GAME_STATE_VERSION = 4;
+const SAVE_VERSION = 4;
+const GAME_STATE_VERSION = 5;
 
 class UnsupportedSaveError extends Error {}
 class OutdatedSaveError extends Error {}

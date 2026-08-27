@@ -44,7 +44,20 @@ test("curated runtime art has complete CC0 provenance and native 16px dimensions
     assert.ok(readFileSync(path.join(ASSET_ROOT, source.licenseFile), "utf8").includes("CC0"));
   }
 
-  for (const itemId of ["axe", "hoe", "watering_can", "turnip_seeds", "turnip", "logs"]) {
+  for (const itemId of [
+    "axe",
+    "hoe",
+    "watering_can",
+    "turnip_seeds",
+    "turnip",
+    "potato_seeds",
+    "potato",
+    "corn_seeds",
+    "corn",
+    "pumpkin_seeds",
+    "pumpkin",
+    "logs",
+  ]) {
     assert.ok(catalog.frames[`item.${itemId}`], `missing item icon: ${itemId}`);
   }
 });
