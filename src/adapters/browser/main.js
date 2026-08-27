@@ -28,6 +28,8 @@ const dayValue = document.querySelector("#day-value");
 const moneyValue = document.querySelector("#money-value");
 const marketWindow = document.querySelector("#market-window");
 const marketStatus = document.querySelector("#market-status");
+const marketMoneyValue = document.querySelector("#market-money-value");
+const marketCoinIcon = document.querySelector("#market-coin-icon");
 const storageWindow = document.querySelector("#storage-window");
 const storageTarget = document.querySelector("#storage-target");
 const storagePlayerItems = document.querySelector("#storage-player-items");
@@ -215,6 +217,9 @@ function itemQuantity(inventory, itemId) {
 function updateMarketWindow(state) {
   if (marketWindow.hidden) return;
   const inventory = state.world.entities.player.inventory;
+  const coinFrame = sprites.frames["item.coin"];
+  marketMoneyValue.textContent = `${state.money}g`;
+  if (coinFrame) marketCoinIcon.src = coinFrame.url;
   for (const button of document.querySelectorAll("button[data-market-action]")) {
     const itemId = button.dataset.itemId;
     const itemType = ITEM_TYPES[itemId];
@@ -222,7 +227,7 @@ function updateMarketWindow(state) {
     const price = action === "buy" ? itemType.buyPrice : itemType.sellPrice;
     const owned = itemQuantity(inventory, itemId);
     button.disabled = action === "buy" ? state.money < price : owned === 0;
-    button.classList.add("item-action-button");
+    button.classList.add("market-item-row");
     const iconFrame = sprites.frames[`item.${itemId}`];
     const children = [];
     if (iconFrame) {
@@ -233,12 +238,30 @@ function updateMarketWindow(state) {
       children.push(icon);
     }
     const copy = document.createElement("span");
-    copy.className = "item-action-copy";
-    copy.textContent = `${action === "buy" ? "Buy" : "Sell"}\n${itemType.name}`;
-    const details = document.createElement("strong");
-    details.className = "item-action-quantity";
-    details.textContent = `${price}g · ${owned}`;
-    children.push(copy, details);
+    copy.className = "market-item-copy";
+    const name = document.createElement("strong");
+    name.textContent = itemType.name;
+    const ownedText = document.createElement("small");
+    ownedText.textContent = `Owned: ${owned}`;
+    copy.append(name, ownedText);
+    const trade = document.createElement("span");
+    trade.className = "market-trade";
+    const priceLine = document.createElement("span");
+    priceLine.className = "market-price";
+    if (coinFrame) {
+      const coin = document.createElement("img");
+      coin.src = coinFrame.url;
+      coin.alt = "";
+      priceLine.append(coin);
+    }
+    const priceText = document.createElement("strong");
+    priceText.textContent = String(price);
+    priceLine.append(priceText);
+    const actionText = document.createElement("span");
+    actionText.className = "market-action-label";
+    actionText.textContent = action === "buy" ? "Buy" : "Sell";
+    trade.append(priceLine, actionText);
+    children.push(copy, trade);
     button.replaceChildren(...children);
     button.title = `${itemType.name}: ${price}g; player owns ${owned}`;
   }
