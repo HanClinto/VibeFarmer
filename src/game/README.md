@@ -9,6 +9,7 @@ This folder contains Vibe Farmer's deterministic gameplay domain. It can run in 
 - `config.js` contains shared rules and balance values.
 - `actions/` contains verbs that validate and apply atomic state changes.
 - `world/` owns terrain, a normalized entity registry, placement, spatial queries, and pathfinding.
+- `world/inspection.js` projects privacy-aware terrain and entity details for human and protocol adapters.
 - `world/entities/actors/` contains behavior shared by human, robot, and future autonomous actors.
 - `index.js` exposes the intentionally small public headless API.
 

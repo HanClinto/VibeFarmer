@@ -6,4 +6,5 @@ export { createChest } from "./world/entities/containers/chests.js";
 export { createGameState } from "./state.js";
 export { tick } from "./simulation.js";
 export { createWorld } from "./world/world.js";
+export { inspectLocation } from "./world/inspection.js";
 export { submitInteractAt, submitMoveTo } from "./world/entities/actors/intents.js";
