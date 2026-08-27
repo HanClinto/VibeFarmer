@@ -3,11 +3,13 @@ import {
   getActor,
   isWalkable,
   normalizeActorTarget,
+  resolveItem,
   validateHarvest,
   validateUseItem,
 } from "../../../actions/actions.js";
+import { getItemType } from "../items/item-types.js";
 import { findPath } from "../../pathfinding.js";
-import { getEntityLocation } from "../../world.js";
+import { getEntityLocation, getWorldObject } from "../../world.js";
 
 function outcome(success, code, details = {}) {
   return { success, code, ...details };
@@ -95,6 +97,18 @@ function interactionRoute(state, actorId, target) {
   return candidates[0] ?? null;
 }
 
+function resolvedInteractionSelector(state, actorId, target, selector) {
+  if (selector.action === "harvest") return selector;
+  const plant = getWorldObject(state.world, target);
+  if (plant?.type !== "plant" || plant.growthStage < plant.matureStage) return selector;
+  const resolved = resolveItem(getActor(state, actorId), selector);
+  if (!resolved.success) return selector;
+  const itemType = getItemType(resolved.item.itemId);
+  return itemType?.category === "produce" && itemType.cropType === plant.cropType
+    ? { action: "harvest" }
+    : selector;
+}
+
 export function submitInteractAt(state, actorId, target, selector = {}) {
   const available = validateAvailableActor(state, actorId);
   if (!available.success) return available;
@@ -102,6 +116,7 @@ export function submitInteractAt(state, actorId, target, selector = {}) {
   if (target.mapId !== getActor(state, actorId).mapId) {
     return outcome(false, "TARGET_DIFFERENT_MAP");
   }
+  selector = resolvedInteractionSelector(state, actorId, target, selector);
 
   const validation = selector.action === "harvest"
     ? validateHarvest(state, actorId, target, { requireAdjacent: false })
