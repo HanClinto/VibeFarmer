@@ -7,6 +7,7 @@ import {
 } from "../../game/index.js";
 import { renderGame } from "./renderer.js";
 import { createRuntime } from "./runtime.js";
+import { loadSpriteCatalog } from "./sprite-catalog.js";
 import { createActionLog } from "./action-log.js";
 import { makeWindowDraggable } from "./draggable-windows.js";
 import { createWindowManager, isEditingText } from "./window-manager.js";
@@ -35,6 +36,7 @@ const inspectorWindow = document.querySelector("#inspector-window");
 const actionLogWindow = document.querySelector("#action-log-window");
 const objectInspectorWindow = document.querySelector("#object-inspector-window");
 const windowManager = createWindowManager();
+const sprites = await loadSpriteCatalog();
 
 makeWindowDraggable(marketWindow);
 makeWindowDraggable(storageWindow);
@@ -211,7 +213,7 @@ function updateStorageWindow(state) {
 function refresh(message) {
   if (message) statusMessage = message;
   const state = controller.getSnapshot();
-  renderGame(context, state, { tickProgress });
+  renderGame(context, state, { tickProgress, sprites });
   updateHotbar(state);
   staminaValue.textContent = `${state.world.entities.player.stamina}/${GAME_CONFIG.maxStamina}`;
   dayValue.textContent = String(state.day);

@@ -27,9 +27,20 @@ function terrainColor(terrainType, alternate) {
   return alternate ? COLORS.grassAlternate : COLORS.grass;
 }
 
-function drawTree(context, object, scale) {
+function drawSprite(context, sprites, frameId, left, top, scale) {
+  const frame = sprites?.frames[frameId];
+  if (!frame) return false;
+  context.drawImage(frame.image, left, top, scale, scale);
+  return true;
+}
+
+function drawTree(context, object, scale, sprites) {
   const left = object.position.x * scale;
   const top = object.position.y * scale;
+  const frameId = object.hitPoints < GAME_CONFIG.treeHitPoints
+    ? "entity.tree_small"
+    : "entity.tree";
+  if (drawSprite(context, sprites, frameId, left, top, scale)) return;
   context.fillStyle = COLORS.treeTrunk;
   context.fillRect(left + scale * 0.42, top + scale * 0.52, scale * 0.2, scale * 0.42);
   context.fillStyle = COLORS.treeLeaves;
@@ -54,7 +65,7 @@ export function getActorRenderPosition(actor, simulationTick, tickProgress) {
   };
 }
 
-function drawActor(context, actor, scale, simulationTick, tickProgress) {
+function drawActor(context, actor, scale, simulationTick, tickProgress, sprites) {
   const position = getActorRenderPosition(actor, simulationTick, tickProgress);
   const left = position.x * scale;
   const top = position.y * scale;
@@ -69,16 +80,26 @@ function drawActor(context, actor, scale, simulationTick, tickProgress) {
     return;
   }
 
+  if (drawSprite(context, sprites, "actor.farmhand_b.south", left, top, scale)) return;
+
   context.fillStyle = COLORS.player;
   context.fillRect(left + scale * 0.28, top + scale * 0.26, scale * 0.48, scale * 0.58);
   context.fillStyle = COLORS.playerHat;
   context.fillRect(left + scale * 0.18, top + scale * 0.14, scale * 0.68, scale * 0.2);
 }
 
-function drawPlant(context, plant, scale) {
+function drawPlant(context, plant, scale, sprites) {
   const left = plant.position.x * scale;
   const top = plant.position.y * scale;
   const stage = plant.growthStage;
+  if (drawSprite(
+    context,
+    sprites,
+    `crop.turnip.${Math.min(stage, plant.matureStage)}`,
+    left,
+    top,
+    scale,
+  )) return;
   context.fillStyle = COLORS.cropStem;
   context.fillRect(left + scale * 0.46, top + scale * 0.44, scale * 0.12, scale * 0.4);
   context.fillStyle = COLORS.cropLeaf;
@@ -90,9 +111,10 @@ function drawPlant(context, plant, scale) {
   }
 }
 
-function drawChest(context, chest, scale) {
+function drawChest(context, chest, scale, sprites) {
   const left = chest.position.x * scale;
   const top = chest.position.y * scale;
+  if (drawSprite(context, sprites, "entity.chest", left, top, scale)) return;
   context.fillStyle = COLORS.chestWood;
   context.fillRect(left + scale * 0.16, top + scale * 0.3, scale * 0.72, scale * 0.54);
   context.fillStyle = COLORS.chestBand;
@@ -100,25 +122,31 @@ function drawChest(context, chest, scale) {
   context.fillRect(left + scale * 0.45, top + scale * 0.5, scale * 0.12, scale * 0.18);
 }
 
-export function renderGame(context, state, { tickProgress = 1 } = {}) {
+export function renderGame(context, state, { tickProgress = 1, sprites = null } = {}) {
   const scale = GAME_CONFIG.tileSize * 3;
+  context.imageSmoothingEnabled = false;
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
   for (let y = 0; y < state.world.height; y += 1) {
     for (let x = 0; x < state.world.width; x += 1) {
-      context.fillStyle = terrainColor(state.world.terrain[y][x], (x + y) % 2 !== 0);
-      context.fillRect(x * scale, y * scale, scale, scale);
-      context.strokeStyle = COLORS.grid;
-      context.strokeRect(x * scale, y * scale, scale, scale);
+      const terrainType = state.world.terrain[y][x];
+      const grassFrame = (x + y) % 5 === 0 ? "terrain.grass_tufts" : "terrain.grass";
+      const frameId = terrainType === "grass" ? grassFrame : `terrain.${terrainType}`;
+      if (!drawSprite(context, sprites, frameId, x * scale, y * scale, scale)) {
+        context.fillStyle = terrainColor(terrainType, (x + y) % 2 !== 0);
+        context.fillRect(x * scale, y * scale, scale, scale);
+        context.strokeStyle = COLORS.grid;
+        context.strokeRect(x * scale, y * scale, scale, scale);
+      }
     }
   }
 
   for (const object of Object.values(state.world.entities)) {
-    if (object.type === "tree") drawTree(context, object, scale);
-    else if (object.type === "plant") drawPlant(context, object, scale);
-    else if (object.type === "chest") drawChest(context, object, scale);
+    if (object.type === "tree") drawTree(context, object, scale, sprites);
+    else if (object.type === "plant") drawPlant(context, object, scale, sprites);
+    else if (object.type === "chest") drawChest(context, object, scale, sprites);
   }
 
-  drawActor(context, state.world.entities.player, scale, state.tick, tickProgress);
-  drawActor(context, state.world.entities.robot, scale, state.tick, tickProgress);
+  drawActor(context, state.world.entities.player, scale, state.tick, tickProgress, sprites);
+  drawActor(context, state.world.entities.robot, scale, state.tick, tickProgress, sprites);
 }
