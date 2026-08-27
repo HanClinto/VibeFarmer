@@ -54,7 +54,7 @@ test("move_to advances either actor through deterministic ticks", () => {
     ));
     assert.deepEqual(controller.getSnapshot().world.entities[actorId].position, { x: 1, y: 4 });
     const ticks = runToCompletion(controller, submission.operationId);
-    assert.equal(ticks, 3);
+    assert.equal(ticks, 4);
     assert.deepEqual(controller.getSnapshot().world.entities[actorId].position, { x: 3, y: 4 });
   }
 });
@@ -149,6 +149,25 @@ test("interact_at uses an adjacent target without walking away first", () => {
   assert.equal(ticks, GAME_CONFIG.workCooldownTicks + 1);
   assert.deepEqual(state.world.entities.player.position, { x: 3, y: 4 });
   assert.equal(state.world.entities["tree-1"].hitPoints, GAME_CONFIG.treeHitPoints - 1);
+});
+
+test("a one-tile move remains active while its final interpolation settles", async () => {
+  const state = createParityState("player");
+  const controller = createController(state);
+  const submission = controller.submit({
+    type: "move_to",
+    actorId: "player",
+    target: { x: 2, y: 4 },
+  });
+
+  controller.tick();
+  assert.equal(state.operations[submission.operationId].phase, "settling");
+  assert.equal(state.operations[submission.operationId].status, "running");
+  assert.equal(state.world.entities.player.activeIntent, submission.operationId);
+
+  controller.tick();
+  assert.equal((await submission.completion).code, "DESTINATION_REACHED");
+  assert.equal(state.operations[submission.operationId].status, "completed");
 });
 
 test("a second intent for the same actor is rejected as busy", () => {

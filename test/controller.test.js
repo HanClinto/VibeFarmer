@@ -16,7 +16,7 @@ test("headless game and controller load without browser globals", async () => {
   });
 
   assert.equal(submission.success, true);
-  controller.tick();
+  controller.tick(2);
   assert.equal((await submission.completion).code, "DESTINATION_REACHED");
   assert.deepEqual(controller.getSnapshot().world.entities.player.position, { x: 1, y: 2 });
 });
@@ -45,7 +45,7 @@ test("browser-style input and robot commands use the same controller", async () 
     actorId: "robot",
     target: { x: 2, y: 2 },
   });
-  controller.tick();
+  controller.tick(2);
   assert.equal((await submission.completion).code, "DESTINATION_REACHED");
 
   unsubscribe();
@@ -96,7 +96,7 @@ test("paused submissions wait visibly without advancing until ticks resume", asy
 
   controller.setTicksEnabled(true);
   assert.equal(controller.getSnapshot().operations[submission.operationId].status, "running");
-  controller.tick();
+  controller.tick(2);
   assert.equal((await submission.completion).code, "DESTINATION_REACHED");
 });
 

@@ -19,12 +19,16 @@ function finishOperation(state, operation, status, code, details = {}) {
   });
 }
 
+function finishMovement(state, operation) {
+  finishOperation(state, operation, "completed", "DESTINATION_REACHED", {
+    position: { ...getActor(state, operation.actorId).position },
+  });
+}
+
 function advanceMovement(state, operation) {
   if (operation.path.length === 0) {
     if (operation.command.type === "move_to") {
-      finishOperation(state, operation, "completed", "DESTINATION_REACHED", {
-        position: { ...getActor(state, operation.actorId).position },
-      });
+      finishMovement(state, operation);
     } else {
       operation.phase = "working";
       operation.cooldown = GAME_CONFIG.workCooldownTicks;
@@ -49,9 +53,7 @@ function advanceMovement(state, operation) {
   if (operation.path.length > 0) operation.path.shift();
   if (operation.path.length === 0) {
     if (operation.command.type === "move_to") {
-      finishOperation(state, operation, "completed", "DESTINATION_REACHED", {
-        position: { ...getActor(state, operation.actorId).position },
-      });
+      operation.phase = "settling";
     } else {
       operation.phase = "working";
       operation.cooldown = GAME_CONFIG.workCooldownTicks;
@@ -95,6 +97,7 @@ function advanceOperation(state, operation) {
 
   if (operation.phase === "moving") advanceMovement(state, operation);
   else if (operation.phase === "working") advanceWork(state, operation);
+  else if (operation.phase === "settling") finishMovement(state, operation);
 }
 
 export function tick(state) {
