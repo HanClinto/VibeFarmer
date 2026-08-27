@@ -182,10 +182,64 @@ function adjacentContainers(state) {
 function itemButton(stack, direction) {
   const button = document.createElement("button");
   button.type = "button";
+  button.className = "item-action-button";
   button.dataset.storageDirection = direction;
   button.dataset.itemId = stack.itemId;
-  button.textContent = `${direction === "deposit" ? "Deposit" : "Withdraw"} ${ITEM_TYPES[stack.itemId]?.name ?? stack.itemId} ×${stack.quantity}`;
+  const iconFrame = sprites.frames[`item.${stack.itemId}`];
+  if (iconFrame) {
+    const icon = document.createElement("img");
+    icon.className = "item-action-icon";
+    icon.src = iconFrame.url;
+    icon.alt = "";
+    button.append(icon);
+  }
+  const copy = document.createElement("span");
+  copy.className = "item-action-copy";
+  copy.textContent = `${direction === "deposit" ? "Deposit" : "Withdraw"}\n${ITEM_TYPES[stack.itemId]?.name ?? stack.itemId}`;
+  const quantity = document.createElement("strong");
+  quantity.className = "item-action-quantity";
+  quantity.textContent = `×${stack.quantity}`;
+  button.append(copy, quantity);
   return button;
+}
+
+function itemQuantity(inventory, itemId) {
+  return inventory.reduce(
+    (total, stack) => total + (stack?.itemId === itemId ? stack.quantity : 0),
+    0,
+  );
+}
+
+function updateMarketWindow(state) {
+  if (marketWindow.hidden) return;
+  const inventory = state.world.entities.player.inventory;
+  for (const button of document.querySelectorAll("button[data-market-action]")) {
+    const itemId = button.dataset.itemId;
+    const itemType = ITEM_TYPES[itemId];
+    const action = button.dataset.marketAction;
+    const price = action === "buy" ? itemType.buyPrice : itemType.sellPrice;
+    const owned = itemQuantity(inventory, itemId);
+    button.disabled = action === "buy" ? state.money < price : owned === 0;
+    button.classList.add("item-action-button");
+    const iconFrame = sprites.frames[`item.${itemId}`];
+    const children = [];
+    if (iconFrame) {
+      const icon = document.createElement("img");
+      icon.className = "item-action-icon";
+      icon.src = iconFrame.url;
+      icon.alt = "";
+      children.push(icon);
+    }
+    const copy = document.createElement("span");
+    copy.className = "item-action-copy";
+    copy.textContent = `${action === "buy" ? "Buy" : "Sell"}\n${itemType.name}`;
+    const details = document.createElement("strong");
+    details.className = "item-action-quantity";
+    details.textContent = `${price}g · ${owned}`;
+    children.push(copy, details);
+    button.replaceChildren(...children);
+    button.title = `${itemType.name}: ${price}g; player owns ${owned}`;
+  }
 }
 
 function updateStorageWindow(state) {
@@ -235,6 +289,7 @@ function refresh(message) {
   intentStatus.textContent = statusMessage;
   tickValue.textContent = String(state.tick);
   updateStorageWindow(state);
+  updateMarketWindow(state);
   inspector?.refresh();
   actionLog.refresh();
   objectInspector.refresh();
@@ -344,16 +399,10 @@ document.querySelector("#sleep-button").addEventListener("click", () => {
   runImmediate({ type: "sleep_actor", actorId: "player" });
 });
 
-for (const button of document.querySelectorAll("button[data-market-action]")) {
-  const itemType = ITEM_TYPES[button.dataset.itemId];
-  const action = button.dataset.marketAction;
-  const price = action === "buy" ? itemType.buyPrice : itemType.sellPrice;
-  button.textContent = `${action === "buy" ? "Buy" : "Sell"} ${itemType.name} · ${price}g`;
-}
-
 document.querySelector("#market-button").addEventListener("click", () => {
   storageDialog.close();
   marketDialog.open();
+  updateMarketWindow(controller.getSnapshot());
 });
 
 marketWindow.addEventListener("click", (event) => {
