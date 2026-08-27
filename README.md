@@ -61,6 +61,8 @@ The browser keeps a versioned local autosave. New Game requires confirmation; re
 Robot Inspector derives its MCP view from the registered WebMCP definitions and explains that these protocol tools are available to a local agent controlling the robot. It shows schemas, manual test invocation, operation records, game events, and WebMCP timing. Its collapsed Testing section contains simulation speed/tick controls and the chop-tree demo shortcut.
 
 `inspect_game` defaults to a compact coordinate-labeled ASCII view around the robot, useful nearby entities, type counts, robot state, and active operations. Agents may choose another map/center/radius, filter entity types, request bounded history, or opt into `mode: "detailed"` when the full selected-map terrain matrix is genuinely needed.
+
+Compact crop symbols encode both growth and moisture: `g` dry growing, `G` watered growing, `h` dry harvest-ready, and `H` watered harvest-ready. Sparse plant records also include an explicit `watered` boolean.
 Inspector invocation records are collapsible, and the separate resizable Action Log compares player and robot controller commands with their resulting game events in parallel columns.
 
 Movement and work now advance through fixed simulation ticks. Pausing stops tick progression without cancelling active player or robot work; pending operations remain visible as `waiting_for_ticks` in the Inspector and resume as the same operation.

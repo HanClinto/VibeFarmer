@@ -7,6 +7,7 @@ import { createWebMcpTools, inspectGame } from "../src/adapters/webmcp/tools.js"
 import { createGameState } from "../src/game/state.js";
 import { createFarmState } from "../src/game/farm.js";
 import { createChest } from "../src/game/world/entities/containers/chests.js";
+import { createPlant } from "../src/game/world/entities/plants/plants.js";
 import { addWorldEntity } from "../src/game/world/world.js";
 
 function toolByName(tools, name) {
@@ -84,7 +85,56 @@ test("compact inspection filters a bounded area by entity type", () => {
   assert.deepEqual(inspected.view.bounds, { left: 18, top: 0, right: 22, bottom: 4 });
   assert.ok(inspected.entities.length > 0);
   assert.ok(inspected.entities.every((entity) => entity.type === "tree"));
-  assert.equal(inspected.view.ascii.split("\n").length, 6);
+  assert.equal(inspected.view.ascii.split("\n").length, 7);
+});
+
+test("compact entities retain metadata needed for ordinary planning", () => {
+  const inspected = inspectGame(createController(createFarmState()));
+  const chest = inspected.entities.find((entity) => entity.id === "chest-1");
+  const portal = inspected.entities.find((entity) => entity.id === "portal-farmhouse-door");
+
+  assert.equal(chest.capacity, 20);
+  assert.equal(chest.usedSlots, 0);
+  assert.deepEqual(portal.destination, {
+    mapId: "farmhouse",
+    x: 4,
+    y: 4,
+    facing: "north",
+  });
+});
+
+test("ASCII and sparse plant records distinguish moisture and harvest readiness", () => {
+  const state = createFarmState();
+  const crops = [
+    { id: "dry-growing", x: 7, terrain: "tilled", mature: false },
+    { id: "wet-growing", x: 8, terrain: "wet_tilled", mature: false },
+    { id: "dry-ready", x: 9, terrain: "tilled", mature: true },
+    { id: "wet-ready", x: 10, terrain: "wet_tilled", mature: true },
+  ];
+  for (const crop of crops) {
+    state.world.maps.farm.terrain[8][crop.x] = crop.terrain;
+    const plant = createPlant({
+      id: crop.id,
+      cropType: "turnip",
+      position: { x: crop.x, y: 8 },
+    });
+    if (crop.mature) plant.growthStage = plant.matureStage;
+    addWorldEntity(state.world, plant);
+  }
+
+  const inspected = inspectGame(createController(state), {
+    mapId: "farm",
+    x: 8,
+    y: 8,
+    radius: 2,
+    entityTypes: ["plant"],
+  });
+  const cropRow = inspected.view.ascii.split("\n").find((row) => row.startsWith("08 "));
+
+  assert.equal(cropRow, "08 .gGhH");
+  assert.match(inspected.view.legend.entities, /g dry growing crop/);
+  assert.equal(inspected.entities.find((entity) => entity.id === "dry-growing").watered, false);
+  assert.equal(inspected.entities.find((entity) => entity.id === "wet-growing").watered, true);
 });
 
 test("detailed inspection opts into terrain, all selected-map entities, and bounded history", () => {

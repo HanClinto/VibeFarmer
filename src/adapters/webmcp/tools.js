@@ -27,7 +27,6 @@ const ENTITY_SYMBOLS = Object.freeze({
   chest: "C",
   decoration: "#",
   market: "M",
-  plant: "p",
   portal: "D",
   rock: "O",
   tree: "T",
@@ -93,7 +92,7 @@ function structuredIntentResult(controller, output, operation, historyStart) {
   };
 }
 
-function publicEntity(entity, robot) {
+function publicEntity(entity, robot, map) {
   const base = {
     id: entity.id,
     type: entity.type,
@@ -105,7 +104,11 @@ function publicEntity(entity, robot) {
     base.cropType = entity.cropType;
     base.growthStage = entity.growthStage;
     base.matureStage = entity.matureStage;
+    base.watered = map.terrain[entity.position.y][entity.position.x] === "wet_tilled";
   }
+  if (entity.type === "portal") base.destination = { ...entity.destination };
+  if (entity.type === "bed") base.actorId = entity.actorId;
+  if (entity.type === "market") base.name = entity.name ?? "Farm Market";
   if (entity.type === "actor") {
     base.role = entity.role;
     base.sleeping = entity.sleeping;
@@ -116,19 +119,25 @@ function publicEntity(entity, robot) {
       base.activeIntent = entity.activeIntent;
     }
   }
-  if (entity.type === "chest" && robot
-    && entity.mapId === robot.mapId
-    && Math.abs(entity.position.x - robot.position.x)
-      + Math.abs(entity.position.y - robot.position.y) === 1) {
-    base.inventory = entity.inventory;
+  if (entity.type === "chest") {
+    base.capacity = entity.inventory.length;
+    base.usedSlots = entity.inventory.filter(Boolean).length;
+    if (robot
+      && entity.mapId === robot.mapId
+      && Math.abs(entity.position.x - robot.position.x)
+        + Math.abs(entity.position.y - robot.position.y) === 1) {
+      base.inventory = entity.inventory;
+    }
   }
   return base;
 }
 
-function entitySymbol(entity) {
+function entitySymbol(entity, map) {
   if (entity.type === "actor") return entity.role === "robot" ? "R" : "P";
   if (entity.type === "plant") {
-    return entity.growthStage >= entity.matureStage ? "H" : "p";
+    const watered = map.terrain[entity.position.y][entity.position.x] === "wet_tilled";
+    if (entity.growthStage >= entity.matureStage) return watered ? "H" : "h";
+    return watered ? "G" : "g";
   }
   return ENTITY_SYMBOLS[entity.type] ?? "?";
 }
@@ -164,16 +173,23 @@ export function asciiMap(map, entities, bounds) {
   for (const entity of [...entities].sort(
     (first, second) => priority.indexOf(first.type) - priority.indexOf(second.type),
   )) {
-    cells[entity.position.y - bounds.top][entity.position.x - bounds.left] = entitySymbol(entity);
+    cells[entity.position.y - bounds.top][entity.position.x - bounds.left] = entitySymbol(
+      entity,
+      map,
+    );
   }
-  const xAxis = Array.from(
+  const xCoordinates = Array.from(
     { length: bounds.right - bounds.left + 1 },
-    (_value, index) => String((bounds.left + index) % 10),
-  ).join("");
+    (_value, index) => bounds.left + index,
+  );
+  const xTens = xCoordinates.map((coordinate) => (
+    coordinate >= 10 ? String(Math.floor(coordinate / 10) % 10) : " "
+  )).join("");
+  const xOnes = xCoordinates.map((coordinate) => String(coordinate % 10)).join("");
   const rows = cells.map(
     (row, index) => `${String(bounds.top + index).padStart(2, "0")} ${row.join("")}`,
   );
-  return `   ${xAxis}\n${rows.join("\n")}`;
+  return `   ${xTens}\n   ${xOnes}\n${rows.join("\n")}`;
 }
 
 export function inspectGame(controller, {
@@ -230,10 +246,10 @@ export function inspectGame(controller, {
       ), bounds),
       legend: {
         terrain: ". grass, : path, = tilled, W watered, ~ water, _ floor",
-        entities: "R robot, P player, T tree, p crop, H harvest-ready, C chest, B bed, M market, D door, O rock",
+        entities: "R robot, P player, T tree, g dry growing crop, G watered growing crop, h dry harvest-ready crop, H watered harvest-ready crop, C chest, B bed, M market, D door, O rock",
       },
     },
-    entities: entities.map((entity) => publicEntity(entity, robot)),
+    entities: entities.map((entity) => publicEntity(entity, robot, map)),
     operations: mode === "detailed" ? Object.values(state.operations) : activeOperations,
     ...(mode === "detailed" ? { terrain: map.terrain } : {}),
     ...(includeHistory ? { history: state.history.slice(-historyLimit) } : {}),
@@ -286,7 +302,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
             type: "array",
             uniqueItems: true,
             items: { type: "string", enum: ["actor", "bed", "chest", "decoration", "market", "plant", "portal", "rock", "tree"] },
-            description: "Only return these entity types. Compact mode excludes decorations by default.",
+            description: "Only return records for these entity types. The ASCII map retains all visible objects as spatial context. Compact records exclude decorations by default.",
           },
           includeHistory: { type: "boolean", description: "Include recent game events." },
           historyLimit: { type: "integer", minimum: 1, maximum: 50, description: "Maximum history records; defaults to 20." },
