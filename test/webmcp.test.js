@@ -5,6 +5,8 @@ import { createController } from "../src/application/controller.js";
 import { registerWebMcp } from "../src/adapters/webmcp/adapter.js";
 import { createWebMcpTools, inspectGame } from "../src/adapters/webmcp/tools.js";
 import { createGameState } from "../src/game/state.js";
+import { createChest } from "../src/game/world/entities/containers/chests.js";
+import { addWorldEntity } from "../src/game/world/world.js";
 
 function toolByName(tools, name) {
   return tools.find((tool) => tool.name === name);
@@ -93,6 +95,38 @@ test("move_to stays pending until simulation ticks complete", async () => {
   assert.ok(result.recoverableNextActions.includes("interact_at"));
 });
 
+test("paused WebMCP operations remain pending and resume as the same operation", async () => {
+  const controller = createController(createGameState());
+  const tools = createWebMcpTools(controller);
+  controller.setTicksEnabled(false);
+  const promise = toolByName(tools, "move_to").execute({ x: 2, y: 2 });
+  await Promise.resolve();
+
+  const operation = Object.values(controller.getSnapshot().operations)[0];
+  assert.equal(operation.status, "waiting_for_ticks");
+  assert.equal(controller.tick().code, "TICKS_PAUSED");
+  assert.equal(controller.getSnapshot().tick, 0);
+
+  controller.setTicksEnabled(true);
+  tickUntilIdle(controller);
+  const output = await promise;
+  assert.equal(output.operationId, operation.operationId);
+  assert.equal(output.code, "DESTINATION_REACHED");
+});
+
+test("an unobserved tool call continues authoritatively to completion", async () => {
+  const controller = createController(createGameState());
+  const tools = createWebMcpTools(controller);
+  const abandonedForNow = toolByName(tools, "move_to").execute({ x: 2, y: 3 });
+  const operationId = controller.getSnapshot().world.entities.robot.activeIntent;
+
+  tickUntilIdle(controller);
+  const operation = controller.getSnapshot().operations[operationId];
+  assert.equal(operation.status, "completed");
+  assert.deepEqual(controller.getSnapshot().world.entities.robot.position, { x: 2, y: 3 });
+  assert.equal((await abandonedForNow).operationId, operationId);
+});
+
 test("failed intent results include privacy-safe recovery context", async () => {
   const controller = createController(createGameState());
   const tools = createWebMcpTools(controller);
@@ -126,6 +160,37 @@ test("interact_at reports the resolved item and changed action state", async () 
   assert.equal(output.robot.stamina, 19);
   assert.equal(output.robot.inventory[1].itemId, "hoe");
   assert.equal("playerInventory" in output.robot, false);
+});
+
+test("WebMCP storage permits delivery but not player inventory withdrawal", async () => {
+  const state = createGameState();
+  addWorldEntity(state.world, createChest({ id: "chest-1", position: { x: 3, y: 1 } }));
+  const controller = createController(state);
+  const transfer = toolByName(createWebMcpTools(controller), "transfer_item");
+
+  const stored = await transfer.execute({
+    fromEntityId: "robot",
+    toEntityId: "chest-1",
+    itemId: "turnip_seeds",
+  });
+  assert.equal(stored.code, "ITEM_TRANSFERRED");
+  assert.equal(state.world.entities["chest-1"].inventory[0].itemId, "turnip_seeds");
+
+  const delivered = await transfer.execute({
+    fromEntityId: "robot",
+    toEntityId: "player",
+    itemId: "turnip_seeds",
+  });
+  assert.equal(delivered.code, "ITEM_TRANSFERRED");
+  assert.equal(delivered.moved, 1);
+
+  const privateWithdrawal = await transfer.execute({
+    fromEntityId: "player",
+    toEntityId: "robot",
+    itemId: "axe",
+  });
+  assert.equal(privateWithdrawal.code, "PLAYER_INVENTORY_PRIVATE");
+  assert.equal("inventory" in privateWithdrawal, false);
 });
 
 test("tool abort requests cancellation and resolves with a structured result", async () => {
