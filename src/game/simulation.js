@@ -1,5 +1,5 @@
 import { GAME_CONFIG } from "./config.js";
-import { getActor, moveStep, useItem } from "./actions/actions.js";
+import { getActor, harvest, moveStep, useItem } from "./actions/actions.js";
 import { getWorldEntitiesByType } from "./world/world.js";
 import { replanOperation } from "./world/entities/actors/intents.js";
 
@@ -62,12 +62,14 @@ function advanceMovement(state, operation) {
 }
 
 function advanceWork(state, operation) {
-  const result = useItem(
-    state,
-    operation.actorId,
-    operation.command.target,
-    operation.command.item,
-  );
+  const result = operation.command.item.action === "harvest"
+    ? harvest(state, operation.actorId, operation.command.target)
+    : useItem(
+      state,
+      operation.actorId,
+      operation.command.target,
+      operation.command.item,
+    );
   if (!result.success) {
     finishOperation(state, operation, "failed", result.code);
     return;

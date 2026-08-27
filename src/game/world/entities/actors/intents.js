@@ -2,6 +2,7 @@ import { CARDINAL_DIRECTIONS, GAME_CONFIG } from "../../../config.js";
 import {
   getActor,
   isWalkable,
+  validateHarvest,
   validateUseItem,
 } from "../../../actions/actions.js";
 import { findPath } from "../../pathfinding.js";
@@ -87,13 +88,9 @@ export function submitInteractAt(state, actorId, target, selector = {}) {
   const available = validateAvailableActor(state, actorId);
   if (!available.success) return available;
 
-  const validation = validateUseItem(
-    state,
-    actorId,
-    target,
-    selector,
-    { requireAdjacent: false },
-  );
+  const validation = selector.action === "harvest"
+    ? validateHarvest(state, actorId, target, { requireAdjacent: false })
+    : validateUseItem(state, actorId, target, selector, { requireAdjacent: false });
   if (!validation.success) return validation;
 
   const route = interactionRoute(state, actorId, target);

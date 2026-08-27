@@ -47,6 +47,8 @@ npm test
 | Pause / 1x / 2x / 5x / 10x | Set the deterministic simulation speed |
 | Sleep | End the day once both farmhands are sleeping |
 
+Select an empty hotbar slot and Shift-click a mature crop to harvest it.
+
 Movement and work now advance through fixed simulation ticks. Pausing stops tick progression without cancelling active player or robot work; resuming continues the same operation.
 
 ## MVP Loop

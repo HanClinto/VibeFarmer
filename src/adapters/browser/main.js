@@ -56,7 +56,7 @@ function updateHotbar(state) {
     key.textContent = index === 9 ? "0" : String(index + 1);
     const label = document.createElement("span");
     label.className = "slot-item";
-    label.textContent = item?.itemId ?? "";
+    label.textContent = item ? `${item.itemId}${item.quantity > 1 ? ` ×${item.quantity}` : ""}` : "";
     button.append(key, label);
     return button;
   }));
@@ -100,10 +100,13 @@ function canvasPosition(event) {
 }
 
 canvas.addEventListener("click", (event) => {
+  const player = controller.getSnapshot().world.entities.player;
+  const selectedItem = player.inventory[player.selectedSlot - 1];
   submit({
     type: event.shiftKey ? "interact_at" : "move_to",
     actorId: "player",
     target: canvasPosition(event),
+    item: event.shiftKey && selectedItem === null ? { action: "harvest" } : undefined,
   });
 });
 

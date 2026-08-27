@@ -1,5 +1,6 @@
 import { CARDINAL_DIRECTIONS, GAME_CONFIG } from "../config.js";
 import { dispatchLifecycleEvent } from "../events.js";
+import { addItem, canAddItem } from "../world/entities/containers/inventory.js";
 import { createPlant } from "../world/entities/plants/plants.js";
 import { getTerrainAt, setTerrainAt } from "../world/terrain/terrain.js";
 import {
@@ -84,6 +85,10 @@ export function validateUseItem(state, actorId, target, selector, { requireAdjac
   if (resolved.item.itemId === "axe" && targetObject?.type !== "tree") {
     return outcome(false, "INVALID_AXE_TARGET");
   }
+  if (resolved.item.itemId === "axe" && targetObject?.hitPoints === 1
+    && !canAddItem(actor.inventory, "logs", 2)) {
+    return outcome(false, "INVENTORY_FULL");
+  }
   if (resolved.item.itemId === "hoe" && (targetObject || terrainType !== "grass")) {
     return outcome(false, "INVALID_HOE_TARGET");
   }
@@ -106,6 +111,24 @@ export function validateUseItem(state, actorId, target, selector, { requireAdjac
     targetObject,
     terrainType,
   });
+}
+
+export function validateHarvest(state, actorId, target, { requireAdjacent = true } = {}) {
+  const actor = getActor(state, actorId);
+  if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
+  if (!isInBounds(state.world, target)) return outcome(false, "TARGET_OUT_OF_BOUNDS");
+  if (requireAdjacent && !isAdjacent(actor.position, target)) {
+    return outcome(false, "TARGET_NOT_ADJACENT");
+  }
+
+  const plant = getWorldObject(state.world, target);
+  if (plant?.type !== "plant" || plant.growthStage < plant.matureStage) {
+    return outcome(false, "CROP_NOT_READY");
+  }
+  if (!canAddItem(actor.inventory, plant.cropType, 1)) {
+    return outcome(false, "INVENTORY_FULL");
+  }
+  return outcome(true, "HARVEST_VALID", { actor, plant });
 }
 
 function addHistory(state, event) {
@@ -146,7 +169,10 @@ export function useItem(state, actorId, target, selector = {}) {
 
   if (item.itemId === "axe") {
     targetObject.hitPoints -= 1;
-    if (targetObject.hitPoints <= 0) removeWorldEntity(state.world, targetObject.id);
+    if (targetObject.hitPoints <= 0) {
+      addItem(actor.inventory, "logs", 2);
+      removeWorldEntity(state.world, targetObject.id);
+    }
   } else if (item.itemId === "hoe") {
     setTerrainAt(state.world, target, "tilled");
   } else if (item.itemId === "watering_can") {
@@ -173,6 +199,27 @@ export function useItem(state, actorId, target, selector = {}) {
     slot,
     target: { ...target },
     staminaCost,
+  });
+}
+
+export function harvest(state, actorId, target) {
+  const validation = validateHarvest(state, actorId, target);
+  if (!validation.success) return validation;
+
+  const { actor, plant } = validation;
+  addItem(actor.inventory, plant.cropType, 1);
+  removeWorldEntity(state.world, plant.id);
+  addHistory(state, {
+    type: "crop_harvested",
+    actorId,
+    entityId: plant.id,
+    cropType: plant.cropType,
+    target: { ...target },
+  });
+  return outcome(true, "CROP_HARVESTED", {
+    cropType: plant.cropType,
+    quantity: 1,
+    target: { ...target },
   });
 }
 
