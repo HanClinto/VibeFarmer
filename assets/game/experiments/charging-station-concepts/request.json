@@ -1,0 +1,25 @@
+{
+  "subject": "solar-powered robot charging station",
+  "prompt": "A single compact solar-powered robot charging station shaped like a friendly cream metal battery pump, with a small tilted blue solar panel on top, teal charging socket, amber status light, and a clearly readable three-bar battery gauge on the front, practical cozy farm machinery with warm handmade wood details, isolated on a plain white background, no text, no logo, no cable outside the unit",
+  "width": 32,
+  "height": 32,
+  "seed": 18427,
+  "pixellab": {
+    "model": "pixen",
+    "view": "high top-down",
+    "direction": "south-east",
+    "outline": "selective outline",
+    "detail": "medium detail",
+    "no_background": true,
+    "cost_generations": 1,
+    "job_id": "3033ed48-a8ef-4621-8634-658b4164e960"
+  },
+  "retrodiffusion": {
+    "prompt_style": "rd_fast__low_res",
+    "num_images": 4,
+    "remove_bg": true,
+    "upload_outputs": true,
+    "balance_cost_usd": 0.067,
+    "request_id": "da56a81d-2641-46ee-884c-c60ca483c5ac"
+  }
+}

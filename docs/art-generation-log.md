@@ -11,10 +11,12 @@ Initial authorized exploration budget: **$5.05**
 | 003 | RD Fast 16-item P0 static sheet, 256x256, Kenney-derived palette | 1 plus original-background return | $0.028 | $0.771 | Useful tree/stump/coin/prop candidates; weak prompt fidelity and layout. Escalate static sheet to Plus. |
 | 004 | RD Plus 16-item P0 static sheet, 256x256, Kenney-derived palette | 1 plus original-background return | $0.058 | $0.829 | Better 4x4 structure, but key subjects still drifted. Do not escalate the whole sheet to Pro. |
 | 005 | RD Plus focused turnip lifecycle shotgun sheet | 12 extracted candidates plus original-background return | $0.058 | $0.887 | Successful source for seed bag, stages 0-3, and harvested turnip; normalized 16x16 candidates await output-rights confirmation. |
+| 006A | PixelLab Pixen solar charging station, 32x32 | 1 | 1 generation | $0.887 | Clean battery-cabinet silhouette; solar panel reads, but form is more appliance than farm pump. |
+| 006B | RD Fast low-resolution solar charging station, 32x32 | 4 | $0.067 | $0.954 | Candidates 00/01 read clearly as solar charging pumps; 00 is the strongest composition reference. |
 
-**Remaining API balance: $4.163.**
+**Remaining RetroDiffusion API balance: $4.096.**
 
-All requests, responses, outputs, comparison sheets, and notes are stored under `assets/game/experiments/retrodiffusion/`.
+Requests, responses, outputs, comparison sheets, and notes are stored under `assets/game/experiments/`.
 
 ## Free Cost Estimates
 

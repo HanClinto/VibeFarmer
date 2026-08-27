@@ -1,0 +1,17 @@
+{
+  "pixellab": {
+    "status": "completed",
+    "job_id": "3033ed48-a8ef-4621-8634-658b4164e960",
+    "frames": 1,
+    "download_endpoint": "https://api.pixellab.ai/mcp/images/3033ed48-a8ef-4621-8634-658b4164e960/download"
+  },
+  "retrodiffusion": {
+    "status": "succeeded",
+    "request_id": "da56a81d-2641-46ee-884c-c60ca483c5ac",
+    "resolved_prompt_style": "rd_fast__low_res",
+    "requested_images": 4,
+    "balance_cost_usd": 0.067,
+    "remaining_balance_usd": 4.096,
+    "outputs_retained_until_unix": 1787949125
+  }
+}
