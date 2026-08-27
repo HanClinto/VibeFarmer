@@ -53,6 +53,8 @@ The farm-side Market buys seeds and sells turnips or logs one item at a time usi
 The Storage window transfers items one unit at a time with an adjacent farm chest or the robot companion.
 Market and Storage windows can be dragged by their title bars.
 
+The browser keeps a versioned local autosave. New Game requires confirmation; reloading during an active operation preserves completed world changes and cancels only the unfinished operation.
+
 Movement and work now advance through fixed simulation ticks. Pausing stops tick progression without cancelling active player or robot work; resuming continues the same operation.
 
 ## MVP Loop

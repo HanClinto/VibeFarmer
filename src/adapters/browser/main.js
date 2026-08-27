@@ -9,6 +9,7 @@ import {
 import { renderGame } from "./renderer.js";
 import { createRuntime } from "./runtime.js";
 import { makeWindowDraggable } from "./draggable-windows.js";
+import { createPersistence } from "./persistence.js";
 
 const canvas = document.querySelector("#game-canvas");
 const context = canvas.getContext("2d");
@@ -43,8 +44,16 @@ function createFarmState() {
   });
 }
 
-const controller = createController(createFarmState());
-let statusMessage = "Ready";
+const persistence = createPersistence(window.localStorage);
+const restoredSave = persistence.load();
+const controller = createController(restoredSave.state ?? createFarmState());
+const initialStatusMessages = {
+  NO_SAVE: "Ready",
+  SAVE_RESTORED: "Save restored",
+  SAVE_RESTORED_WITH_INTERRUPTED_OPERATION: "Save restored; active work was cancelled",
+  SAVE_CORRUPT: "Invalid save removed; new game started",
+};
+let statusMessage = initialStatusMessages[restoredSave.code];
 let tickProgress = 1;
 let hotbarSignature = null;
 let storageSignature = null;
@@ -54,6 +63,10 @@ const runtime = createRuntime(controller, {
     refresh();
   },
 });
+
+controller.subscribe(({ state }) => persistence.scheduleSave(state));
+window.addEventListener("beforeunload", () => persistence.flush(controller.getSnapshot()));
+persistence.scheduleSave(controller.getSnapshot());
 
 function updateHotbar(state) {
   const player = state.world.entities.player;
@@ -199,6 +212,8 @@ window.addEventListener("keydown", (event) => {
 });
 
 document.querySelector("#new-game-button").addEventListener("click", () => {
+  if (!window.confirm("Start a new game? This will replace the current autosave.")) return;
+  persistence.clear();
   hotbarSignature = null;
   storageSignature = null;
   controller.replaceState(createFarmState());
