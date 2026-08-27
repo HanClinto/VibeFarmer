@@ -5,6 +5,7 @@ import {
   actorHeldItemView,
   chestFrameId,
   getActorRenderPosition,
+  heldItemRenderLayout,
   operationPreview,
   operationWorkView,
   recentActionEffects,
@@ -54,6 +55,19 @@ test("idle actors raise selected items toward the pointer-directed action tile",
   assert.equal(actorHeldItemView(actor).frameId, "actor.robot.raised");
   actor.activeIntent = "operation-1";
   assert.equal(actorHeldItemView(actor), null);
+});
+
+test("held items render at one full tile above the raised actor", () => {
+  assert.deepEqual(heldItemRenderLayout({ x: 4, y: 3 }, "north", 48), {
+    left: 192,
+    top: 106,
+    size: 48,
+  });
+  assert.deepEqual(heldItemRenderLayout({ x: 4, y: 3 }, "east", 48), {
+    left: 198,
+    top: 111,
+    size: 48,
+  });
 });
 
 test("completed transitions render at the authoritative tile", () => {

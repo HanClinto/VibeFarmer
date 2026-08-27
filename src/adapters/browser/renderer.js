@@ -128,24 +128,32 @@ function drawActor(context, actor, scale, simulationTick, tickProgress, sprites,
   context.fillRect(left + scale * 0.18, top + scale * 0.14, scale * 0.68, scale * 0.2);
 }
 
+export function heldItemRenderLayout(position, facing, scale) {
+  const offsets = {
+    north: { x: 0, y: -Math.round(scale * 0.1) },
+    east: { x: Math.round(scale * 0.12), y: 0 },
+    south: { x: 0, y: Math.round(scale * 0.1) },
+    west: { x: -Math.round(scale * 0.12), y: 0 },
+  };
+  const offset = offsets[facing] ?? offsets.south;
+  return {
+    left: (position.x * scale) + offset.x,
+    top: (position.y * scale) - Math.round(scale * 0.68) + offset.y,
+    size: scale,
+  };
+}
+
 function drawHeldItem(context, actor, heldItemView, scale, simulationTick, tickProgress, sprites) {
   if (!heldItemView) return;
   const position = getActorRenderPosition(actor, simulationTick, tickProgress);
-  const offsets = {
-    north: { x: 0, y: -4 },
-    east: { x: 5, y: 0 },
-    south: { x: 0, y: 4 },
-    west: { x: -5, y: 0 },
-  };
-  const offset = offsets[heldItemView.facing] ?? offsets.south;
-  const size = Math.round(scale * 0.42);
+  const layout = heldItemRenderLayout(position, heldItemView.facing, scale);
   drawSprite(
     context,
     sprites,
     `item.${heldItemView.itemId}`,
-    (position.x * scale) + ((scale - size) / 2) + offset.x,
-    (position.y * scale) - (size * 0.32) + offset.y,
-    size,
+    layout.left,
+    layout.top,
+    layout.size,
   );
 }
 
