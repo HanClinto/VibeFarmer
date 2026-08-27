@@ -176,6 +176,57 @@ function drawWorkFeedback(context, actor, work, scale, sprites) {
   }
 }
 
+export function recentActionEffects(state, mapId, lifetimeTicks = 3) {
+  return state.history.filter((event) => (
+    ["crop_harvested", "use_item"].includes(event.type)
+      && event.target?.mapId === mapId
+      && state.tick - event.tick >= 0
+      && state.tick - event.tick <= lifetimeTicks
+  )).map((event) => ({
+    ...event,
+    age: (state.tick - event.tick) / lifetimeTicks,
+  }));
+}
+
+function drawSparkle(context, x, y, size) {
+  context.fillRect(x - size, y, size * 2 + 1, 1);
+  context.fillRect(x, y - size, 1, size * 2 + 1);
+}
+
+function drawActionEffects(context, effects, scale) {
+  for (const effect of effects) {
+    const left = effect.target.x * scale;
+    const top = effect.target.y * scale;
+    const lift = effect.age * 14;
+    context.save();
+    context.globalAlpha = 1 - effect.age;
+    if (effect.type === "crop_harvested") {
+      context.fillStyle = "#fff4a8";
+      drawSparkle(context, left + 10, top + 13 - lift, 3);
+      drawSparkle(context, left + 36, top + 8 - lift, 2);
+      drawSparkle(context, left + 27, top + 31 - lift, 2);
+      context.font = "bold 12px Georgia";
+      context.textAlign = "center";
+      context.strokeStyle = "rgba(44, 35, 31, 0.9)";
+      context.lineWidth = 3;
+      const label = `+${effect.quantity ?? 1}`;
+      context.strokeText(label, left + (scale / 2), top + 9 - lift);
+      context.fillText(label, left + (scale / 2), top + 9 - lift);
+    } else {
+      const colors = {
+        axe: "#e7c08b",
+        hoe: "#b87850",
+        watering_can: "#75cfe8",
+      };
+      context.fillStyle = colors[effect.itemId] ?? "#b6df7a";
+      drawSparkle(context, left + (scale / 2), top + (scale / 2), 4);
+      context.fillRect(left + 10, top + 31, 4, 4);
+      context.fillRect(left + 34, top + 17, 3, 3);
+    }
+    context.restore();
+  }
+}
+
 function drawTileFeedback(context, scale, preview, hoverTarget, currentMapId) {
   if (preview) {
     context.fillStyle = "rgba(255, 244, 207, 0.62)";
@@ -339,6 +390,7 @@ export function renderGame(
     hoverTarget,
     currentMapId,
   );
+  drawActionEffects(context, recentActionEffects(state, currentMapId), scale);
   context.restore();
   return camera;
 }

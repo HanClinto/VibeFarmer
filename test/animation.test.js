@@ -6,6 +6,7 @@ import {
   getActorRenderPosition,
   operationPreview,
   operationWorkView,
+  recentActionEffects,
   terrainFrameId,
 } from "../src/adapters/browser/renderer.js";
 import { CROP_TYPES } from "../src/game/world/entities/plants/crop-types.js";
@@ -129,4 +130,42 @@ test("work feedback exposes shared cooldown progress and selected item", () => {
   });
   state.operations["operation-1"].phase = "moving";
   assert.equal(operationWorkView(state, "player"), null);
+});
+
+test("recent action effects project map-local harvest yield and item impacts", () => {
+  const state = {
+    tick: 12,
+    history: [
+      {
+        type: "crop_harvested",
+        tick: 11,
+        target: { mapId: "farm", x: 4, y: 5 },
+        cropType: "potato",
+        quantity: 3,
+      },
+      {
+        type: "use_item",
+        tick: 10,
+        target: { mapId: "farm", x: 5, y: 5 },
+        itemId: "watering_can",
+      },
+      {
+        type: "use_item",
+        tick: 12,
+        target: { mapId: "farmhouse", x: 1, y: 1 },
+        itemId: "hoe",
+      },
+      {
+        type: "crop_harvested",
+        tick: 8,
+        target: { mapId: "farm", x: 6, y: 5 },
+        quantity: 1,
+      },
+    ],
+  };
+
+  assert.deepEqual(recentActionEffects(state, "farm"), [
+    { ...state.history[0], age: 1 / 3 },
+    { ...state.history[1], age: 2 / 3 },
+  ]);
 });
