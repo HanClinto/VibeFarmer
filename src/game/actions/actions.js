@@ -1,5 +1,10 @@
 import { CARDINAL_DIRECTIONS, GAME_CONFIG } from "../config.js";
+import { dispatchLifecycleEvent } from "../events.js";
+import { createPlant } from "../world/entities/plants/plants.js";
+import { getTerrainAt, setTerrainAt } from "../world/terrain/terrain.js";
 import {
+  addWorldEntity,
+  generateWorldEntityId,
   getWorldEntitiesByType,
   getWorldEntity,
   getWorldObject,
@@ -75,11 +80,19 @@ export function validateUseItem(state, actorId, target, selector, { requireAdjac
   if (!resolved.success) return resolved;
 
   const targetObject = getWorldObject(state.world, target);
+  const terrainType = getTerrainAt(state.world, target);
   if (resolved.item.itemId === "axe" && targetObject?.type !== "tree") {
     return outcome(false, "INVALID_AXE_TARGET");
   }
-  if (resolved.item.itemId === "hoe" && targetObject) {
+  if (resolved.item.itemId === "hoe" && (targetObject || terrainType !== "grass")) {
     return outcome(false, "INVALID_HOE_TARGET");
+  }
+  if (resolved.item.itemId === "watering_can" && terrainType !== "tilled") {
+    return outcome(false, "INVALID_WATER_TARGET");
+  }
+  if (resolved.item.itemId === "turnip_seeds"
+    && (targetObject || !["tilled", "wet_tilled"].includes(terrainType))) {
+    return outcome(false, "INVALID_PLANT_TARGET");
   }
 
   const staminaCost = GAME_CONFIG.staminaCosts[resolved.item.itemId] ?? 0;
@@ -91,6 +104,7 @@ export function validateUseItem(state, actorId, target, selector, { requireAdjac
     slot: resolved.slot,
     staminaCost,
     targetObject,
+    terrainType,
   });
 }
 
@@ -134,7 +148,17 @@ export function useItem(state, actorId, target, selector = {}) {
     targetObject.hitPoints -= 1;
     if (targetObject.hitPoints <= 0) removeWorldEntity(state.world, targetObject.id);
   } else if (item.itemId === "hoe") {
-    state.world.terrain[target.y][target.x] = "tilled";
+    setTerrainAt(state.world, target, "tilled");
+  } else if (item.itemId === "watering_can") {
+    setTerrainAt(state.world, target, "wet_tilled");
+  } else if (item.itemId === "turnip_seeds") {
+    addWorldEntity(state.world, createPlant({
+      id: generateWorldEntityId(state.world, "plant"),
+      cropType: "turnip",
+      position: target,
+    }));
+    item.quantity -= 1;
+    if (item.quantity === 0) actor.inventory[slot - 1] = null;
   }
 
   addHistory(state, {
@@ -150,4 +174,22 @@ export function useItem(state, actorId, target, selector = {}) {
     target: { ...target },
     staminaCost,
   });
+}
+
+export function sleepActor(state, actorId) {
+  const actor = getActor(state, actorId);
+  if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
+  if (actor.activeIntent) return outcome(false, "ACTOR_BUSY", { operationId: actor.activeIntent });
+  actor.sleeping = true;
+  addHistory(state, { type: "actor_slept", actorId, tick: state.tick, day: state.day });
+
+  const actors = getWorldEntitiesByType(state.world, "actor");
+  if (!actors.every((candidate) => candidate.sleeping)) {
+    return outcome(true, "WAITING_FOR_OTHER_ACTORS", { actorId });
+  }
+
+  dispatchLifecycleEvent(state, "day_end");
+  state.day += 1;
+  dispatchLifecycleEvent(state, "day_begin");
+  return outcome(true, "DAY_ADVANCED", { day: state.day });
 }

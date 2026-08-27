@@ -9,6 +9,7 @@ const hotbar = document.querySelector("#hotbar");
 const staminaValue = document.querySelector("#stamina-value");
 const intentStatus = document.querySelector("#intent-status");
 const tickValue = document.querySelector("#tick-value");
+const dayValue = document.querySelector("#day-value");
 
 function createFarmState() {
   return createGameState({
@@ -26,6 +27,7 @@ function createFarmState() {
 const controller = createController(createFarmState());
 let statusMessage = "Ready";
 let tickProgress = 1;
+let hotbarSignature = null;
 const runtime = createRuntime(controller, {
   onFrame: (_state, nextTickProgress) => {
     tickProgress = nextTickProgress;
@@ -35,6 +37,13 @@ const runtime = createRuntime(controller, {
 
 function updateHotbar(state) {
   const player = state.world.entities.player;
+  const nextSignature = JSON.stringify({
+    selectedSlot: player.selectedSlot,
+    inventory: player.inventory,
+  });
+  if (nextSignature === hotbarSignature) return;
+  hotbarSignature = nextSignature;
+
   hotbar.replaceChildren(...player.inventory.map((item, index) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -59,6 +68,7 @@ function refresh(message) {
   renderGame(context, state, { tickProgress });
   updateHotbar(state);
   staminaValue.textContent = `${state.world.entities.player.stamina}/${GAME_CONFIG.maxStamina}`;
+  dayValue.textContent = String(state.day);
   intentStatus.textContent = statusMessage;
   tickValue.textContent = String(state.tick);
 }
@@ -113,6 +123,7 @@ window.addEventListener("keydown", (event) => {
 });
 
 document.querySelector("#new-game-button").addEventListener("click", () => {
+  hotbarSignature = null;
   controller.replaceState(createFarmState());
   refresh("New game started");
 });
@@ -127,6 +138,10 @@ document.querySelector("#robot-demo-button").addEventListener("click", () => {
   submit({ type: "interact_at", actorId: "robot", target, item: { itemId: "axe" } });
 });
 
+document.querySelector("#sleep-button").addEventListener("click", () => {
+  runImmediate({ type: "sleep_actor", actorId: "player" });
+});
+
 document.querySelector(".speed-controls").addEventListener("click", (event) => {
   const button = event.target.closest("button[data-speed]");
   if (!button) return;
@@ -139,7 +154,7 @@ document.querySelector(".speed-controls").addEventListener("click", (event) => {
 });
 
 document.querySelector("#help-button").addEventListener("click", () => {
-  window.alert("Left-click to walk. Shift-click a tree with the axe selected to walk adjacent and swing once. Keys 1-0 select inventory slots.");
+  window.alert("Left-click to walk. Shift-click with the selected axe, hoe, watering can, or seeds to path adjacent and use it once. Keys 1-0 select inventory slots.");
 });
 
 refresh();

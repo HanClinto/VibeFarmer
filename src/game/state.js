@@ -9,6 +9,8 @@ function createActor(id, position, sleeping) {
   const inventory = emptyInventory();
   inventory[0] = { itemId: "axe", quantity: 1 };
   inventory[1] = { itemId: "hoe", quantity: 1 };
+  inventory[2] = { itemId: "watering_can", quantity: 1 };
+  inventory[3] = { itemId: "turnip_seeds", quantity: 6 };
 
   return {
     id,

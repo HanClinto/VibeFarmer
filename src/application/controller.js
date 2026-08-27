@@ -1,4 +1,4 @@
-import { selectSlot } from "../game/actions/actions.js";
+import { selectSlot, sleepActor } from "../game/actions/actions.js";
 import { isOperationTerminal, tick as tickGame } from "../game/simulation.js";
 import { submitInteractAt, submitMoveTo } from "../game/world/entities/actors/intents.js";
 
@@ -26,6 +26,9 @@ export function createController(initialState) {
       switch (command.type) {
         case "select_slot":
           result = selectSlot(state, command.actorId, command.slot);
+          break;
+        case "sleep_actor":
+          result = sleepActor(state, command.actorId);
           break;
         default:
           result = outcome(false, "UNKNOWN_COMMAND", { commandType: command.type });

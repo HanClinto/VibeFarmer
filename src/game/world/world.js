@@ -25,6 +25,7 @@ export function createWorld({
   return {
     width,
     height,
+    nextEntityId: 1,
     terrain: Array.from({ length: height }, () => Array(width).fill("grass")),
     entities: Object.fromEntries(allEntities.map((entity) => [entity.id, { ...entity }])),
   };
@@ -64,4 +65,13 @@ export function getWorldEntity(world, entityId) {
 
 export function getWorldEntitiesByType(world, type) {
   return Object.values(world.entities).filter((entity) => entity.type === type);
+}
+
+export function generateWorldEntityId(world, prefix) {
+  let id;
+  do {
+    id = `${prefix}-${world.nextEntityId}`;
+    world.nextEntityId += 1;
+  } while (world.entities[id]);
+  return id;
 }

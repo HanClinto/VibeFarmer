@@ -3,6 +3,8 @@ import { GAME_CONFIG } from "../../game/config.js";
 const COLORS = Object.freeze({
   grass: "#75aa4f",
   grassAlternate: "#6c9f49",
+  tilled: "#8f5b3b",
+  wetTilled: "#5f463a",
   grid: "#5c8d3d",
   treeTrunk: "#72462a",
   treeLeaves: "#285b35",
@@ -12,7 +14,16 @@ const COLORS = Object.freeze({
   robot: "#c8d0d8",
   robotPanel: "#4f718c",
   shadow: "rgba(24, 45, 29, 0.35)",
+  cropStem: "#244f2c",
+  cropLeaf: "#53a447",
+  cropRoot: "#ddd071",
 });
+
+function terrainColor(terrainType, alternate) {
+  if (terrainType === "tilled") return COLORS.tilled;
+  if (terrainType === "wet_tilled") return COLORS.wetTilled;
+  return alternate ? COLORS.grassAlternate : COLORS.grass;
+}
 
 function drawTree(context, object, scale) {
   const left = object.position.x * scale;
@@ -62,13 +73,28 @@ function drawActor(context, actor, scale, simulationTick, tickProgress) {
   context.fillRect(left + scale * 0.18, top + scale * 0.14, scale * 0.68, scale * 0.2);
 }
 
+function drawPlant(context, plant, scale) {
+  const left = plant.position.x * scale;
+  const top = plant.position.y * scale;
+  const stage = plant.growthStage;
+  context.fillStyle = COLORS.cropStem;
+  context.fillRect(left + scale * 0.46, top + scale * 0.44, scale * 0.12, scale * 0.4);
+  context.fillStyle = COLORS.cropLeaf;
+  context.fillRect(left + scale * 0.26, top + scale * (0.58 - (stage * 0.08)), scale * 0.28, scale * 0.16);
+  context.fillRect(left + scale * 0.52, top + scale * (0.48 - (stage * 0.06)), scale * 0.24, scale * 0.16);
+  if (stage >= plant.matureStage) {
+    context.fillStyle = COLORS.cropRoot;
+    context.fillRect(left + scale * 0.38, top + scale * 0.7, scale * 0.3, scale * 0.2);
+  }
+}
+
 export function renderGame(context, state, { tickProgress = 1 } = {}) {
   const scale = GAME_CONFIG.tileSize * 3;
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
   for (let y = 0; y < state.world.height; y += 1) {
     for (let x = 0; x < state.world.width; x += 1) {
-      context.fillStyle = (x + y) % 2 === 0 ? COLORS.grass : COLORS.grassAlternate;
+      context.fillStyle = terrainColor(state.world.terrain[y][x], (x + y) % 2 !== 0);
       context.fillRect(x * scale, y * scale, scale, scale);
       context.strokeStyle = COLORS.grid;
       context.strokeRect(x * scale, y * scale, scale, scale);
@@ -77,6 +103,7 @@ export function renderGame(context, state, { tickProgress = 1 } = {}) {
 
   for (const object of Object.values(state.world.entities)) {
     if (object.type === "tree") drawTree(context, object, scale);
+    else if (object.type === "plant") drawPlant(context, object, scale);
   }
 
   drawActor(context, state.world.entities.player, scale, state.tick, tickProgress);

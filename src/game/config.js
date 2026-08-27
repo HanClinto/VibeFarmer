@@ -13,6 +13,8 @@ export const GAME_CONFIG = Object.freeze({
   staminaCosts: Object.freeze({
     axe: 2,
     hoe: 1,
+    watering_can: 1,
+    turnip_seeds: 1,
   }),
 });
 
