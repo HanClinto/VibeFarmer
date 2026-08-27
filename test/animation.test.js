@@ -7,6 +7,7 @@ import {
   operationPreview,
   operationWorkView,
   recentActionEffects,
+  renderGame,
   terrainFrameId,
 } from "../src/adapters/browser/renderer.js";
 import { CROP_TYPES } from "../src/game/world/entities/plants/crop-types.js";
@@ -101,6 +102,38 @@ test("operation preview exposes only current-map route steps and destination", (
   });
   state.world.entities.player.activeIntent = null;
   assert.equal(operationPreview(state, "player"), null);
+});
+
+test("secondary rendering can focus the robot on a different map", () => {
+  const state = {
+    tick: 0,
+    history: [],
+    operations: {},
+    world: {
+      maps: {
+        farm: { id: "farm", width: 1, height: 1, terrain: [["grass"]] },
+        farmhouse: { id: "farmhouse", width: 1, height: 1, terrain: [["floor"]] },
+      },
+      entities: {
+        player: { id: "player", type: "actor", role: "player", mapId: "farm", position: { x: 0, y: 0 }, inventory: [], selectedSlot: 1 },
+        robot: { id: "robot", type: "actor", role: "robot", mapId: "farmhouse", position: { x: 0, y: 0 }, inventory: [], selectedSlot: 1 },
+      },
+    },
+  };
+  const fills = [];
+  const context = {
+    canvas: { width: 48, height: 48 },
+    clearRect() {},
+    fillRect(...values) { fills.push(values); },
+    strokeRect() {},
+    drawImage() {},
+    save() {},
+    restore() {},
+    translate() {},
+  };
+
+  assert.deepEqual(renderGame(context, state, { focusActorId: "robot" }), { x: 0, y: 0 });
+  assert.ok(fills.length > 0);
 });
 
 test("work feedback exposes shared cooldown progress and selected item", () => {

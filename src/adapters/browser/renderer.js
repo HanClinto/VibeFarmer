@@ -308,6 +308,7 @@ export function renderGame(
     sprites = null,
     openEntityIds = new Set(),
     hoverTarget = null,
+    focusActorId = "player",
   } = {},
 ) {
   const scale = RENDER_TILE_SIZE;
@@ -315,15 +316,16 @@ export function renderGame(
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
   context.fillStyle = COLORS.mapBackdrop;
   context.fillRect(0, 0, context.canvas.width, context.canvas.height);
-  const playerPosition = getActorRenderPosition(
-    state.world.entities.player,
+  const focusActor = state.world.entities[focusActorId];
+  const focusPosition = getActorRenderPosition(
+    focusActor,
     state.tick,
     tickProgress,
   );
-  const currentMapId = state.world.entities.player.mapId;
+  const currentMapId = focusActor.mapId;
   const currentMap = getWorldMap(state.world, currentMapId);
   const camera = computeCamera({
-    focus: playerPosition,
+    focus: focusPosition,
     worldWidth: currentMap.width,
     worldHeight: currentMap.height,
     viewportWidth: context.canvas.width,
@@ -365,14 +367,16 @@ export function renderGame(
     }
   }
 
-  drawActor(context, state.world.entities.player, scale, state.tick, tickProgress, sprites);
-  drawWorkFeedback(
-    context,
-    state.world.entities.player,
-    operationWorkView(state, "player"),
-    scale,
-    sprites,
-  );
+  if (state.world.entities.player.mapId === currentMapId) {
+    drawActor(context, state.world.entities.player, scale, state.tick, tickProgress, sprites);
+    drawWorkFeedback(
+      context,
+      state.world.entities.player,
+      operationWorkView(state, "player"),
+      scale,
+      sprites,
+    );
+  }
   if (state.world.entities.robot.mapId === currentMapId) {
     drawActor(context, state.world.entities.robot, scale, state.tick, tickProgress, sprites);
     drawWorkFeedback(
@@ -386,7 +390,7 @@ export function renderGame(
   drawTileFeedback(
     context,
     scale,
-    operationPreview(state, "player"),
+    operationPreview(state, focusActorId),
     hoverTarget,
     currentMapId,
   );

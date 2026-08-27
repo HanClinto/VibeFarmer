@@ -56,3 +56,11 @@ test("resizable Market layout preserves the hidden window contract", () => {
   assert.match(css, /\.market-window\s*\{[^}]*display:\s*flex;/s);
   assert.match(css, /\.market-window\[hidden\]\s*\{[^}]*display:\s*none;/s);
 });
+
+test("Robot View modes preserve the hidden element contract", () => {
+  const css = readFileSync("styles/game.css", "utf8");
+  assert.match(
+    css,
+    /\.robot-view-frame\s*>\s*\[hidden\]\s*\{[^}]*display:\s*none\s*!important;/s,
+  );
+});

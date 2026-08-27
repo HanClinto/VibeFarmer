@@ -114,6 +114,18 @@
           <section role="tabpanel" id="inspector-panel-overview" aria-labelledby="inspector-tab-overview" data-inspector-panel="overview">
             <div class="robot-overview">
               <dl id="inspector-robot-summary" class="robot-summary"></dl>
+              <div class="robot-view-heading">
+                <h3>World view</h3>
+                <div class="robot-view-modes" role="group" aria-label="Robot world view">
+                  <button type="button" data-robot-view="camera" aria-pressed="true">Camera</button>
+                  <button type="button" data-robot-view="agent" aria-pressed="false">Agent</button>
+                </div>
+              </div>
+              <div class="robot-view-frame">
+                <canvas id="inspector-robot-camera" width="336" height="192" aria-label="Camera centered on the robot"></canvas>
+                <pre id="inspector-robot-agent-view" aria-label="World returned by inspect game" hidden></pre>
+              </div>
+              <p id="inspector-robot-view-status" class="robot-view-status"></p>
               <h3>Inventory</h3>
               <div id="inspector-robot-inventory" class="robot-inventory" role="list" aria-label="Robot inventory"></div>
               <details>

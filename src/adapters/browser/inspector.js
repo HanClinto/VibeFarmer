@@ -1,8 +1,13 @@
 import { renderCollapsibleLog } from "./collapsible-log.js";
 import { renderJson } from "./json-view.js";
+import { renderGame } from "./renderer.js";
 
 function formatted(value) {
   return JSON.stringify(value, null, 2);
+}
+
+function mapLabel(mapId) {
+  return mapId === "farmhouse" ? "Farmhouse" : mapId === "farm" ? "Farm" : mapId;
 }
 
 function sampleInput(tool) {
@@ -65,12 +70,18 @@ export function createInspector({
   invocationLog,
   webMcpSupported,
   sprites,
+  getTickProgress = () => 1,
+  inspectRobot,
 }) {
   const tabButtons = [...root.querySelectorAll("button[data-inspector-tab]")];
   const panels = [...root.querySelectorAll("[data-inspector-panel]")];
   const overview = root.querySelector("#inspector-overview");
   const robotSummary = root.querySelector("#inspector-robot-summary");
   const robotInventory = root.querySelector("#inspector-robot-inventory");
+  const robotCamera = root.querySelector("#inspector-robot-camera");
+  const robotAgentView = root.querySelector("#inspector-robot-agent-view");
+  const robotViewStatus = root.querySelector("#inspector-robot-view-status");
+  const robotViewButtons = [...root.querySelectorAll("button[data-robot-view]")];
   const toolSelect = root.querySelector("#inspector-tool-select");
   const toolDescription = root.querySelector("#inspector-tool-description");
   const toolSchema = root.querySelector("#inspector-tool-schema");
@@ -84,6 +95,7 @@ export function createInspector({
   let activeTab = "overview";
   let activeAbortController = null;
   let renderSignature = null;
+  let robotViewMode = "camera";
 
   toolSelect.replaceChildren(...tools.map((tool) => {
     const option = document.createElement("option");
@@ -115,9 +127,36 @@ export function createInspector({
     refresh(true);
   }
 
+  function selectRobotView(mode) {
+    robotViewMode = mode;
+    robotCamera.hidden = mode !== "camera";
+    robotAgentView.hidden = mode !== "agent";
+    for (const button of robotViewButtons) {
+      button.setAttribute("aria-pressed", String(button.dataset.robotView === mode));
+    }
+    refresh(true);
+  }
+
+  function renderRobotView(state) {
+    const robot = state.world.entities.robot;
+    if (robotViewMode === "camera") {
+      renderGame(robotCamera.getContext("2d"), state, {
+        tickProgress: getTickProgress(),
+        sprites,
+        focusActorId: "robot",
+      });
+      robotViewStatus.textContent = `${mapLabel(robot.mapId)} · (${robot.position.x}, ${robot.position.y})`;
+      return;
+    }
+    const observation = inspectRobot();
+    robotAgentView.textContent = observation.view.ascii;
+    robotViewStatus.textContent = `${mapLabel(observation.map.id)} · radius ${observation.view.radius}`;
+  }
+
   function refresh(force = false) {
     if (root.hidden) return;
     const state = controller.getSnapshot();
+    if (activeTab === "overview" && robotViewMode === "camera") renderRobotView(state);
     const nextSignature = activeTab === "log"
       ? `log:${invocationLog.length}:${invocationLog.at(-1)?.status ?? ""}`
       : `${activeTab}:${state.tick}:${state.history.length}`;
@@ -126,6 +165,7 @@ export function createInspector({
 
     if (activeTab === "overview") {
       const view = robotOverview(state);
+      if (robotViewMode === "agent") renderRobotView(state);
       const summaryFields = [
         ["Status", view.status],
         ["Location", view.location],
@@ -203,6 +243,9 @@ export function createInspector({
       target.focus();
     });
   }
+  for (const button of robotViewButtons) {
+    button.addEventListener("click", () => selectRobotView(button.dataset.robotView));
+  }
   toolSelect.addEventListener("change", renderTool);
 
   invokeButton.addEventListener("click", async () => {
@@ -237,6 +280,7 @@ export function createInspector({
 
   cancelButton.addEventListener("click", () => activeAbortController?.abort());
   renderTool();
+  selectRobotView("camera");
   selectTab("overview");
 
   return {

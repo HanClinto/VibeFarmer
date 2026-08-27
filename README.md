@@ -51,7 +51,7 @@ npm test
 | Space / E | Use the selected item on the faced tile |
 | Escape | Close the frontmost open window |
 
-Select an empty hotbar slot and Shift-click a mature crop to harvest it.
+Interact with a mature crop to harvest it regardless of the selected hotbar item.
 Crop tiles are walkable. Hoeing a stage-0 crop refunds its seed; hoeing a later crop destroys it.
 Nearby contextual actions appear automatically in the game menu. Beside a produce display, choose Open Market to trade using shared money; both farmhands must be beside the market to buy or sell.
 Beside a chest or the robot, choose Open Chest or Open Robot Storage. Click moves one item; Shift-click moves the visible stack.
@@ -62,7 +62,7 @@ Sound is opt-in from the game menu. Short synthesized cues cover farming actions
 
 The browser keeps a versioned local autosave. New Game requires confirmation; reloading during an active current-version operation preserves completed world changes and cancels only the unfinished operation. Outdated pre-1.0 development saves reset instead of being migrated.
 
-Robot Inspector derives its MCP view from the registered WebMCP definitions and explains that these protocol tools are available to a local agent controlling the robot. It shows schemas, manual test invocation, operation records, game events, and WebMCP timing. Its collapsed Testing section contains simulation speed/tick controls and the chop-tree demo shortcut.
+Robot Inspector derives its MCP view from the registered WebMCP definitions and explains that these protocol tools are available to a local agent controlling the robot. Its Overview includes a sprite camera centered on the robot and an Agent view showing the exact default `inspect_game` ASCII observation. It also shows schemas, manual test invocation, operation records, game events, and WebMCP timing. Its collapsed Testing section contains simulation speed/tick controls and the chop-tree demo shortcut.
 
 `inspect_game` defaults to a compact coordinate-labeled ASCII view around the robot, useful nearby entities, type counts, robot state, and active operations. Agents may choose another map/center/radius, filter entity types, request bounded history, or opt into `mode: "detailed"` when the full selected-map terrain matrix is genuinely needed.
 

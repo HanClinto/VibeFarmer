@@ -28,6 +28,7 @@ import { actionForCanvasClick } from "./pointer-controls.js";
 import { marketListings, marketStateSignature } from "./market.js";
 import { createGameAudio } from "./audio.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
+import { inspectGame } from "../webmcp/tools.js";
 
 const canvas = document.querySelector("#game-canvas");
 const context = canvas.getContext("2d");
@@ -234,6 +235,8 @@ registerWebMcp(document.modelContext, controller, {
     invocationLog,
     webMcpSupported: supported,
     sprites,
+    getTickProgress: () => tickProgress,
+    inspectRobot: () => inspectGame(controller),
   });
 });
 
