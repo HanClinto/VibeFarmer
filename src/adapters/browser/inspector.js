@@ -31,6 +31,12 @@ export function nextTabIndex(key, currentIndex, tabCount) {
   return currentIndex;
 }
 
+export function operationSummary(operation, currentTick) {
+  const elapsedTicks = (operation.completedTick ?? currentTick) - operation.submittedTick;
+  return `${operation.operationId} · ${operation.actorId} · ${operation.command.type}`
+    + ` · ${operation.status} · ${elapsedTicks} ticks`;
+}
+
 export function createInspector({
   root,
   controller,
@@ -49,6 +55,7 @@ export function createInspector({
   const invokeButton = root.querySelector("#inspector-invoke-button");
   const cancelButton = root.querySelector("#inspector-cancel-button");
   const operations = root.querySelector("#inspector-operations");
+  const operationsEmpty = root.querySelector("#inspector-operations-empty");
   const log = root.querySelector("#inspector-log");
   let activeTab = "overview";
   let activeAbortController = null;
@@ -111,7 +118,12 @@ export function createInspector({
         },
       });
     } else if (activeTab === "operations") {
-      operations.textContent = formatted(Object.values(state.operations));
+      const records = Object.values(state.operations).reverse();
+      operationsEmpty.hidden = records.length > 0;
+      renderCollapsibleLog(operations, records, {
+        getId: (operation) => operation.operationId,
+        getSummary: (operation) => operationSummary(operation, state.tick),
+      });
     } else if (activeTab === "log") {
       renderCollapsibleLog(log, invocationLog.slice(-25).reverse(), {
         getId: (invocation) => invocation.invocationId,
