@@ -20,6 +20,7 @@ import {
 } from "./keyboard-controls.js";
 import { createObjectInspector } from "./object-inspector.js";
 import { createPersistence } from "./persistence.js";
+import { renderDaySummary } from "./day-summary.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 
 const canvas = document.querySelector("#game-canvas");
@@ -42,6 +43,7 @@ const storageStatus = document.querySelector("#storage-status");
 const inspectorWindow = document.querySelector("#inspector-window");
 const actionLogWindow = document.querySelector("#action-log-window");
 const objectInspectorWindow = document.querySelector("#object-inspector-window");
+const daySummaryWindow = document.querySelector("#day-summary-window");
 const windowManager = createWindowManager();
 const sprites = await loadSpriteCatalog();
 
@@ -50,6 +52,7 @@ makeWindowDraggable(storageWindow);
 makeWindowDraggable(inspectorWindow);
 makeWindowDraggable(actionLogWindow);
 makeWindowDraggable(objectInspectorWindow);
+makeWindowDraggable(daySummaryWindow);
 
 const persistence = createPersistence(window.localStorage);
 const restoredSave = persistence.load();
@@ -97,6 +100,11 @@ const objectInspectorDialog = windowManager.register({
   closeButton: document.querySelector("#object-inspector-close-button"),
   onOpen: () => objectInspector.refresh(),
 });
+const daySummaryDialog = windowManager.register({
+  windowElement: daySummaryWindow,
+  launcher: document.querySelector("#sleep-button"),
+  closeButton: document.querySelector("#day-summary-close-button"),
+});
 const initialStatusMessages = {
   NO_SAVE: "Ready",
   SAVE_RESTORED: "Save restored",
@@ -119,7 +127,12 @@ const runtime = createRuntime(controller, {
   },
 });
 
-controller.subscribe(({ state }) => persistence.scheduleSave(state));
+controller.subscribe(({ state, result }) => {
+  persistence.scheduleSave(state);
+  if (result.code !== "DAY_ADVANCED") return;
+  renderDaySummary(daySummaryWindow, result.summary);
+  daySummaryDialog.open();
+});
 window.addEventListener("beforeunload", () => persistence.flush(controller.getSnapshot()));
 persistence.scheduleSave(controller.getSnapshot());
 registerWebMcp(document.modelContext, controller, {
@@ -465,6 +478,11 @@ document.querySelector("#robot-demo-button").addEventListener("click", () => {
 
 document.querySelector("#sleep-button").addEventListener("click", () => {
   runImmediate({ type: "sleep_actor", actorId: "player" });
+});
+
+document.querySelector("#day-summary-continue-button").addEventListener("click", () => {
+  daySummaryDialog.close();
+  canvas.focus({ preventScroll: true });
 });
 
 document.querySelector("#market-button").addEventListener("click", () => {

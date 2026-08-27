@@ -1,4 +1,5 @@
 import { GAME_CONFIG } from "./config.js";
+import { createDayStats } from "./day-summary.js";
 import { addWorldEntity, createWorld } from "./world/world.js";
 
 function emptyInventory() {
@@ -44,5 +45,7 @@ export function createGameState({
     operations: {},
     world,
     history: [],
+    dayStats: createDayStats(1),
+    lastDaySummary: null,
   };
 }

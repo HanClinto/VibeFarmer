@@ -108,6 +108,58 @@ canvas {
   overflow: hidden;
 }
 
+.day-summary-window {
+  position: fixed;
+  z-index: 40;
+  top: 50%;
+  left: 50%;
+  width: 460px;
+  transform: translate(-50%, -50%);
+}
+
+.day-summary-body {
+  display: grid;
+  gap: 10px;
+}
+
+.day-summary-actors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.day-summary-actors section {
+  padding: 6px;
+  border: 1px inset #fff;
+}
+
+.day-summary-body h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+
+.day-summary-body dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 10px;
+  margin: 0;
+}
+
+.day-summary-body dt,
+.day-summary-body dd {
+  margin: 0;
+}
+
+.day-summary-body dd {
+  font-weight: 700;
+  text-align: right;
+}
+
+#day-summary-continue-button {
+  justify-self: end;
+  min-width: 130px;
+}
+
 .hotbar button[aria-pressed="true"] {
   outline: 2px solid #001f7a;
   outline-offset: -4px;

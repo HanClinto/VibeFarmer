@@ -1,4 +1,5 @@
 import { CARDINAL_DIRECTIONS, GAME_CONFIG } from "../config.js";
+import { createDayStats, finalizeDaySummary, recordDayEvent } from "../day-summary.js";
 import { dispatchLifecycleEvent } from "../events.js";
 import {
   addItem,
@@ -166,7 +167,9 @@ export function validateHarvest(state, actorId, target, { requireAdjacent = true
 }
 
 function addHistory(state, event) {
-  state.history.push({ tick: state.tick, ...event });
+  const recorded = { tick: state.tick, day: state.day, ...event };
+  state.history.push(recorded);
+  recordDayEvent(state, recorded);
   if (state.history.length > 200) state.history.shift();
 }
 
@@ -302,9 +305,12 @@ export function sleepActor(state, actorId) {
   }
 
   dispatchLifecycleEvent(state, "day_end");
+  const summary = finalizeDaySummary(state);
+  state.lastDaySummary = summary;
   state.day += 1;
+  state.dayStats = createDayStats(state.day);
   dispatchLifecycleEvent(state, "day_begin");
-  return outcome(true, "DAY_ADVANCED", { day: state.day });
+  return outcome(true, "DAY_ADVANCED", { day: state.day, summary });
 }
 
 export function buyItem(state, actorId, itemId, quantity = 1) {

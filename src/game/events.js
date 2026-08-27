@@ -1,4 +1,5 @@
 import { actorEventHandlers } from "./world/entities/actors/actor-events.js";
+import { recordDayEvent } from "./day-summary.js";
 import { plantEventHandlers } from "./world/entities/plants/plant-events.js";
 import { terrainEventHandlers } from "./world/terrain/terrain-events.js";
 
@@ -14,7 +15,9 @@ const entityHandlers = Object.freeze({
 });
 
 function recordEvent(state, event) {
-  state.history.push({ ...event, tick: state.tick, day: state.day });
+  const recorded = { ...event, tick: state.tick, day: state.day };
+  state.history.push(recorded);
+  recordDayEvent(state, recorded);
   if (state.history.length > 200) state.history.shift();
 }
 
