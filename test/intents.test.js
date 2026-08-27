@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { GAME_CONFIG } from "../src/config.js";
-import { interactAt, moveTo } from "../src/intents.js";
-import { createGameState } from "../src/state.js";
-import { createWorld } from "../src/world.js";
+import { GAME_CONFIG } from "../src/game/config.js";
+import { interactAt, moveTo } from "../src/game/world/entities/actors/intents.js";
+import { createGameState } from "../src/game/state.js";
+import { createWorld } from "../src/game/world/world.js";
 
 function createParityState(actorId) {
   const state = createGameState({

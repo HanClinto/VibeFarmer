@@ -1,4 +1,4 @@
-import { GAME_CONFIG } from "./config.js";
+import { GAME_CONFIG } from "../config.js";
 
 export function positionKey({ x, y }) {
   return `${x},${y}`;

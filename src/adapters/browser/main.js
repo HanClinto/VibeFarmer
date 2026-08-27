@@ -1,8 +1,6 @@
-import { GAME_CONFIG } from "./config.js";
-import { interactAt, moveTo } from "./intents.js";
+import { createController } from "../../application/controller.js";
+import { GAME_CONFIG, createGameState, createWorld } from "../../game/index.js";
 import { renderGame } from "./renderer.js";
-import { createGameState } from "./state.js";
-import { createWorld } from "./world.js";
 
 const canvas = document.querySelector("#game-canvas");
 const context = canvas.getContext("2d");
@@ -23,9 +21,9 @@ function createFarmState() {
   });
 }
 
-let state = createFarmState();
+const controller = createController(createFarmState());
 
-function updateHotbar() {
+function updateHotbar(state) {
   hotbar.replaceChildren(...state.actors.player.inventory.map((item, index) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -45,14 +43,21 @@ function updateHotbar() {
 }
 
 function refresh(message = "Ready") {
+  const state = controller.getSnapshot();
   renderGame(context, state);
-  updateHotbar();
+  updateHotbar(state);
   staminaValue.textContent = `${state.actors.player.stamina}/${GAME_CONFIG.maxStamina}`;
   intentStatus.textContent = message;
 }
 
+function run(command) {
+  const result = controller.execute(command);
+  refresh(result.success ? result.code : `Cannot act: ${result.code}`);
+}
+
 function canvasPosition(event) {
   const bounds = canvas.getBoundingClientRect();
+  const state = controller.getSnapshot();
   return {
     x: Math.floor((event.clientX - bounds.left) / (bounds.width / state.world.width)),
     y: Math.floor((event.clientY - bounds.top) / (bounds.height / state.world.height)),
@@ -60,39 +65,41 @@ function canvasPosition(event) {
 }
 
 canvas.addEventListener("click", (event) => {
-  const target = canvasPosition(event);
-  const result = event.shiftKey
-    ? interactAt(state, "player", target)
-    : moveTo(state, "player", target);
-  refresh(result.success ? result.code : `Cannot act: ${result.code}`);
+  run({
+    type: event.shiftKey ? "interact_at" : "move_to",
+    actorId: "player",
+    target: canvasPosition(event),
+  });
 });
 
 hotbar.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-slot]");
   if (!button) return;
-  state.actors.player.selectedSlot = Number(button.dataset.slot);
-  refresh(`Selected slot ${button.dataset.slot}`);
+  run({ type: "select_slot", actorId: "player", slot: Number(button.dataset.slot) });
 });
 
 window.addEventListener("keydown", (event) => {
   if (!/^[0-9]$/.test(event.key)) return;
-  state.actors.player.selectedSlot = event.key === "0" ? 10 : Number(event.key);
-  refresh(`Selected slot ${state.actors.player.selectedSlot}`);
+  run({
+    type: "select_slot",
+    actorId: "player",
+    slot: event.key === "0" ? 10 : Number(event.key),
+  });
 });
 
 document.querySelector("#new-game-button").addEventListener("click", () => {
-  state = createFarmState();
+  controller.replaceState(createFarmState());
   refresh("New game started");
 });
 
 document.querySelector("#robot-demo-button").addEventListener("click", () => {
-  const target = Object.values(state.world.objects).find((object) => object.type === "tree");
+  const target = Object.values(controller.getSnapshot().world.objects)
+    .find((object) => object.type === "tree");
   if (!target) {
     refresh("No trees remain");
     return;
   }
-  const result = interactAt(state, "robot", target, { itemId: "axe" });
-  refresh(result.success ? "Robot used its axe once" : `Robot stopped: ${result.code}`);
+  run({ type: "interact_at", actorId: "robot", target, item: { itemId: "axe" } });
 });
 
 document.querySelector("#help-button").addEventListener("click", () => {

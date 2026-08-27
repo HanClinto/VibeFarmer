@@ -6,7 +6,6 @@ export const GAME_CONFIG = Object.freeze({
   maxStackSize: 99,
   maxStamina: 20,
   treeHitPoints: 3,
-  maxRobotPlanLength: 24,
   staminaCosts: Object.freeze({
     axe: 2,
     hoe: 1,

@@ -1,5 +1,5 @@
-import { CARDINAL_DIRECTIONS, GAME_CONFIG } from "./config.js";
-import { getWorldObject, isInBounds, positionKey } from "./world.js";
+import { CARDINAL_DIRECTIONS, GAME_CONFIG } from "../config.js";
+import { getWorldObject, isInBounds, positionKey } from "../world/world.js";
 
 function outcome(success, code, details = {}) {
   return { success, code, ...details };
@@ -37,14 +37,23 @@ export function resolveItem(actor, selector = {}) {
   }
 
   const item = actor.inventory[slotIndex] ?? null;
-  if (!item) {
-    return outcome(false, "ITEM_NOT_FOUND");
-  }
+  if (!item) return outcome(false, "ITEM_NOT_FOUND");
 
   return outcome(true, "ITEM_RESOLVED", {
     slot: slotIndex + 1,
     item,
   });
+}
+
+export function selectSlot(state, actorId, slot) {
+  const actor = getActor(state, actorId);
+  if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
+  if (!Number.isInteger(slot) || slot < 1 || slot > actor.inventory.length) {
+    return outcome(false, "INVALID_INVENTORY_SLOT");
+  }
+
+  actor.selectedSlot = slot;
+  return outcome(true, "SLOT_SELECTED", { actorId, slot });
 }
 
 export function validateUseItem(state, actorId, target, selector, { requireAdjacent = true } = {}) {
@@ -109,9 +118,7 @@ export function useItem(state, actorId, target, selector = {}) {
 
   if (item.itemId === "axe") {
     targetObject.hitPoints -= 1;
-    if (targetObject.hitPoints <= 0) {
-      delete state.world.objects[positionKey(target)];
-    }
+    if (targetObject.hitPoints <= 0) delete state.world.objects[positionKey(target)];
   } else if (item.itemId === "hoe") {
     state.world.terrain[target.y][target.x] = "tilled";
   }

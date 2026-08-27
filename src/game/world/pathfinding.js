@@ -1,4 +1,4 @@
-import { CARDINAL_DIRECTIONS } from "./config.js";
+import { CARDINAL_DIRECTIONS } from "../config.js";
 import { positionKey } from "./world.js";
 
 function manhattan(first, second) {

@@ -1,4 +1,4 @@
-import { GAME_CONFIG } from "./config.js";
+import { GAME_CONFIG } from "../../game/config.js";
 
 const COLORS = Object.freeze({
   grass: "#75aa4f",
@@ -31,7 +31,7 @@ function drawActor(context, actor, scale) {
   context.fillStyle = COLORS.shadow;
   context.fillRect(left + scale * 0.2, top + scale * 0.76, scale * 0.62, scale * 0.14);
 
-  if (actor.id === "robot") {
+  if (actor.role === "robot") {
     context.fillStyle = COLORS.robot;
     context.fillRect(left + scale * 0.24, top + scale * 0.18, scale * 0.54, scale * 0.64);
     context.fillStyle = COLORS.robotPanel;

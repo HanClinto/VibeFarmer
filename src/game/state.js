@@ -1,5 +1,5 @@
 import { GAME_CONFIG } from "./config.js";
-import { createWorld } from "./world.js";
+import { createWorld } from "./world/world.js";
 
 function emptyInventory() {
   return Array.from({ length: GAME_CONFIG.inventorySlots }, () => null);
@@ -12,6 +12,7 @@ function createActor(id, position, sleeping) {
 
   return {
     id,
+    role: id === "robot" ? "robot" : "human",
     position: { ...position },
     facing: "south",
     stamina: GAME_CONFIG.maxStamina,

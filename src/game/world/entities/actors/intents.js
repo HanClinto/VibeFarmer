@@ -1,12 +1,12 @@
-import { CARDINAL_DIRECTIONS } from "./config.js";
+import { CARDINAL_DIRECTIONS } from "../../../config.js";
 import {
   getActor,
   isWalkable,
   moveStep,
   useItem,
   validateUseItem,
-} from "./actions.js";
-import { findPath } from "./pathfinding.js";
+} from "../../../actions/actions.js";
+import { findPath } from "../../pathfinding.js";
 
 function outcome(success, code, details = {}) {
   return { success, code, ...details };

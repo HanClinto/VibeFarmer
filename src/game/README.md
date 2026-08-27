@@ -1,0 +1,16 @@
+# Headless Game
+
+This folder contains Vibe Farmer's deterministic gameplay domain. It can run in Node without a DOM, Canvas, WebMCP, timers, or browser storage.
+
+## Domain Map
+
+- `state.js` creates the serializable game state.
+- `config.js` contains shared rules and balance values.
+- `actions/` contains verbs that validate and apply atomic state changes.
+- `world/` owns terrain, entities, placement, spatial queries, and pathfinding.
+- `world/entities/actors/` contains behavior shared by human, robot, and future autonomous actors.
+- `index.js` exposes the intentionally small public headless API.
+
+Terrain is dense state at every coordinate. Entities are sparse or contained game things owned by the world. Actions coordinate those nouns; gameplay rules do not live in UI controls or protocol adapters.
+
+The current prototype still executes paths immediately. The next slice replaces that temporary behavior with serializable one-per-actor intents advanced by deterministic simulation ticks.
