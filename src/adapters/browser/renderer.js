@@ -112,10 +112,15 @@ function drawPlant(context, plant, scale, sprites) {
   }
 }
 
-function drawChest(context, chest, scale, sprites) {
+export function chestFrameId(isOpen) {
+  return isOpen ? "entity.chest.open" : "entity.chest.closed";
+}
+
+function drawChest(context, chest, scale, sprites, isOpen) {
   const left = chest.position.x * scale;
   const top = chest.position.y * scale;
-  if (drawSprite(context, sprites, "entity.chest", left, top, scale)) return;
+  const frameId = chestFrameId(isOpen);
+  if (drawSprite(context, sprites, frameId, left, top, scale)) return;
   context.fillStyle = COLORS.chestWood;
   context.fillRect(left + scale * 0.16, top + scale * 0.3, scale * 0.72, scale * 0.54);
   context.fillStyle = COLORS.chestBand;
@@ -123,7 +128,11 @@ function drawChest(context, chest, scale, sprites) {
   context.fillRect(left + scale * 0.45, top + scale * 0.5, scale * 0.12, scale * 0.18);
 }
 
-export function renderGame(context, state, { tickProgress = 1, sprites = null } = {}) {
+export function renderGame(
+  context,
+  state,
+  { tickProgress = 1, sprites = null, openEntityIds = new Set() } = {},
+) {
   const scale = GAME_CONFIG.tileSize * 3;
   context.imageSmoothingEnabled = false;
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
@@ -145,7 +154,9 @@ export function renderGame(context, state, { tickProgress = 1, sprites = null } 
   for (const object of Object.values(state.world.entities)) {
     if (object.type === "tree") drawTree(context, object, scale, sprites);
     else if (object.type === "plant") drawPlant(context, object, scale, sprites);
-    else if (object.type === "chest") drawChest(context, object, scale, sprites);
+    else if (object.type === "chest") {
+      drawChest(context, object, scale, sprites, openEntityIds.has(object.id));
+    }
   }
 
   drawActor(context, state.world.entities.player, scale, state.tick, tickProgress, sprites);

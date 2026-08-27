@@ -16,6 +16,7 @@ export function createWindowManager(documentRoot = document) {
 
   function close(registration, restoreFocus = true) {
     registration.windowElement.hidden = true;
+    registration.onClose?.();
     if (restoreFocus) registration.launcher?.focus();
   }
 
@@ -37,8 +38,8 @@ export function createWindowManager(documentRoot = document) {
   });
 
   return {
-    register({ windowElement, launcher, closeButton, onOpen }) {
-      const registration = { windowElement, launcher };
+    register({ windowElement, launcher, closeButton, onOpen, onClose }) {
+      const registration = { windowElement, launcher, onClose };
       registrations.push(registration);
       closeButton.addEventListener("click", () => close(registration));
 

@@ -14,6 +14,12 @@
       "sourceUrl": "https://kenney.nl/assets/tiny-town",
       "license": "CC0-1.0",
       "licenseFile": "licenses/kenney-tiny-town.txt"
+    },
+    "kenney-tiny-dungeon": {
+      "author": "Kenney",
+      "sourceUrl": "https://kenney.nl/assets/tiny-dungeon",
+      "license": "CC0-1.0",
+      "licenseFile": "licenses/kenney-tiny-dungeon.txt"
     }
   },
   "frames": {
@@ -26,6 +32,10 @@
     "entity.tree_small": { "file": "kenney/tiny-farm/tree-small.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0027" },
     "entity.rock": { "file": "kenney/tiny-farm/rock.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0077" },
     "entity.chest": { "file": "kenney/tiny-farm/chest.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0076" },
+    "entity.chest.closed": { "file": "kenney/tiny-dungeon/chest-closed.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0089" },
+    "entity.chest.opening": { "file": "kenney/tiny-dungeon/chest-opening.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0090" },
+    "entity.chest.open": { "file": "kenney/tiny-dungeon/chest-open.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0091" },
+    "entity.chest.full": { "file": "kenney/tiny-dungeon/chest-full.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0092" },
     "entity.crate_a": { "file": "kenney/tiny-farm/crate-a.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0090" },
     "entity.crate_b": { "file": "kenney/tiny-farm/crate-b.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0091" },
     "crop.turnip.0": { "file": "kenney/tiny-farm/crop-0.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0052", "placeholderFor": "turnip stage 0" },
@@ -34,6 +44,8 @@
     "crop.turnip.3": { "file": "kenney/tiny-farm/crop-3.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0056", "placeholderFor": "turnip stage 3" },
     "item.turnip": { "file": "kenney/tiny-farm/root-produce.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0055", "placeholderFor": "harvested turnip" },
     "item.turnip_seeds": { "file": "kenney/tiny-farm/seeds.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0057" },
+    "item.axe": { "file": "kenney/tiny-dungeon/axe.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0118" },
+    "item.logs": { "file": "kenney/tiny-farm/logs.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0014" },
     "item.watering_can": { "file": "kenney/tiny-farm/watering-can.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0085" },
     "item.shovel": { "file": "kenney/tiny-farm/shovel.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0086" },
     "item.hoe": { "file": "kenney/tiny-farm/hoe.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0087" },
@@ -51,6 +63,19 @@
     "building.wall_wood": { "file": "kenney/tiny-town/wall-wood.png", "source": "kenney-tiny-town", "sourceFrame": "tile_0072" },
     "building.roof_red": { "file": "kenney/tiny-town/roof-red.png", "source": "kenney-tiny-town", "sourceFrame": "tile_0053" },
     "building.door": { "file": "kenney/tiny-town/door.png", "source": "kenney-tiny-town", "sourceFrame": "tile_0085" },
-    "building.sign": { "file": "kenney/tiny-town/sign.png", "source": "kenney-tiny-town", "sourceFrame": "tile_0083" }
+    "building.sign": { "file": "kenney/tiny-town/sign.png", "source": "kenney-tiny-town", "sourceFrame": "tile_0083" },
+    "interior.floor_dark": { "file": "kenney/tiny-dungeon/floor-dark.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0000" },
+    "interior.floor_light": { "file": "kenney/tiny-dungeon/floor-light.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0048" },
+    "interior.wall_dark": { "file": "kenney/tiny-dungeon/wall-dark.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0014" },
+    "interior.wall_light": { "file": "kenney/tiny-dungeon/wall-light.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0057" },
+    "interior.door_stone": { "file": "kenney/tiny-dungeon/door-stone.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0045" },
+    "interior.door_wood_a": { "file": "kenney/tiny-dungeon/door-wood-a.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0046" },
+    "interior.door_wood_b": { "file": "kenney/tiny-dungeon/door-wood-b.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0047" },
+    "interior.portal_arch": { "file": "kenney/tiny-dungeon/portal-arch.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0007" },
+    "interior.portal_glow": { "file": "kenney/tiny-dungeon/portal-glow.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0008" },
+    "interior.cabinet": { "file": "kenney/tiny-dungeon/cabinet.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0063" },
+    "interior.shelf_small": { "file": "kenney/tiny-dungeon/shelf-small.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0072" },
+    "interior.storage_pot": { "file": "kenney/tiny-dungeon/storage-pot.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0074" },
+    "interior.shelf_large": { "file": "kenney/tiny-dungeon/shelf-large.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0075" }
   }
 }

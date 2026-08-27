@@ -121,10 +121,18 @@ canvas {
 }
 
 .slot-item {
-  max-width: 42px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+  font-weight: 700;
+  text-shadow: 1px 1px #fff;
+}
+
+.slot-icon {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+  object-fit: contain;
 }
 
 .status-bar {
@@ -284,8 +292,8 @@ canvas {
 }
 
 .robot-inventory-slot .slot-item {
-  white-space: normal;
-  text-align: center;
+  right: 3px;
+  bottom: 2px;
 }
 
 .action-log-window {

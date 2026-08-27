@@ -68,7 +68,9 @@ const storageDialog = windowManager.register({
   onOpen() {
     storageSignature = null;
     updateStorageWindow(controller.getSnapshot());
+    refresh();
   },
+  onClose: () => refresh(),
 });
 const inspectorDialog = windowManager.register({
   windowElement: inspectorWindow,
@@ -129,6 +131,7 @@ registerWebMcp(document.modelContext, controller, {
     tools,
     invocationLog,
     webMcpSupported: supported,
+    sprites,
   });
 });
 
@@ -151,9 +154,17 @@ function updateHotbar(state) {
     const key = document.createElement("span");
     key.className = "slot-key";
     key.textContent = index === 9 ? "0" : String(index + 1);
+    const iconFrame = item ? sprites.frames[`item.${item.itemId}`] : null;
+    if (iconFrame) {
+      const icon = document.createElement("img");
+      icon.className = "slot-icon";
+      icon.src = iconFrame.url;
+      icon.alt = "";
+      button.append(icon);
+    }
     const label = document.createElement("span");
     label.className = "slot-item";
-    label.textContent = item ? `${item.itemId}${item.quantity > 1 ? ` ×${item.quantity}` : ""}` : "";
+    label.textContent = item?.quantity > 1 ? `×${item.quantity}` : "";
     button.append(key, label);
     return button;
   }));
@@ -213,7 +224,10 @@ function updateStorageWindow(state) {
 function refresh(message) {
   if (message) statusMessage = message;
   const state = controller.getSnapshot();
-  renderGame(context, state, { tickProgress, sprites });
+  const openEntityIds = new Set(
+    storageWindow.hidden || !storageTarget.value ? [] : [storageTarget.value],
+  );
+  renderGame(context, state, { tickProgress, sprites, openEntityIds });
   updateHotbar(state);
   staminaValue.textContent = `${state.world.entities.player.stamina}/${GAME_CONFIG.maxStamina}`;
   dayValue.textContent = String(state.day);

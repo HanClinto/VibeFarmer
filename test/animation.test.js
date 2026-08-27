@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getActorRenderPosition } from "../src/adapters/browser/renderer.js";
+import {
+  chestFrameId,
+  getActorRenderPosition,
+} from "../src/adapters/browser/renderer.js";
 
 test("actor rendering interpolates a tile transition without changing game position", () => {
   const actor = {
@@ -35,4 +38,9 @@ test("completed transitions render at the authoritative tile", () => {
   };
 
   assert.deepEqual(getActorRenderPosition(actor, 12, 0), { x: 4, y: 5 });
+});
+
+test("storage presentation selects matching closed and open chest frames", () => {
+  assert.equal(chestFrameId(false), "entity.chest.closed");
+  assert.equal(chestFrameId(true), "entity.chest.open");
 });

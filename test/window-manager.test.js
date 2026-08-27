@@ -57,6 +57,7 @@ test("Escape closes only the frontmost window and restores its launcher", () => 
   const secondLauncher = fakeControl();
   const secondClose = fakeControl();
   const secondWindow = fakeWindow(secondClose);
+  let closeCount = 0;
   const first = manager.register({
     windowElement: firstWindow,
     launcher: firstLauncher,
@@ -66,6 +67,7 @@ test("Escape closes only the frontmost window and restores its launcher", () => 
     windowElement: secondWindow,
     launcher: secondLauncher,
     closeButton: secondClose,
+    onClose: () => { closeCount += 1; },
   });
 
   first.open();
@@ -78,4 +80,5 @@ test("Escape closes only the frontmost window and restores its launcher", () => 
   assert.equal(secondLauncher.focused, true);
   assert.equal(firstLauncher.focused, false);
   assert.equal(prevented, true);
+  assert.equal(closeCount, 1);
 });

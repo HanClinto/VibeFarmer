@@ -28,6 +28,15 @@ Missing production frames include the robot companion, directional actor movemen
 - License copy: `licenses/kenney-tiny-town.txt`
 - Imported files are semantically renamed copies of official individual tiles. `catalog.json` records the original `tile_NNNN` ID for every file.
 
+### Kenney Tiny Dungeon 1.0
+
+- Author: Kenney
+- Source: https://kenney.nl/assets/tiny-dungeon
+- License: CC0 1.0
+- Original tile size: 16x16
+- License copy: `licenses/kenney-tiny-dungeon.txt`
+- Curated frames provide chest states, interior floors/walls/doors, storage props, and portal/arch cues. Combat assets are intentionally excluded.
+
 Credit is not required by these CC0 packs, but Vibe Farmer credits Kenney to keep provenance visible.
 
 ## Policy

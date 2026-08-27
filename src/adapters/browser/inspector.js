@@ -63,6 +63,7 @@ export function createInspector({
   tools,
   invocationLog,
   webMcpSupported,
+  sprites,
 }) {
   const tabButtons = [...root.querySelectorAll("button[data-inspector-tab]")];
   const panels = [...root.querySelectorAll("[data-inspector-panel]")];
@@ -148,10 +149,18 @@ export function createInspector({
         const key = document.createElement("span");
         key.className = "slot-key";
         key.textContent = String(slot.slot);
+        const iconFrame = slot.itemId ? sprites.frames[`item.${slot.itemId}`] : null;
+        if (iconFrame) {
+          const icon = document.createElement("img");
+          icon.className = "slot-icon";
+          icon.src = iconFrame.url;
+          icon.alt = "";
+          item.append(icon);
+        }
         const label = document.createElement("span");
         label.className = "slot-item";
         label.textContent = slot.itemId
-          ? `${slot.itemId.replaceAll("_", " ")}${slot.quantity > 1 ? ` ×${slot.quantity}` : ""}`
+          ? `${slot.quantity > 1 ? `×${slot.quantity}` : ""}`
           : "Empty";
         item.append(key, label);
         return item;

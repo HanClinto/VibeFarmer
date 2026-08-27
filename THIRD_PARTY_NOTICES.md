@@ -10,6 +10,6 @@ The files under `assets/sprites/` and `assets/farm assets/` are local references
 
 The current runtime renders its game world procedurally with Canvas and does not use these reference files. Only original or explicitly redistributable artwork may be added to `assets/game/` and included in a public release.
 
-## Kenney Tiny Farm and Tiny Town
+## Kenney Tiny Farm, Tiny Town, and Tiny Dungeon
 
-The curated 16x16 runtime-art base under `assets/game/kenney/` comes from [Kenney Tiny Farm](https://kenney.nl/assets/tiny-farm) and [Kenney Tiny Town](https://kenney.nl/assets/tiny-town). Both packs are dedicated to the public domain under Creative Commons Zero (CC0 1.0). Attribution is not required; source and frame provenance are retained in `assets/game/catalog.json` and `assets/game/README.md`.
+The curated 16x16 runtime-art base under `assets/game/kenney/` comes from [Kenney Tiny Farm](https://kenney.nl/assets/tiny-farm), [Kenney Tiny Town](https://kenney.nl/assets/tiny-town), and [Kenney Tiny Dungeon](https://kenney.nl/assets/tiny-dungeon). All three packs are dedicated to the public domain under Creative Commons Zero (CC0 1.0). Attribution is not required; source and frame provenance are retained in `assets/game/catalog.json` and `assets/game/README.md`.
