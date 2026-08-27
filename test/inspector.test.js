@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { nextTabIndex, operationSummary } from "../src/adapters/browser/inspector.js";
+import {
+  nextTabIndex,
+  operationSummary,
+  robotOverview,
+} from "../src/adapters/browser/inspector.js";
+import { createGameState } from "../src/game/state.js";
 
 test("Inspector tab keys move and wrap roving focus", () => {
   assert.equal(nextTabIndex("ArrowRight", 3, 4), 0);
@@ -28,4 +33,25 @@ test("operation summaries expose identity, command, state, and elapsed ticks", (
     submittedTick: 20,
     completedTick: 23,
   }, 40), "operation-4 · player · move_to · completed · 3 ticks");
+});
+
+test("robot overview exposes a friendly ten-slot inventory and task state", () => {
+  const state = createGameState();
+  const view = robotOverview(state);
+  assert.equal(view.status, "Sleeping");
+  assert.equal(view.location, "(2, 1)");
+  assert.equal(view.stamina, "20");
+  assert.equal(view.inventory.length, 10);
+  assert.deepEqual(view.inventory[0], {
+    slot: 1,
+    itemId: "axe",
+    quantity: 1,
+    selected: true,
+  });
+  assert.deepEqual(view.inventory[9], {
+    slot: 10,
+    itemId: null,
+    quantity: 0,
+    selected: false,
+  });
 });

@@ -109,7 +109,15 @@
             <button type="button" role="tab" id="inspector-tab-log" aria-controls="inspector-panel-log" data-inspector-tab="log">Log</button>
           </menu>
           <section role="tabpanel" id="inspector-panel-overview" aria-labelledby="inspector-tab-overview" data-inspector-panel="overview">
-            <pre id="inspector-overview"></pre>
+            <div class="robot-overview">
+              <dl id="inspector-robot-summary" class="robot-summary"></dl>
+              <h3>Inventory</h3>
+              <div id="inspector-robot-inventory" class="robot-inventory" role="list" aria-label="Robot inventory"></div>
+              <details>
+                <summary>Raw robot state</summary>
+                <pre id="inspector-overview"></pre>
+              </details>
+            </div>
           </section>
           <section role="tabpanel" id="inspector-panel-tools" aria-labelledby="inspector-tab-tools" data-inspector-panel="tools" hidden>
             <label for="inspector-tool-select">Tool</label>

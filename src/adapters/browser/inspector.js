@@ -37,6 +37,26 @@ export function operationSummary(operation, currentTick) {
     + ` · ${operation.status} · ${elapsedTicks} ticks`;
 }
 
+export function robotOverview(state) {
+  const robot = state.world.entities.robot;
+  const operation = robot.activeIntent ? state.operations[robot.activeIntent] : null;
+  return {
+    status: operation
+      ? `${operation.status} · ${operation.command.type} · ${operation.phase}`
+      : robot.sleeping ? "Sleeping" : "Idle",
+    location: `(${robot.position.x}, ${robot.position.y})`,
+    stamina: `${robot.stamina}`,
+    selectedSlot: robot.selectedSlot,
+    inventory: robot.inventory.map((stack, index) => ({
+      slot: index + 1,
+      itemId: stack?.itemId ?? null,
+      quantity: stack?.quantity ?? 0,
+      selected: robot.selectedSlot === index + 1,
+    })),
+    raw: robot,
+  };
+}
+
 export function createInspector({
   root,
   controller,
@@ -47,6 +67,8 @@ export function createInspector({
   const tabButtons = [...root.querySelectorAll("button[data-inspector-tab]")];
   const panels = [...root.querySelectorAll("[data-inspector-panel]")];
   const overview = root.querySelector("#inspector-overview");
+  const robotSummary = root.querySelector("#inspector-robot-summary");
+  const robotInventory = root.querySelector("#inspector-robot-inventory");
   const toolSelect = root.querySelector("#inspector-tool-select");
   const toolDescription = root.querySelector("#inspector-tool-description");
   const toolSchema = root.querySelector("#inspector-tool-schema");
@@ -101,21 +123,45 @@ export function createInspector({
     renderSignature = nextSignature;
 
     if (activeTab === "overview") {
-      const robot = state.world.entities.robot;
+      const view = robotOverview(state);
+      const summaryFields = [
+        ["Status", view.status],
+        ["Location", view.location],
+        ["Stamina", view.stamina],
+        ["Equipped slot", String(view.selectedSlot)],
+      ];
+      robotSummary.replaceChildren(...summaryFields.flatMap(([termText, valueText]) => {
+        const term = document.createElement("dt");
+        term.textContent = termText;
+        const value = document.createElement("dd");
+        value.textContent = valueText;
+        return [term, value];
+      }));
+      robotInventory.replaceChildren(...view.inventory.map((slot) => {
+        const item = document.createElement("div");
+        item.className = "robot-inventory-slot";
+        item.setAttribute("role", "listitem");
+        item.dataset.selected = String(slot.selected);
+        item.setAttribute("aria-label", slot.itemId
+          ? `Slot ${slot.slot}: ${slot.itemId}, quantity ${slot.quantity}`
+          : `Slot ${slot.slot}: Empty`);
+        const key = document.createElement("span");
+        key.className = "slot-key";
+        key.textContent = String(slot.slot);
+        const label = document.createElement("span");
+        label.className = "slot-item";
+        label.textContent = slot.itemId
+          ? `${slot.itemId.replaceAll("_", " ")}${slot.quantity > 1 ? ` ×${slot.quantity}` : ""}`
+          : "Empty";
+        item.append(key, label);
+        return item;
+      }));
       overview.textContent = formatted({
         webMcp: webMcpSupported ? "registered" : "unsupported (local controls available)",
         tick: state.tick,
         day: state.day,
         money: state.money,
-        robot: {
-          position: robot.position,
-          facing: robot.facing,
-          stamina: robot.stamina,
-          sleeping: robot.sleeping,
-          selectedSlot: robot.selectedSlot,
-          inventory: robot.inventory,
-          activeIntent: robot.activeIntent,
-        },
+        robot: view.raw,
       });
     } else if (activeTab === "operations") {
       const records = Object.values(state.operations).reverse();

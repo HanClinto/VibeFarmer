@@ -236,6 +236,57 @@ canvas {
   margin: 6px 0;
 }
 
+.robot-overview h3 {
+  margin: 10px 0 4px;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.robot-summary {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 10px;
+  margin: 0;
+}
+
+.robot-summary dt {
+  font-weight: 700;
+}
+
+.robot-summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.robot-inventory {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(68px, 1fr));
+  gap: 4px;
+}
+
+.robot-inventory-slot {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 54px;
+  place-items: center;
+  padding: 15px 4px 4px;
+  overflow: hidden;
+  border: 2px solid;
+  border-color: #fff #808080 #808080 #fff;
+  background: #c0c0c0;
+}
+
+.robot-inventory-slot[data-selected="true"] {
+  outline: 2px solid #001f7a;
+  outline-offset: -4px;
+}
+
+.robot-inventory-slot .slot-item {
+  white-space: normal;
+  text-align: center;
+}
+
 .action-log-window {
   position: fixed;
   top: 104px;
