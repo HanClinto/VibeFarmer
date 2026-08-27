@@ -16,6 +16,7 @@ The first executable slice demonstrates the shared control contract:
 - Neither actor receives bulk gameplay shortcuts.
 
 The broader MVP is specified in [docs/plans/mvp-plan.md](docs/plans/mvp-plan.md).
+Submission copy and the timed demo script live in [docs/submission.md](docs/submission.md).
 
 ## Run Locally
 
