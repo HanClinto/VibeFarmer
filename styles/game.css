@@ -175,8 +175,56 @@ canvas {
 }
 
 .market-window > .title-bar,
-.storage-window > .title-bar {
+.storage-window > .title-bar,
+.inspector-window > .title-bar {
   cursor: move;
   touch-action: none;
   user-select: none;
+}
+
+.inspector-window {
+  position: fixed;
+  top: 104px;
+  left: 50%;
+  z-index: 10;
+  width: 520px;
+  max-height: calc(100vh - 128px);
+  margin-left: -260px;
+}
+
+.inspector-body {
+  max-height: calc(100vh - 164px);
+  overflow: auto;
+}
+
+.inspector-body menu {
+  display: flex;
+  gap: 2px;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.inspector-body [role="tab"][aria-selected="true"] {
+  border-color: #808080 #fff #fff #808080;
+  background: #dfdfdf;
+  box-shadow: inset 1px 1px #000;
+}
+
+.inspector-body pre,
+.inspector-body textarea {
+  width: 100%;
+  max-height: 280px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.inspector-body select {
+  width: 100%;
+}
+
+.inspector-tool-buttons {
+  display: flex;
+  gap: 6px;
+  margin: 6px 0;
 }

@@ -55,6 +55,8 @@ Market and Storage windows can be dragged by their title bars.
 
 The browser keeps a versioned local autosave. New Game requires confirmation; reloading during an active operation preserves completed world changes and cancels only the unfinished operation.
 
+Robot Inspector derives its Tools view from the registered WebMCP definitions and shows robot state, schemas, manually invokable tools, operation records, game events, and WebMCP invocation timing.
+
 Movement and work now advance through fixed simulation ticks. Pausing stops tick progression without cancelling active player or robot work; resuming continues the same operation.
 
 ## MVP Loop

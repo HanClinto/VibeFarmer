@@ -23,6 +23,7 @@
           <button type="button" id="sleep-button">Sleep</button>
           <button type="button" id="market-button">Market</button>
           <button type="button" id="storage-button">Storage</button>
+          <button type="button" id="inspector-button">Robot Inspector</button>
           <div class="speed-controls" aria-label="Simulation speed">
             <button type="button" data-speed="0">Pause</button>
             <button type="button" data-speed="1" aria-pressed="true">1x</button>
@@ -90,6 +91,47 @@
           <p class="status-bar">
             <span id="storage-status" class="status-bar-field">One item per transfer</span>
           </p>
+        </div>
+      </section>
+      <section id="inspector-window" class="window inspector-window" aria-label="Robot Inspector" hidden>
+        <div class="title-bar">
+          <div class="title-bar-text">Robot Inspector</div>
+          <div class="title-bar-controls">
+            <button type="button" aria-label="Close" id="inspector-close-button"></button>
+          </div>
+        </div>
+        <div class="window-body inspector-body">
+          <menu role="tablist" aria-label="Inspector views">
+            <button type="button" role="tab" data-inspector-tab="overview">Overview</button>
+            <button type="button" role="tab" data-inspector-tab="tools">Tools</button>
+            <button type="button" role="tab" data-inspector-tab="operations">Operations</button>
+            <button type="button" role="tab" data-inspector-tab="log">Log</button>
+          </menu>
+          <section data-inspector-panel="overview">
+            <pre id="inspector-overview"></pre>
+          </section>
+          <section data-inspector-panel="tools" hidden>
+            <label for="inspector-tool-select">Tool</label>
+            <select id="inspector-tool-select"></select>
+            <p id="inspector-tool-description"></p>
+            <details>
+              <summary>Input schema</summary>
+              <pre id="inspector-tool-schema"></pre>
+            </details>
+            <label for="inspector-tool-input">Input JSON</label>
+            <textarea id="inspector-tool-input" rows="6"></textarea>
+            <div class="inspector-tool-buttons">
+              <button type="button" id="inspector-invoke-button">Invoke</button>
+              <button type="button" id="inspector-cancel-button" disabled>Cancel</button>
+            </div>
+            <pre id="inspector-tool-result">No result yet.</pre>
+          </section>
+          <section data-inspector-panel="operations" hidden>
+            <pre id="inspector-operations"></pre>
+          </section>
+          <section data-inspector-panel="log" hidden>
+            <pre id="inspector-log"></pre>
+          </section>
         </div>
       </section>
     </main>

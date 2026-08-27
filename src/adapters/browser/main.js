@@ -9,7 +9,9 @@ import {
 import { renderGame } from "./renderer.js";
 import { createRuntime } from "./runtime.js";
 import { makeWindowDraggable } from "./draggable-windows.js";
+import { createInspector } from "./inspector.js";
 import { createPersistence } from "./persistence.js";
+import { registerWebMcp } from "../webmcp/adapter.js";
 
 const canvas = document.querySelector("#game-canvas");
 const context = canvas.getContext("2d");
@@ -26,9 +28,11 @@ const storageTarget = document.querySelector("#storage-target");
 const storagePlayerItems = document.querySelector("#storage-player-items");
 const storageTargetItems = document.querySelector("#storage-target-items");
 const storageStatus = document.querySelector("#storage-status");
+const inspectorWindow = document.querySelector("#inspector-window");
 
 makeWindowDraggable(marketWindow);
 makeWindowDraggable(storageWindow);
+makeWindowDraggable(inspectorWindow);
 
 function createFarmState() {
   return createGameState({
@@ -57,6 +61,8 @@ let statusMessage = initialStatusMessages[restoredSave.code];
 let tickProgress = 1;
 let hotbarSignature = null;
 let storageSignature = null;
+let inspector = null;
+const invocationLog = [];
 const runtime = createRuntime(controller, {
   onFrame: (_state, nextTickProgress) => {
     tickProgress = nextTickProgress;
@@ -67,6 +73,27 @@ const runtime = createRuntime(controller, {
 controller.subscribe(({ state }) => persistence.scheduleSave(state));
 window.addEventListener("beforeunload", () => persistence.flush(controller.getSnapshot()));
 persistence.scheduleSave(controller.getSnapshot());
+registerWebMcp(document.modelContext, controller, {
+  onInvocation(record) {
+    const index = invocationLog.findIndex(
+      (existing) => existing.invocationId === record.invocationId,
+    );
+    if (index === -1) invocationLog.push(record);
+    else invocationLog[index] = record;
+    inspector?.refresh(true);
+  },
+}).then(({ supported, tools }) => {
+  document.querySelector("#robot-demo-button").title = supported
+    ? "WebMCP tools registered"
+    : "WebMCP unavailable; this button uses the same controller locally";
+  inspector = createInspector({
+    root: inspectorWindow,
+    controller,
+    tools,
+    invocationLog,
+    webMcpSupported: supported,
+  });
+});
 
 function updateHotbar(state) {
   const player = state.world.entities.player;
@@ -157,6 +184,7 @@ function refresh(message) {
   intentStatus.textContent = statusMessage;
   tickValue.textContent = String(state.tick);
   updateStorageWindow(state);
+  inspector?.refresh();
 }
 
 function runImmediate(command) {
@@ -272,6 +300,15 @@ document.querySelector("#storage-button").addEventListener("click", () => {
 
 document.querySelector("#storage-close-button").addEventListener("click", () => {
   storageWindow.hidden = true;
+});
+
+document.querySelector("#inspector-button").addEventListener("click", () => {
+  inspectorWindow.hidden = false;
+  inspector?.open();
+});
+
+document.querySelector("#inspector-close-button").addEventListener("click", () => {
+  inspectorWindow.hidden = true;
 });
 
 storageTarget.addEventListener("change", () => {
