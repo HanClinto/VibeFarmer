@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from "./config.js";
-import { moveStep, useItem } from "./actions/actions.js";
+import { getActor, moveStep, useItem } from "./actions/actions.js";
+import { getWorldEntitiesByType } from "./world/world.js";
 import { replanOperation } from "./world/entities/actors/intents.js";
 
 const TERMINAL_STATUSES = new Set(["completed", "failed", "cancelled"]);
@@ -8,7 +9,7 @@ function finishOperation(state, operation, status, code, details = {}) {
   operation.status = status;
   operation.completedTick = state.tick;
   operation.result = { success: status === "completed", code, ...details };
-  state.actors[operation.actorId].activeIntent = null;
+  getActor(state, operation.actorId).activeIntent = null;
   state.history.push({
     type: `intent_${status}`,
     operationId: operation.operationId,
@@ -22,7 +23,7 @@ function advanceMovement(state, operation) {
   if (operation.path.length === 0) {
     if (operation.command.type === "move_to") {
       finishOperation(state, operation, "completed", "DESTINATION_REACHED", {
-        position: { ...state.actors[operation.actorId].position },
+        position: { ...getActor(state, operation.actorId).position },
       });
     } else {
       operation.phase = "working";
@@ -49,7 +50,7 @@ function advanceMovement(state, operation) {
   if (operation.path.length === 0) {
     if (operation.command.type === "move_to") {
       finishOperation(state, operation, "completed", "DESTINATION_REACHED", {
-        position: { ...state.actors[operation.actorId].position },
+        position: { ...getActor(state, operation.actorId).position },
       });
     } else {
       operation.phase = "working";
@@ -74,7 +75,7 @@ function advanceWork(state, operation) {
 
   finishOperation(state, operation, "completed", "INTERACTION_COMPLETE", {
     action: result,
-    position: { ...state.actors[operation.actorId].position },
+    position: { ...getActor(state, operation.actorId).position },
     replanned: operation.replanCount > 0,
   });
 }
@@ -96,8 +97,10 @@ function advanceOperation(state, operation) {
 
 export function tick(state) {
   state.tick += 1;
-  for (const actorId of Object.keys(state.actors).sort()) {
-    const operationId = state.actors[actorId].activeIntent;
+  const actors = getWorldEntitiesByType(state.world, "actor")
+    .sort((first, second) => first.id.localeCompare(second.id));
+  for (const actor of actors) {
+    const operationId = actor.activeIntent;
     if (operationId) advanceOperation(state, state.operations[operationId]);
   }
   return state;

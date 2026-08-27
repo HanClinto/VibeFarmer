@@ -1,5 +1,5 @@
 import { GAME_CONFIG } from "./config.js";
-import { createWorld } from "./world/world.js";
+import { addWorldEntity, createWorld } from "./world/world.js";
 
 function emptyInventory() {
   return Array.from({ length: GAME_CONFIG.inventorySlots }, () => null);
@@ -12,6 +12,7 @@ function createActor(id, position, sleeping) {
 
   return {
     id,
+    type: "actor",
     role: id === "robot" ? "robot" : "human",
     position: { ...position },
     facing: "south",
@@ -24,6 +25,9 @@ function createActor(id, position, sleeping) {
 }
 
 export function createGameState({ world = createWorld() } = {}) {
+  addWorldEntity(world, createActor("player", { x: 1, y: 1 }, false));
+  addWorldEntity(world, createActor("robot", { x: 2, y: 1 }, true));
+
   return {
     version: 2,
     tick: 0,
@@ -32,10 +36,6 @@ export function createGameState({ world = createWorld() } = {}) {
     nextOperationId: 1,
     operations: {},
     world,
-    actors: {
-      player: createActor("player", { x: 1, y: 1 }, false),
-      robot: createActor("robot", { x: 2, y: 1 }, true),
-    },
     history: [],
   };
 }

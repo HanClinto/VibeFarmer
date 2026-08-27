@@ -4,7 +4,7 @@ import test from "node:test";
 import { createController } from "../src/application/controller.js";
 import { GAME_CONFIG } from "../src/game/config.js";
 import { createGameState } from "../src/game/state.js";
-import { createWorld } from "../src/game/world/world.js";
+import { addWorldEntity, createWorld } from "../src/game/world/world.js";
 
 function createParityState(actorId) {
   const state = createGameState({
@@ -19,9 +19,9 @@ function createParityState(actorId) {
       }],
     }),
   });
-  state.actors[actorId].position = { x: 1, y: 4 };
-  state.actors[actorId].sleeping = false;
-  state.actors[actorId === "player" ? "robot" : "player"].position = { x: 0, y: 0 };
+  state.world.entities[actorId].position = { x: 1, y: 4 };
+  state.world.entities[actorId].sleeping = false;
+  state.world.entities[actorId === "player" ? "robot" : "player"].position = { x: 0, y: 0 };
   return state;
 }
 
@@ -45,10 +45,10 @@ test("move_to advances either actor through deterministic ticks", () => {
     });
 
     assert.equal(submission.success, true);
-    assert.deepEqual(controller.getSnapshot().actors[actorId].position, { x: 1, y: 4 });
+    assert.deepEqual(controller.getSnapshot().world.entities[actorId].position, { x: 1, y: 4 });
     const ticks = runToCompletion(controller, submission.operationId);
     assert.equal(ticks, 3);
-    assert.deepEqual(controller.getSnapshot().actors[actorId].position, { x: 3, y: 4 });
+    assert.deepEqual(controller.getSnapshot().world.entities[actorId].position, { x: 3, y: 4 });
   }
 });
 
@@ -66,8 +66,8 @@ test("interact_at has identical tick count and effects for player and robot", ()
     return {
       ticks,
       operation: state.operations[submission.operationId],
-      actor: state.actors[actorId],
-      tree: state.world.objects["4,4"],
+      actor: state.world.entities[actorId],
+      tree: state.world.entities["tree-1"],
     };
   });
 
@@ -100,10 +100,10 @@ test("a second intent for the same actor is rejected as busy", () => {
 
 test("failed smart interaction does not create an operation or spend stamina", () => {
   const state = createParityState("player");
-  state.world.objects["3,4"] = { type: "rock", x: 3, y: 4 };
-  state.world.objects["4,3"] = { type: "rock", x: 4, y: 3 };
-  state.world.objects["5,4"] = { type: "rock", x: 5, y: 4 };
-  state.world.objects["4,5"] = { type: "rock", x: 4, y: 5 };
+  addWorldEntity(state.world, { id: "rock-1", type: "rock", position: { x: 3, y: 4 } });
+  addWorldEntity(state.world, { id: "rock-2", type: "rock", position: { x: 4, y: 3 } });
+  addWorldEntity(state.world, { id: "rock-3", type: "rock", position: { x: 5, y: 4 } });
+  addWorldEntity(state.world, { id: "rock-4", type: "rock", position: { x: 4, y: 5 } });
   const controller = createController(state);
 
   const result = controller.submit({
@@ -115,6 +115,6 @@ test("failed smart interaction does not create an operation or spend stamina", (
 
   assert.equal(result.success, false);
   assert.equal(result.code, "INTERACTION_UNREACHABLE");
-  assert.equal(state.actors.player.stamina, GAME_CONFIG.maxStamina);
+  assert.equal(state.world.entities.player.stamina, GAME_CONFIG.maxStamina);
   assert.deepEqual(state.operations, {});
 });

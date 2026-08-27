@@ -1,12 +1,19 @@
 import { CARDINAL_DIRECTIONS, GAME_CONFIG } from "../config.js";
-import { getWorldObject, isInBounds, positionKey } from "../world/world.js";
+import {
+  getWorldEntitiesByType,
+  getWorldEntity,
+  getWorldObject,
+  isInBounds,
+  removeWorldEntity,
+} from "../world/world.js";
 
 function outcome(success, code, details = {}) {
   return { success, code, ...details };
 }
 
 export function getActor(state, actorId) {
-  return state.actors[actorId] ?? null;
+  const entity = getWorldEntity(state.world, actorId);
+  return entity?.type === "actor" ? entity : null;
 }
 
 export function isAdjacent(first, second) {
@@ -18,7 +25,7 @@ export function isWalkable(state, position, actorId) {
     return false;
   }
 
-  return !Object.values(state.actors).some(
+  return !getWorldEntitiesByType(state.world, "actor").some(
     (actor) => actor.id !== actorId
       && actor.position.x === position.x
       && actor.position.y === position.y,
@@ -118,7 +125,7 @@ export function useItem(state, actorId, target, selector = {}) {
 
   if (item.itemId === "axe") {
     targetObject.hitPoints -= 1;
-    if (targetObject.hitPoints <= 0) delete state.world.objects[positionKey(target)];
+    if (targetObject.hitPoints <= 0) removeWorldEntity(state.world, targetObject.id);
   } else if (item.itemId === "hoe") {
     state.world.terrain[target.y][target.x] = "tilled";
   }

@@ -28,11 +28,12 @@ const runtime = createRuntime(controller, { onTick: () => refresh() });
 let statusMessage = "Ready";
 
 function updateHotbar(state) {
-  hotbar.replaceChildren(...state.actors.player.inventory.map((item, index) => {
+  const player = state.world.entities.player;
+  hotbar.replaceChildren(...player.inventory.map((item, index) => {
     const button = document.createElement("button");
     button.type = "button";
     button.dataset.slot = String(index + 1);
-    button.setAttribute("aria-pressed", String(state.actors.player.selectedSlot === index + 1));
+    button.setAttribute("aria-pressed", String(player.selectedSlot === index + 1));
     button.title = item ? `Slot ${index + 1}: ${item.itemId}` : `Slot ${index + 1}: Empty`;
 
     const key = document.createElement("span");
@@ -51,7 +52,7 @@ function refresh(message) {
   const state = controller.getSnapshot();
   renderGame(context, state);
   updateHotbar(state);
-  staminaValue.textContent = `${state.actors.player.stamina}/${GAME_CONFIG.maxStamina}`;
+  staminaValue.textContent = `${state.world.entities.player.stamina}/${GAME_CONFIG.maxStamina}`;
   intentStatus.textContent = statusMessage;
   tickValue.textContent = String(state.tick);
 }
@@ -111,7 +112,7 @@ document.querySelector("#new-game-button").addEventListener("click", () => {
 });
 
 document.querySelector("#robot-demo-button").addEventListener("click", () => {
-  const target = Object.values(controller.getSnapshot().world.objects)
+  const target = Object.values(controller.getSnapshot().world.entities)
     .find((object) => object.type === "tree");
   if (!target) {
     refresh("No trees remain");

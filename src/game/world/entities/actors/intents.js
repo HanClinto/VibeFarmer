@@ -44,8 +44,9 @@ function createOperation(state, actorId, command, details) {
     cooldown: 0,
     ...details,
   };
-  state.actors[actorId].activeIntent = operationId;
-  state.actors[actorId].sleeping = false;
+  const actor = getActor(state, actorId);
+  actor.activeIntent = operationId;
+  actor.sleeping = false;
   return outcome(true, "INTENT_SUBMITTED", { operationId });
 }
 

@@ -18,7 +18,16 @@ test("headless game and controller load without browser globals", async () => {
   assert.equal(submission.success, true);
   controller.tick();
   assert.equal((await submission.completion).code, "DESTINATION_REACHED");
-  assert.deepEqual(controller.getSnapshot().actors.player.position, { x: 1, y: 2 });
+  assert.deepEqual(controller.getSnapshot().world.entities.player.position, { x: 1, y: 2 });
+});
+
+test("the world is the sole owner of actors and placed entities", () => {
+  const state = createGameState();
+
+  assert.equal("actors" in state, false);
+  assert.equal(state.world.entities.player.type, "actor");
+  assert.equal(state.world.entities.robot.type, "actor");
+  assert.deepEqual(state.world.entities.player.position, { x: 1, y: 1 });
 });
 
 test("browser-style input and robot commands use the same controller", async () => {
@@ -66,5 +75,5 @@ test("completion waits for ticks and cancellation settles at a tick boundary", a
   const result = await submission.completion;
   assert.equal(result.code, "INTENT_CANCELLED");
   assert.equal(controller.getSnapshot().operations[submission.operationId].status, "cancelled");
-  assert.equal(controller.getSnapshot().actors.robot.activeIntent, null);
+  assert.equal(controller.getSnapshot().world.entities.robot.activeIntent, null);
 });

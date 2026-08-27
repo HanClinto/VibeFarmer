@@ -15,8 +15,8 @@ const COLORS = Object.freeze({
 });
 
 function drawTree(context, object, scale) {
-  const left = object.x * scale;
-  const top = object.y * scale;
+  const left = object.position.x * scale;
+  const top = object.position.y * scale;
   context.fillStyle = COLORS.treeTrunk;
   context.fillRect(left + scale * 0.42, top + scale * 0.52, scale * 0.2, scale * 0.42);
   context.fillStyle = COLORS.treeLeaves;
@@ -58,10 +58,10 @@ export function renderGame(context, state) {
     }
   }
 
-  for (const object of Object.values(state.world.objects)) {
+  for (const object of Object.values(state.world.entities)) {
     if (object.type === "tree") drawTree(context, object, scale);
   }
 
-  drawActor(context, state.actors.player, scale);
-  drawActor(context, state.actors.robot, scale);
+  drawActor(context, state.world.entities.player, scale);
+  drawActor(context, state.world.entities.robot, scale);
 }
