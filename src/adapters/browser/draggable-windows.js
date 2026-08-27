@@ -1,5 +1,10 @@
 let topWindowZIndex = 10;
 
+export function bringWindowToFront(windowElement) {
+  topWindowZIndex += 1;
+  windowElement.style.zIndex = String(topWindowZIndex);
+}
+
 export function clampWindowPosition({ x, y }, windowSize, viewportSize) {
   return {
     x: Math.min(Math.max(0, x), Math.max(0, viewportSize.width - windowSize.width)),
@@ -11,15 +16,10 @@ export function makeWindowDraggable(windowElement) {
   const titleBar = windowElement.querySelector(":scope > .title-bar");
   if (!titleBar) throw new Error("Draggable windows require a direct title bar");
 
-  function bringToFront() {
-    topWindowZIndex += 1;
-    windowElement.style.zIndex = String(topWindowZIndex);
-  }
-
   function onPointerDown(event) {
     if (event.button !== 0 || event.target.closest("button")) return;
     event.preventDefault();
-    bringToFront();
+    bringWindowToFront(windowElement);
 
     const bounds = windowElement.getBoundingClientRect();
     const pointerOffset = {
@@ -58,6 +58,7 @@ export function makeWindowDraggable(windowElement) {
   }
 
   titleBar.addEventListener("pointerdown", onPointerDown);
+  const bringToFront = () => bringWindowToFront(windowElement);
   windowElement.addEventListener("pointerdown", bringToFront);
 
   return () => {

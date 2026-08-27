@@ -10,6 +10,7 @@ import { renderGame } from "./renderer.js";
 import { createRuntime } from "./runtime.js";
 import { createActionLog } from "./action-log.js";
 import { makeWindowDraggable } from "./draggable-windows.js";
+import { createWindowManager, isEditingText } from "./window-manager.js";
 import { createInspector } from "./inspector.js";
 import { createPersistence } from "./persistence.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
@@ -31,6 +32,7 @@ const storageTargetItems = document.querySelector("#storage-target-items");
 const storageStatus = document.querySelector("#storage-status");
 const inspectorWindow = document.querySelector("#inspector-window");
 const actionLogWindow = document.querySelector("#action-log-window");
+const windowManager = createWindowManager();
 
 makeWindowDraggable(marketWindow);
 makeWindowDraggable(storageWindow);
@@ -55,6 +57,32 @@ const persistence = createPersistence(window.localStorage);
 const restoredSave = persistence.load();
 const controller = createController(restoredSave.state ?? createFarmState());
 const actionLog = createActionLog({ root: actionLogWindow, controller });
+const marketDialog = windowManager.register({
+  windowElement: marketWindow,
+  launcher: document.querySelector("#market-button"),
+  closeButton: document.querySelector("#market-close-button"),
+});
+const storageDialog = windowManager.register({
+  windowElement: storageWindow,
+  launcher: document.querySelector("#storage-button"),
+  closeButton: document.querySelector("#storage-close-button"),
+  onOpen() {
+    storageSignature = null;
+    updateStorageWindow(controller.getSnapshot());
+  },
+});
+const inspectorDialog = windowManager.register({
+  windowElement: inspectorWindow,
+  launcher: document.querySelector("#inspector-button"),
+  closeButton: document.querySelector("#inspector-close-button"),
+  onOpen: () => inspector?.open(),
+});
+const actionLogDialog = windowManager.register({
+  windowElement: actionLogWindow,
+  launcher: document.querySelector("#action-log-button"),
+  closeButton: document.querySelector("#action-log-close-button"),
+  onOpen: () => actionLog.open(),
+});
 const initialStatusMessages = {
   NO_SAVE: "Ready",
   SAVE_RESTORED: "Save restored",
@@ -236,7 +264,7 @@ hotbar.addEventListener("click", (event) => {
 });
 
 window.addEventListener("keydown", (event) => {
-  if (!/^[0-9]$/.test(event.key)) return;
+  if (isEditingText(event.target) || !/^[0-9]$/.test(event.key)) return;
   runImmediate({
     type: "select_slot",
     actorId: "player",
@@ -280,12 +308,8 @@ for (const button of document.querySelectorAll("button[data-market-action]")) {
 }
 
 document.querySelector("#market-button").addEventListener("click", () => {
-  storageWindow.hidden = true;
-  marketWindow.hidden = false;
-});
-
-document.querySelector("#market-close-button").addEventListener("click", () => {
-  marketWindow.hidden = true;
+  storageDialog.close();
+  marketDialog.open();
 });
 
 marketWindow.addEventListener("click", (event) => {
@@ -303,31 +327,16 @@ marketWindow.addEventListener("click", (event) => {
 });
 
 document.querySelector("#storage-button").addEventListener("click", () => {
-  marketWindow.hidden = true;
-  storageWindow.hidden = false;
-  storageSignature = null;
-  updateStorageWindow(controller.getSnapshot());
-});
-
-document.querySelector("#storage-close-button").addEventListener("click", () => {
-  storageWindow.hidden = true;
+  marketDialog.close();
+  storageDialog.open();
 });
 
 document.querySelector("#inspector-button").addEventListener("click", () => {
-  inspectorWindow.hidden = false;
-  inspector?.open();
-});
-
-document.querySelector("#inspector-close-button").addEventListener("click", () => {
-  inspectorWindow.hidden = true;
+  inspectorDialog.open();
 });
 
 document.querySelector("#action-log-button").addEventListener("click", () => {
-  actionLog.open();
-});
-
-document.querySelector("#action-log-close-button").addEventListener("click", () => {
-  actionLogWindow.hidden = true;
+  actionLogDialog.open();
 });
 
 storageTarget.addEventListener("change", () => {

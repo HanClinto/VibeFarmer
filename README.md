@@ -45,6 +45,7 @@ npm test
 | `1`-`0` | Select one of ten inventory slots |
 | Space / E | Use the selected item on the faced tile |
 | Pause / 1x / 2x / 5x / 10x | Set the deterministic simulation speed |
+| Escape | Close the frontmost open window |
 | Sleep | End the day once both farmhands are sleeping |
 
 Select an empty hotbar slot and Shift-click a mature crop to harvest it.
