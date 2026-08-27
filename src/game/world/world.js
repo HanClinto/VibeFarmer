@@ -46,6 +46,14 @@ export function getWorldObject(world, position) {
   ) ?? null;
 }
 
+export function getBlockingWorldObject(world, position) {
+  return Object.values(world.entities).find(
+    (entity) => ["tree", "rock", "debris", "chest"].includes(entity.type)
+      && entity.position?.x === position.x
+      && entity.position?.y === position.y,
+  ) ?? null;
+}
+
 export function addWorldEntity(world, entity) {
   if (!entity.id) throw new TypeError("World entities require an id");
   if (world.entities[entity.id]) throw new Error(`Duplicate entity id: ${entity.id}`);

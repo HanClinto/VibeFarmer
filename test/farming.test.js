@@ -62,3 +62,31 @@ test("the final axe hit converts a tree into logs", () => {
     (stack) => stack?.itemId === "logs" && stack.quantity === 2,
   ));
 });
+
+test("hoeing a newly planted crop refunds one seed", () => {
+  const state = createGameState();
+  const target = { x: 1, y: 2 };
+  useItem(state, "player", target, { itemId: "hoe" });
+  useItem(state, "player", target, { itemId: "turnip_seeds" });
+  const seedsAfterPlanting = state.world.entities.player.inventory[3].quantity;
+
+  assert.equal(useItem(state, "player", target, { itemId: "hoe" }).code, "ITEM_USED");
+  assert.equal(getWorldEntitiesByType(state.world, "plant").length, 0);
+  assert.equal(state.world.entities.player.inventory[3].quantity, seedsAfterPlanting + 1);
+  assert.equal(state.world.terrain[2][1], "tilled");
+});
+
+test("hoeing a growing crop destroys it without refund", () => {
+  const state = createGameState();
+  const target = { x: 1, y: 2 };
+  useItem(state, "player", target, { itemId: "hoe" });
+  useItem(state, "player", target, { itemId: "watering_can" });
+  useItem(state, "player", target, { itemId: "turnip_seeds" });
+  sleepActor(state, "player");
+  const seedCount = state.world.entities.player.inventory[3].quantity;
+
+  assert.equal(useItem(state, "player", target, { itemId: "hoe" }).code, "ITEM_USED");
+  assert.equal(getWorldEntitiesByType(state.world, "plant").length, 0);
+  assert.equal(state.world.entities.player.inventory[3].quantity, seedCount);
+  assert.equal(state.world.terrain[2][1], "tilled");
+});

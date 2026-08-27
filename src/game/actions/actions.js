@@ -13,6 +13,7 @@ import { getTerrainAt, setTerrainAt } from "../world/terrain/terrain.js";
 import {
   addWorldEntity,
   generateWorldEntityId,
+  getBlockingWorldObject,
   getWorldEntitiesByType,
   getWorldEntity,
   getWorldObject,
@@ -34,7 +35,7 @@ export function isAdjacent(first, second) {
 }
 
 export function isWalkable(state, position, actorId) {
-  if (!isInBounds(state.world, position) || getWorldObject(state.world, position)) {
+  if (!isInBounds(state.world, position) || getBlockingWorldObject(state.world, position)) {
     return false;
   }
 
@@ -96,8 +97,15 @@ export function validateUseItem(state, actorId, target, selector, { requireAdjac
     && !canAddItem(actor.inventory, "logs", 2)) {
     return outcome(false, "INVENTORY_FULL");
   }
-  if (resolved.item.itemId === "hoe" && (targetObject || terrainType !== "grass")) {
-    return outcome(false, "INVALID_HOE_TARGET");
+  if (resolved.item.itemId === "hoe") {
+    const validBareGround = !targetObject && terrainType === "grass";
+    const validCrop = targetObject?.type === "plant"
+      && ["tilled", "wet_tilled"].includes(terrainType);
+    if (!validBareGround && !validCrop) return outcome(false, "INVALID_HOE_TARGET");
+    if (validCrop && targetObject.growthStage === 0
+      && !canAddItem(actor.inventory, "turnip_seeds", 1)) {
+      return outcome(false, "INVENTORY_FULL");
+    }
   }
   if (resolved.item.itemId === "watering_can" && terrainType !== "tilled") {
     return outcome(false, "INVALID_WATER_TARGET");
@@ -181,7 +189,12 @@ export function useItem(state, actorId, target, selector = {}) {
       removeWorldEntity(state.world, targetObject.id);
     }
   } else if (item.itemId === "hoe") {
-    setTerrainAt(state.world, target, "tilled");
+    if (targetObject?.type === "plant") {
+      if (targetObject.growthStage === 0) addItem(actor.inventory, "turnip_seeds", 1);
+      removeWorldEntity(state.world, targetObject.id);
+    } else {
+      setTerrainAt(state.world, target, "tilled");
+    }
   } else if (item.itemId === "watering_can") {
     setTerrainAt(state.world, target, "wet_tilled");
   } else if (item.itemId === "turnip_seeds") {

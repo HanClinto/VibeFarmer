@@ -4,6 +4,7 @@ import test from "node:test";
 import { createController } from "../src/application/controller.js";
 import { GAME_CONFIG } from "../src/game/config.js";
 import { createGameState } from "../src/game/state.js";
+import { createPlant } from "../src/game/world/entities/plants/plants.js";
 import { addWorldEntity, createWorld } from "../src/game/world/world.js";
 
 function createParityState(actorId) {
@@ -137,4 +138,27 @@ test("failed smart interaction does not create an operation or spend stamina", (
   assert.equal(result.code, "INTERACTION_UNREACHABLE");
   assert.equal(state.world.entities.player.stamina, GAME_CONFIG.maxStamina);
   assert.deepEqual(state.operations, {});
+});
+
+test("actors can path through crop tiles without damaging crops", () => {
+  const state = createParityState("player");
+  addWorldEntity(state.world, createPlant({
+    id: "plant-path",
+    cropType: "turnip",
+    position: { x: 2, y: 4 },
+  }));
+  const controller = createController(state);
+  const submission = controller.submit({
+    type: "move_to",
+    actorId: "player",
+    target: { x: 3, y: 4 },
+  });
+
+  assert.equal(submission.success, true);
+  runToCompletion(controller, submission.operationId);
+  assert.deepEqual(state.world.entities.player.position, { x: 3, y: 4 });
+  assert.ok(state.history.some(
+    (event) => event.type === "move" && event.target.x === 2 && event.target.y === 4,
+  ));
+  assert.equal(state.world.entities["plant-path"].growthStage, 0);
 });
