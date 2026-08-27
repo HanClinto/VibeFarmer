@@ -52,6 +52,18 @@ canvas {
   box-shadow: none;
 }
 
+.speed-controls {
+  display: flex;
+  gap: 1px;
+  margin-left: auto;
+}
+
+.speed-controls button[aria-pressed="true"] {
+  border-color: #808080 #fff #fff #808080;
+  background: #dfdfdf;
+  box-shadow: inset 1px 1px #000;
+}
+
 .game-layout {
   display: grid;
   gap: 6px;

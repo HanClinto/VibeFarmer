@@ -1,12 +1,14 @@
 import { createController } from "../../application/controller.js";
 import { GAME_CONFIG, createGameState, createWorld } from "../../game/index.js";
 import { renderGame } from "./renderer.js";
+import { createRuntime } from "./runtime.js";
 
 const canvas = document.querySelector("#game-canvas");
 const context = canvas.getContext("2d");
 const hotbar = document.querySelector("#hotbar");
 const staminaValue = document.querySelector("#stamina-value");
 const intentStatus = document.querySelector("#intent-status");
+const tickValue = document.querySelector("#tick-value");
 
 function createFarmState() {
   return createGameState({
@@ -22,6 +24,8 @@ function createFarmState() {
 }
 
 const controller = createController(createFarmState());
+const runtime = createRuntime(controller, { onTick: () => refresh() });
+let statusMessage = "Ready";
 
 function updateHotbar(state) {
   hotbar.replaceChildren(...state.actors.player.inventory.map((item, index) => {
@@ -42,17 +46,31 @@ function updateHotbar(state) {
   }));
 }
 
-function refresh(message = "Ready") {
+function refresh(message) {
+  if (message) statusMessage = message;
   const state = controller.getSnapshot();
   renderGame(context, state);
   updateHotbar(state);
   staminaValue.textContent = `${state.actors.player.stamina}/${GAME_CONFIG.maxStamina}`;
-  intentStatus.textContent = message;
+  intentStatus.textContent = statusMessage;
+  tickValue.textContent = String(state.tick);
 }
 
-function run(command) {
+function runImmediate(command) {
   const result = controller.execute(command);
   refresh(result.success ? result.code : `Cannot act: ${result.code}`);
+}
+
+function submit(command) {
+  const submission = controller.submit(command);
+  if (!submission.success) {
+    refresh(`Cannot act: ${submission.code}`);
+    return;
+  }
+  refresh(`Running ${submission.operationId}`);
+  submission.completion.then((result) => {
+    refresh(result.success ? result.code : `Stopped: ${result.code}`);
+  });
 }
 
 function canvasPosition(event) {
@@ -65,7 +83,7 @@ function canvasPosition(event) {
 }
 
 canvas.addEventListener("click", (event) => {
-  run({
+  submit({
     type: event.shiftKey ? "interact_at" : "move_to",
     actorId: "player",
     target: canvasPosition(event),
@@ -75,12 +93,12 @@ canvas.addEventListener("click", (event) => {
 hotbar.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-slot]");
   if (!button) return;
-  run({ type: "select_slot", actorId: "player", slot: Number(button.dataset.slot) });
+  runImmediate({ type: "select_slot", actorId: "player", slot: Number(button.dataset.slot) });
 });
 
 window.addEventListener("keydown", (event) => {
   if (!/^[0-9]$/.test(event.key)) return;
-  run({
+  runImmediate({
     type: "select_slot",
     actorId: "player",
     slot: event.key === "0" ? 10 : Number(event.key),
@@ -99,7 +117,18 @@ document.querySelector("#robot-demo-button").addEventListener("click", () => {
     refresh("No trees remain");
     return;
   }
-  run({ type: "interact_at", actorId: "robot", target, item: { itemId: "axe" } });
+  submit({ type: "interact_at", actorId: "robot", target, item: { itemId: "axe" } });
+});
+
+document.querySelector(".speed-controls").addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-speed]");
+  if (!button) return;
+  const speed = Number(button.dataset.speed);
+  runtime.setSpeed(speed);
+  for (const speedButton of document.querySelectorAll("button[data-speed]")) {
+    speedButton.setAttribute("aria-pressed", String(speedButton === button));
+  }
+  refresh(speed === 0 ? "Simulation paused" : `Simulation speed ${speed}x`);
 });
 
 document.querySelector("#help-button").addEventListener("click", () => {
@@ -107,3 +136,4 @@ document.querySelector("#help-button").addEventListener("click", () => {
 });
 
 refresh();
+runtime.start();

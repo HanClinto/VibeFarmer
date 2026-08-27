@@ -42,6 +42,9 @@ npm test
 | Arrow keys / WASD | Move one tile |
 | `1`-`0` | Select one of ten inventory slots |
 | Space / E | Use the selected item on the faced tile |
+| Pause / 1x / 2x / 5x / 10x | Set the deterministic simulation speed |
+
+Movement and work now advance through fixed simulation ticks. Pausing stops tick progression without cancelling active player or robot work; resuming continues the same operation.
 
 ## MVP Loop
 

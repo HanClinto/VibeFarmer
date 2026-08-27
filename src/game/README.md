@@ -13,4 +13,4 @@ This folder contains Vibe Farmer's deterministic gameplay domain. It can run in 
 
 Terrain is dense state at every coordinate. Entities are sparse or contained game things owned by the world. Actions coordinate those nouns; gameplay rules do not live in UI controls or protocol adapters.
 
-The current prototype still executes paths immediately. The next slice replaces that temporary behavior with serializable one-per-actor intents advanced by deterministic simulation ticks.
+Each actor may own one serializable intent. `simulation.js` advances those intents through deterministic ticks; browser timing and completion Promises live outside this folder.

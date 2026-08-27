@@ -19,14 +19,18 @@ function createActor(id, position, sleeping) {
     sleeping,
     selectedSlot: 1,
     inventory,
+    activeIntent: null,
   };
 }
 
 export function createGameState({ world = createWorld() } = {}) {
   return {
-    version: 1,
+    version: 2,
+    tick: 0,
     day: 1,
     money: 100,
+    nextOperationId: 1,
+    operations: {},
     world,
     actors: {
       player: createActor("player", { x: 1, y: 1 }, false),
