@@ -28,6 +28,7 @@ export function makeWindowDraggable(windowElement) {
     };
     windowElement.style.left = `${bounds.left}px`;
     windowElement.style.top = `${bounds.top}px`;
+    windowElement.style.setProperty?.("--window-top", `${bounds.top}px`);
     windowElement.style.marginLeft = "0";
     windowElement.style.transform = "none";
     titleBar.setPointerCapture(event.pointerId);
@@ -43,6 +44,7 @@ export function makeWindowDraggable(windowElement) {
       );
       windowElement.style.left = `${position.x}px`;
       windowElement.style.top = `${position.y}px`;
+      windowElement.style.setProperty?.("--window-top", `${position.y}px`);
     }
 
     function onPointerUp(upEvent) {

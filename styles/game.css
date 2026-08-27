@@ -282,16 +282,19 @@ canvas {
 }
 
 .market-window {
+  --window-top: clamp(8px, calc((100vh - 560px) / 2), 84px);
   position: fixed;
-  top: 84px;
+  top: var(--window-top);
   left: 50%;
   z-index: 10;
+  display: flex;
   width: 480px;
-  height: 560px;
+  height: min(560px, calc(100vh - 32px));
   min-width: min(420px, calc(100vw - 16px));
   min-height: 360px;
   max-width: calc(100vw - 16px);
-  max-height: calc(100vh - 108px);
+  max-height: calc(100vh - var(--window-top) - 8px);
+  flex-direction: column;
   transform: translateX(-50%);
   overflow: hidden;
   resize: both;
@@ -300,8 +303,10 @@ canvas {
 .market-body {
   display: grid;
   grid-template-rows: auto minmax(100px, 1fr) minmax(100px, 1fr) auto;
-  height: calc(100% - 22px);
+  min-height: 0;
+  flex: 1;
   gap: 8px;
+  padding-bottom: 14px;
   overflow: hidden;
 }
 
