@@ -71,7 +71,7 @@ canvas {
 
 .status-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  grid-template-columns: repeat(5, minmax(100px, 1fr));
   gap: 4px;
 }
 
@@ -205,6 +205,14 @@ canvas {
 
 .robot-testing button {
   margin-top: 6px;
+}
+
+.robot-testing .speed-controls {
+  margin: 6px 0;
+}
+
+.robot-testing p {
+  margin: 6px 0 0;
 }
 
 .storage-context {

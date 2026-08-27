@@ -28,6 +28,7 @@ const canvas = document.querySelector("#game-canvas");
 const context = canvas.getContext("2d");
 const hotbar = document.querySelector("#hotbar");
 const staminaValue = document.querySelector("#stamina-value");
+const robotStatusValue = document.querySelector("#robot-status-value");
 const intentStatus = document.querySelector("#intent-status");
 const tickValue = document.querySelector("#tick-value");
 const dayValue = document.querySelector("#day-value");
@@ -362,6 +363,9 @@ function refresh(message) {
   });
   updateHotbar(state);
   staminaValue.textContent = `${state.world.entities.player.stamina}/${GAME_CONFIG.maxStamina}`;
+  const robot = state.world.entities.robot;
+  const robotState = robot.activeIntent ? "Working" : robot.sleeping ? "Resting" : "Ready";
+  robotStatusValue.textContent = `${robot.stamina}/${GAME_CONFIG.maxStamina} · ${robotState}`;
   dayValue.textContent = String(state.day);
   moneyValue.textContent = `${state.money}g`;
   intentStatus.textContent = statusMessage;

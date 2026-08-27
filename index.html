@@ -21,20 +21,14 @@
           <button type="button" id="new-game-button">New Game</button>
           <button type="button" id="inspector-button">Robot Inspector</button>
           <button type="button" id="action-log-button">Action Log</button>
-          <div class="speed-controls" aria-label="Simulation speed">
-            <button type="button" data-speed="0">Pause</button>
-            <button type="button" data-speed="1" aria-pressed="true">1x</button>
-            <button type="button" data-speed="2">2x</button>
-            <button type="button" data-speed="5">5x</button>
-            <button type="button" data-speed="10">10x</button>
-          </div>
         </div>
         <div class="window-body game-layout">
           <div class="status-strip" aria-live="polite">
             <span>Day <strong id="day-value">1</strong></span>
             <span>Money <strong id="money-value">100g</strong></span>
-            <span>Player stamina <strong id="stamina-value">20/20</strong></span>
-            <span><span id="intent-status">Ready</span> · Tick <strong id="tick-value">0</strong></span>
+            <span>You <strong id="stamina-value">20/20</strong></span>
+            <span>Robot <strong id="robot-status-value">20/20 · Resting</strong></span>
+            <span id="intent-status">Ready</span>
           </div>
           <div class="canvas-stage">
             <canvas id="game-canvas" width="576" height="480" aria-label="Farm map" tabindex="0"></canvas>
@@ -128,6 +122,14 @@
               <details class="robot-testing">
                 <summary>Testing</summary>
                 <button type="button" id="robot-demo-button">Send Robot to Chop Tree</button>
+                <div class="speed-controls" aria-label="Simulation speed">
+                  <button type="button" data-speed="0">Pause</button>
+                  <button type="button" data-speed="1" aria-pressed="true">1x</button>
+                  <button type="button" data-speed="2">2x</button>
+                  <button type="button" data-speed="5">5x</button>
+                  <button type="button" data-speed="10">10x</button>
+                </div>
+                <p>Simulation tick <strong id="tick-value">0</strong></p>
               </details>
             </div>
           </section>
