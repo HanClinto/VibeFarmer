@@ -13,7 +13,11 @@ import { createActionLog } from "./action-log.js";
 import { makeWindowDraggable } from "./draggable-windows.js";
 import { createWindowManager, isEditingText } from "./window-manager.js";
 import { createInspector } from "./inspector.js";
-import { commandForGameplayKey } from "./keyboard-controls.js";
+import {
+  commandForGameplayKey,
+  createHeldMovementController,
+  isMovementKey,
+} from "./keyboard-controls.js";
 import { createObjectInspector } from "./object-inspector.js";
 import { createPersistence } from "./persistence.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
@@ -333,13 +337,19 @@ function submit(command) {
   const submission = controller.submit({ source: "human-ui", ...command });
   if (!submission.success) {
     refresh(`Cannot act: ${submission.code}`);
-    return;
+    return submission;
   }
   refresh(`Running ${submission.operationId}`);
   submission.completion.then((result) => {
     refresh(result.success ? result.code : `Stopped: ${result.code}`);
   });
+  return submission;
 }
+
+const heldMovement = createHeldMovementController({
+  getPlayer: () => controller.getSnapshot().world.entities.player,
+  submit,
+});
 
 function canvasPosition(event) {
   const bounds = canvas.getBoundingClientRect();
@@ -392,8 +402,19 @@ hotbar.addEventListener("click", (event) => {
   runImmediate({ type: "select_slot", actorId: "player", slot: Number(button.dataset.slot) });
 });
 
+document.querySelector(".game-window").addEventListener("pointerdown", (event) => {
+  if (event.target.closest("button, input, select, textarea, [contenteditable]")) return;
+  canvas.focus({ preventScroll: true });
+});
+
 window.addEventListener("keydown", (event) => {
-  if (isEditingText(event.target) || document.querySelector('[role="dialog"]:not([hidden])')) return;
+  const dialogOpen = document.querySelector('[role="dialog"]:not([hidden])');
+  if (isEditingText(event.target) || (dialogOpen && document.activeElement !== canvas)) return;
+  if (isMovementKey(event.key)) {
+    event.preventDefault();
+    heldMovement.press(event.key);
+    return;
+  }
   if (/^[0-9]$/.test(event.key)) {
     runImmediate({
       type: "select_slot",
@@ -409,6 +430,12 @@ window.addEventListener("keydown", (event) => {
   event.preventDefault();
   submit(command);
 });
+
+window.addEventListener("keyup", (event) => {
+  heldMovement.release(event.key);
+});
+
+window.addEventListener("blur", () => heldMovement.clear());
 
 document.querySelector("#new-game-button").addEventListener("click", () => {
   if (!window.confirm("Start a new game? This will replace the current autosave.")) return;

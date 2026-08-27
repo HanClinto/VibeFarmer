@@ -16,6 +16,55 @@ const FACING = {
   west: DIRECTIONS.arrowleft,
 };
 
+function normalizedMovementKey(key) {
+  const normalizedKey = key.toLowerCase();
+  return DIRECTIONS[normalizedKey] ? normalizedKey : null;
+}
+
+export function isMovementKey(key) {
+  return normalizedMovementKey(key) !== null;
+}
+
+export function createHeldMovementController({ getPlayer, submit }) {
+  const heldKeys = [];
+  let movementInFlight = false;
+
+  function release(key) {
+    const normalizedKey = normalizedMovementKey(key);
+    if (!normalizedKey) return false;
+    const index = heldKeys.indexOf(normalizedKey);
+    if (index !== -1) heldKeys.splice(index, 1);
+    return true;
+  }
+
+  function pump() {
+    if (movementInFlight || heldKeys.length === 0) return;
+    const command = commandForGameplayKey(heldKeys.at(-1), getPlayer());
+    const submission = submit(command);
+    if (!submission?.success || !submission.completion) return;
+    movementInFlight = true;
+    submission.completion.finally(() => {
+      movementInFlight = false;
+      queueMicrotask(pump);
+    });
+  }
+
+  return {
+    press(key) {
+      const normalizedKey = normalizedMovementKey(key);
+      if (!normalizedKey) return false;
+      release(normalizedKey);
+      heldKeys.push(normalizedKey);
+      pump();
+      return true;
+    },
+    release,
+    clear() {
+      heldKeys.length = 0;
+    },
+  };
+}
+
 function offset(position, direction) {
   return { x: position.x + direction.x, y: position.y + direction.y };
 }

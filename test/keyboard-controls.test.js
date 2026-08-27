@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { commandForGameplayKey } from "../src/adapters/browser/keyboard-controls.js";
+import {
+  commandForGameplayKey,
+  createHeldMovementController,
+} from "../src/adapters/browser/keyboard-controls.js";
 
 function player(overrides = {}) {
   return {
@@ -44,4 +47,38 @@ test("Space and E interact with the faced tile using the selected slot", () => {
 
 test("unrelated keys do not create gameplay commands", () => {
   assert.equal(commandForGameplayKey("Tab", player()), null);
+});
+
+test("held movement submits one step at a time and follows the latest direction", async () => {
+  const currentPlayer = player();
+  const submissions = [];
+  const resolvers = [];
+  const heldMovement = createHeldMovementController({
+    getPlayer: () => currentPlayer,
+    submit(command) {
+      submissions.push(command);
+      const completion = new Promise((resolve) => resolvers.push(resolve));
+      return { success: true, completion };
+    },
+  });
+
+  heldMovement.press("d");
+  heldMovement.press("d");
+  heldMovement.press("w");
+  assert.equal(submissions.length, 1);
+  assert.deepEqual(submissions[0].target, { x: 5, y: 3 });
+
+  currentPlayer.position = { x: 5, y: 3 };
+  resolvers.shift()({ success: true });
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(submissions.length, 2);
+  assert.deepEqual(submissions[1].target, { x: 5, y: 2 });
+
+  heldMovement.release("w");
+  heldMovement.release("d");
+  resolvers.shift()({ success: true });
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(submissions.length, 2);
 });
