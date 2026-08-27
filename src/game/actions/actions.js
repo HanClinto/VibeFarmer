@@ -10,6 +10,11 @@ import {
 } from "../world/entities/containers/inventory.js";
 import { getItemType } from "../world/entities/items/item-types.js";
 import { createPlant } from "../world/entities/plants/plants.js";
+import {
+  deterministicHarvestQuantity,
+  getCropType,
+  getCropTypeBySeed,
+} from "../world/entities/plants/crop-types.js";
 import { TERRAIN_TYPES, getTerrainAt, setTerrainAt } from "../world/terrain/terrain.js";
 import {
   addWorldEntity,
@@ -107,6 +112,7 @@ export function validateUseItem(state, actorId, target, selector, { requireAdjac
 
   const targetObject = getWorldObject(state.world, target);
   const terrainType = getTerrainAt(state.world, target);
+  const seedCrop = getCropTypeBySeed(resolved.item.itemId);
   if (resolved.item.itemId === "axe" && targetObject?.type !== "tree") {
     return outcome(false, "INVALID_AXE_TARGET");
   }
@@ -120,19 +126,19 @@ export function validateUseItem(state, actorId, target, selector, { requireAdjac
       && ["tilled", "wet_tilled"].includes(terrainType);
     if (!validBareGround && !validCrop) return outcome(false, "INVALID_HOE_TARGET");
     if (validCrop && targetObject.growthStage === 0
-      && !canAddItem(actor.inventory, "turnip_seeds", 1)) {
+      && !canAddItem(actor.inventory, getCropType(targetObject.cropType).seedItemId, 1)) {
       return outcome(false, "INVENTORY_FULL");
     }
   }
   if (resolved.item.itemId === "watering_can" && terrainType !== "tilled") {
     return outcome(false, "INVALID_WATER_TARGET");
   }
-  if (resolved.item.itemId === "turnip_seeds"
+  if (seedCrop
     && (targetObject || !["tilled", "wet_tilled"].includes(terrainType))) {
     return outcome(false, "INVALID_PLANT_TARGET");
   }
 
-  const staminaCost = GAME_CONFIG.staminaCosts[resolved.item.itemId] ?? 0;
+  const staminaCost = GAME_CONFIG.staminaCosts[resolved.item.itemId] ?? (seedCrop ? 1 : 0);
   if (actor.stamina < staminaCost) return outcome(false, "NOT_ENOUGH_STAMINA");
 
   return outcome(true, "ITEM_USE_VALID", {
@@ -160,10 +166,12 @@ export function validateHarvest(state, actorId, target, { requireAdjacent = true
   if (plant?.type !== "plant" || plant.growthStage < plant.matureStage) {
     return outcome(false, "CROP_NOT_READY");
   }
-  if (!canAddItem(actor.inventory, plant.cropType, 1)) {
+  const definition = getCropType(plant.cropType);
+  const quantity = deterministicHarvestQuantity(plant, definition);
+  if (!canAddItem(actor.inventory, definition.produceItemId, quantity)) {
     return outcome(false, "INVENTORY_FULL");
   }
-  return outcome(true, "HARVEST_VALID", { actor, plant, target });
+  return outcome(true, "HARVEST_VALID", { actor, plant, target, definition, quantity });
 }
 
 function addHistory(state, event) {
@@ -232,17 +240,20 @@ export function useItem(state, actorId, target, selector = {}) {
     }
   } else if (item.itemId === "hoe") {
     if (targetObject?.type === "plant") {
-      if (targetObject.growthStage === 0) addItem(actor.inventory, "turnip_seeds", 1);
+      if (targetObject.growthStage === 0) {
+        addItem(actor.inventory, getCropType(targetObject.cropType).seedItemId, 1);
+      }
       removeWorldEntity(state.world, targetObject.id);
     } else {
       setTerrainAt(state.world, target, "tilled");
     }
   } else if (item.itemId === "watering_can") {
     setTerrainAt(state.world, target, "wet_tilled");
-  } else if (item.itemId === "turnip_seeds") {
+  } else if (getCropTypeBySeed(item.itemId)) {
+    const crop = getCropTypeBySeed(item.itemId);
     addWorldEntity(state.world, createPlant({
       id: generateWorldEntityId(state.world, "plant"),
-      cropType: "turnip",
+      cropType: crop.id,
       position: target,
     }));
     item.quantity -= 1;
@@ -269,19 +280,28 @@ export function harvest(state, actorId, target) {
   if (!validation.success) return validation;
 
   ({ target } = validation);
-  const { actor, plant } = validation;
-  addItem(actor.inventory, plant.cropType, 1);
-  removeWorldEntity(state.world, plant.id);
+  const { actor, plant, definition, quantity } = validation;
+  addItem(actor.inventory, definition.produceItemId, quantity);
+  plant.harvestCount += 1;
+  if (definition.regrowDays) {
+    plant.growthStage = plant.matureStage - definition.regrowDays;
+  } else {
+    removeWorldEntity(state.world, plant.id);
+  }
   addHistory(state, {
     type: "crop_harvested",
     actorId,
     entityId: plant.id,
     cropType: plant.cropType,
+    quantity,
+    regrows: Boolean(definition.regrowDays),
     target: { ...target },
   });
   return outcome(true, "CROP_HARVESTED", {
     cropType: plant.cropType,
-    quantity: 1,
+    itemId: definition.produceItemId,
+    quantity,
+    regrows: Boolean(definition.regrowDays),
     target: { ...target },
   });
 }

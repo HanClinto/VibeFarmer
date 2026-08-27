@@ -1,10 +1,6 @@
-export const CROP_TYPES = Object.freeze({
-  turnip: Object.freeze({
-    id: "turnip",
-    name: "Turnip",
-    matureStage: 3,
-  }),
-});
+import { CROP_TYPES } from "./crop-types.js";
+
+export { CROP_TYPES } from "./crop-types.js";
 
 export function createPlant({ id, cropType, position }) {
   const definition = CROP_TYPES[cropType];
@@ -16,5 +12,6 @@ export function createPlant({ id, cropType, position }) {
     position: { ...position },
     growthStage: 0,
     matureStage: definition.matureStage,
+    harvestCount: 0,
   };
 }
