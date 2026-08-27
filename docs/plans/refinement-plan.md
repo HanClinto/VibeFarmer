@@ -50,7 +50,7 @@ The downloaded packs remain private visual references only.
 - None supplies a suitable robot asset.
 - Attribution does not override redistribution restrictions.
 
-Create a coherent original sprite set under `assets/game/`. Do not trace or closely copy reference-pack sprites. Every shipped file should be original project artwork or separately documented under an explicit redistributable license.
+Use a coherent hybrid of curated CC0 Kenney Tiny Farm/Tiny Town assets and project-original player, robot, water, dock, and effect sprites under `assets/game/`. Do not trace or closely copy restricted reference-pack sprites. Every shipped file must be original project artwork or separately documented under an explicit redistributable license. See [art-direction.md](art-direction.md).
 
 ## Target Experience
 

@@ -18,6 +18,7 @@ The first executable slice demonstrates the shared control contract:
 The broader MVP is specified in [docs/plans/mvp-plan.md](docs/plans/mvp-plan.md).
 Submission copy and the timed demo script live in [docs/submission.md](docs/submission.md).
 The implementation audit and corrective design cycle are tracked in [docs/plans/mvp-audit.md](docs/plans/mvp-audit.md) and [docs/plans/refinement-plan.md](docs/plans/refinement-plan.md).
+The licensed/original sprite strategy and comparison gate are documented in [docs/plans/art-direction.md](docs/plans/art-direction.md).
 
 ## Run Locally
 
@@ -73,6 +74,6 @@ The challenge release targets one fixed farm, a 3-4 day crop cycle, lumber, a si
 
 ## Assets and License
 
-Application code is licensed under the MIT License. Current game-world visuals are procedural Canvas placeholders; the refinement plan requires an original redistributable sprite set under `assets/game/`. The 98.css interface dependency is documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Application code is licensed under the MIT License. Current game-world visuals are procedural Canvas placeholders. A curated CC0 16x16 base and its exact provenance now live under `assets/game/`; custom player/robot/effect frames and renderer integration remain refinement work. Third-party dependencies are documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 Downloaded packs under `assets/sprites/` are local design references and are excluded from version control because their licenses do not permit redistribution. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
