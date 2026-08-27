@@ -142,6 +142,7 @@ let hotbarSignature = null;
 let storageSignature = null;
 let inspector = null;
 let observedPlayerMapId = controller.getSnapshot().world.entities.player.mapId;
+let hoverTarget = null;
 const invocationLog = [];
 const runtime = createRuntime(controller, {
   onFrame: (_state, nextTickProgress) => {
@@ -353,7 +354,12 @@ function refresh(message) {
   const openEntityIds = new Set(
     storageWindow.hidden || !activeStorageTargetId ? [] : [activeStorageTargetId],
   );
-  camera = renderGame(context, state, { tickProgress, sprites, openEntityIds });
+  camera = renderGame(context, state, {
+    tickProgress,
+    sprites,
+    openEntityIds,
+    hoverTarget,
+  });
   updateHotbar(state);
   staminaValue.textContent = `${state.world.entities.player.stamina}/${GAME_CONFIG.maxStamina}`;
   dayValue.textContent = String(state.day);
@@ -433,6 +439,20 @@ canvas.addEventListener("contextmenu", (event) => {
   event.preventDefault();
   objectInspector.select(canvasPosition(event));
   objectInspectorDialog.open();
+});
+
+canvas.addEventListener("pointermove", (event) => {
+  const nextTarget = canvasPosition(event);
+  if (hoverTarget?.mapId === nextTarget.mapId
+    && hoverTarget.x === nextTarget.x
+    && hoverTarget.y === nextTarget.y) return;
+  hoverTarget = nextTarget;
+  refresh();
+});
+
+canvas.addEventListener("pointerleave", () => {
+  hoverTarget = null;
+  refresh();
 });
 
 hotbar.addEventListener("click", (event) => {

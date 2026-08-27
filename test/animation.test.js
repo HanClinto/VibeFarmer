@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   chestFrameId,
   getActorRenderPosition,
+  operationPreview,
   terrainFrameId,
 } from "../src/adapters/browser/renderer.js";
 
@@ -67,4 +68,27 @@ test("path terrain uses the stepping-stone route frame", () => {
 
 test("interior floor terrain uses the wood floor frame", () => {
   assert.equal(terrainFrameId({ terrain: [["floor"]] }, 0, 0), "interior.floor_wood");
+});
+
+test("operation preview exposes only current-map route steps and destination", () => {
+  const state = {
+    world: { entities: { player: { mapId: "farm", activeIntent: "operation-1" } } },
+    operations: {
+      "operation-1": {
+        path: [
+          { mapId: "farm", x: 2, y: 3 },
+          { mapId: "farmhouse", x: 4, y: 4 },
+        ],
+        command: { target: { mapId: "farm", x: 3, y: 3 } },
+      },
+    },
+  };
+
+  assert.deepEqual(operationPreview(state, "player"), {
+    mapId: "farm",
+    path: [{ mapId: "farm", x: 2, y: 3 }],
+    destination: { mapId: "farm", x: 3, y: 3 },
+  });
+  state.world.entities.player.activeIntent = null;
+  assert.equal(operationPreview(state, "player"), null);
 });

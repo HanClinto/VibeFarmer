@@ -121,6 +121,53 @@ export function chestFrameId(isOpen) {
   return isOpen ? "entity.chest.open" : "entity.chest.closed";
 }
 
+export function operationPreview(state, actorId) {
+  const actor = state.world.entities[actorId];
+  const operation = actor?.activeIntent ? state.operations[actor.activeIntent] : null;
+  if (!operation) return null;
+  return {
+    mapId: actor.mapId,
+    path: operation.path.filter((step) => step.mapId === actor.mapId),
+    destination: operation.command.target?.mapId === actor.mapId
+      ? operation.command.target
+      : null,
+  };
+}
+
+function drawTileFeedback(context, scale, preview, hoverTarget, currentMapId) {
+  if (preview) {
+    context.fillStyle = "rgba(255, 244, 207, 0.62)";
+    for (const step of preview.path) {
+      context.fillRect(
+        (step.x * scale) + (scale * 0.42),
+        (step.y * scale) + (scale * 0.42),
+        scale * 0.16,
+        scale * 0.16,
+      );
+    }
+    if (preview.destination) {
+      context.strokeStyle = "#f4d35e";
+      context.lineWidth = 3;
+      context.strokeRect(
+        (preview.destination.x * scale) + 4,
+        (preview.destination.y * scale) + 4,
+        scale - 8,
+        scale - 8,
+      );
+    }
+  }
+  if (hoverTarget?.mapId === currentMapId) {
+    context.strokeStyle = "rgba(255, 255, 255, 0.9)";
+    context.lineWidth = 2;
+    context.strokeRect(
+      (hoverTarget.x * scale) + 2,
+      (hoverTarget.y * scale) + 2,
+      scale - 4,
+      scale - 4,
+    );
+  }
+}
+
 export function terrainFrameId(world, x, y) {
   const terrainType = world.terrain[y][x];
   if (terrainType === "floor") return "interior.floor_wood";
@@ -163,7 +210,12 @@ function drawChest(context, chest, scale, sprites, isOpen) {
 export function renderGame(
   context,
   state,
-  { tickProgress = 1, sprites = null, openEntityIds = new Set() } = {},
+  {
+    tickProgress = 1,
+    sprites = null,
+    openEntityIds = new Set(),
+    hoverTarget = null,
+  } = {},
 ) {
   const scale = RENDER_TILE_SIZE;
   context.imageSmoothingEnabled = false;
@@ -224,6 +276,13 @@ export function renderGame(
   if (state.world.entities.robot.mapId === currentMapId) {
     drawActor(context, state.world.entities.robot, scale, state.tick, tickProgress, sprites);
   }
+  drawTileFeedback(
+    context,
+    scale,
+    operationPreview(state, "player"),
+    hoverTarget,
+    currentMapId,
+  );
   context.restore();
   return camera;
 }
