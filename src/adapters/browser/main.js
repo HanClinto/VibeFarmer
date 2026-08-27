@@ -23,6 +23,7 @@ import { createPersistence } from "./persistence.js";
 import { renderDaySummary } from "./day-summary.js";
 import { createSceneTransition } from "./scene-transition.js";
 import { contextualActions } from "./contextual-actions.js";
+import { actionForCanvasClick } from "./pointer-controls.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 
 const canvas = document.querySelector("#game-canvas");
@@ -446,24 +447,13 @@ function canvasPosition(event) {
 
 canvas.addEventListener("click", (event) => {
   const target = canvasPosition(event);
-  const occupied = Object.values(controller.getSnapshot().world.entities).some(
-    (entity) => entity.mapId === target.mapId
-      && entity.position?.x === target.x
-      && entity.position?.y === target.y,
-  );
-  if (!event.shiftKey && occupied) {
-    objectInspector.select(target);
+  const action = actionForCanvasClick(controller.getSnapshot(), target, event);
+  if (action.kind === "inspect") {
+    objectInspector.select(action.target);
     objectInspectorDialog.open();
     return;
   }
-  const player = controller.getSnapshot().world.entities.player;
-  const selectedItem = player.inventory[player.selectedSlot - 1];
-  submit({
-    type: event.shiftKey ? "interact_at" : "move_to",
-    actorId: "player",
-    target,
-    item: event.shiftKey && selectedItem === null ? { action: "harvest" } : undefined,
-  });
+  submit(action.command);
 });
 
 canvas.addEventListener("contextmenu", (event) => {

@@ -257,3 +257,19 @@ test("walking onto a portal moves an actor through the ordinary movement path", 
   assert.equal(actor.mapId, "farm");
   assert.deepEqual(actor.position, { x: 3, y: 5 });
 });
+
+test("move_to can route from the starting farm position through the farmhouse door", () => {
+  const state = createFarmState();
+  const controller = createController(state);
+  const submission = controller.submit({
+    type: "move_to",
+    actorId: "player",
+    target: { mapId: "farm", x: 3, y: 4 },
+  });
+
+  assert.equal(submission.success, true);
+  runToCompletion(controller, submission.operationId);
+  assert.equal(state.world.entities.player.mapId, "farmhouse");
+  assert.deepEqual(state.world.entities.player.position, { x: 4, y: 4 });
+  assert.equal(state.operations[submission.operationId].status, "completed");
+});
