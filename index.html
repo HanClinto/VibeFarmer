@@ -40,7 +40,12 @@
             <span>Player stamina <strong id="stamina-value">20/20</strong></span>
             <span><span id="intent-status">Ready</span> · Tick <strong id="tick-value">0</strong></span>
           </div>
-          <canvas id="game-canvas" width="576" height="480" aria-label="Farm map" tabindex="0"></canvas>
+          <div class="canvas-stage">
+            <canvas id="game-canvas" width="576" height="480" aria-label="Farm map" tabindex="0"></canvas>
+            <div id="scene-transition" class="scene-transition" aria-hidden="true" hidden>
+              <span></span>
+            </div>
+          </div>
           <div id="hotbar" class="hotbar" aria-label="Player inventory"></div>
           <p class="status-bar">
             <span class="status-bar-field">Click or Arrow/WASD to move</span>

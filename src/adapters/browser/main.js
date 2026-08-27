@@ -21,6 +21,7 @@ import {
 import { createObjectInspector } from "./object-inspector.js";
 import { createPersistence } from "./persistence.js";
 import { renderDaySummary } from "./day-summary.js";
+import { createSceneTransition } from "./scene-transition.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 
 const canvas = document.querySelector("#game-canvas");
@@ -44,6 +45,7 @@ const inspectorWindow = document.querySelector("#inspector-window");
 const actionLogWindow = document.querySelector("#action-log-window");
 const objectInspectorWindow = document.querySelector("#object-inspector-window");
 const daySummaryWindow = document.querySelector("#day-summary-window");
+const sceneTransition = createSceneTransition(document.querySelector("#scene-transition"));
 const windowManager = createWindowManager();
 const sprites = await loadSpriteCatalog();
 
@@ -104,6 +106,9 @@ const daySummaryDialog = windowManager.register({
   windowElement: daySummaryWindow,
   launcher: document.querySelector("#sleep-button"),
   closeButton: document.querySelector("#day-summary-close-button"),
+  onClose: () => {
+    sceneTransition.wake().then(() => canvas.focus({ preventScroll: true }));
+  },
 });
 const initialStatusMessages = {
   NO_SAVE: "Ready",
@@ -119,6 +124,7 @@ let camera = { x: 0, y: 0 };
 let hotbarSignature = null;
 let storageSignature = null;
 let inspector = null;
+let observedPlayerMapId = controller.getSnapshot().world.entities.player.mapId;
 const invocationLog = [];
 const runtime = createRuntime(controller, {
   onFrame: (_state, nextTickProgress) => {
@@ -127,11 +133,20 @@ const runtime = createRuntime(controller, {
   },
 });
 
-controller.subscribe(({ state, result }) => {
+controller.subscribe(async ({ state, result }) => {
   persistence.scheduleSave(state);
-  if (result.code !== "DAY_ADVANCED") return;
-  renderDaySummary(daySummaryWindow, result.summary);
-  daySummaryDialog.open();
+  const nextMapId = state.world.entities.player.mapId;
+  if (nextMapId !== observedPlayerMapId) {
+    observedPlayerMapId = nextMapId;
+    const mapName = nextMapId === "farmhouse" ? "Farmhouse" : "Farm";
+    sceneTransition.playMapChange(mapName);
+  }
+  if (result.code === "DAY_ADVANCED") {
+    heldMovement.clear();
+    await sceneTransition.beginNight();
+    renderDaySummary(daySummaryWindow, result.summary);
+    daySummaryDialog.open();
+  }
 });
 window.addEventListener("beforeunload", () => persistence.flush(controller.getSnapshot()));
 persistence.scheduleSave(controller.getSnapshot());
@@ -482,7 +497,6 @@ document.querySelector("#sleep-button").addEventListener("click", () => {
 
 document.querySelector("#day-summary-continue-button").addEventListener("click", () => {
   daySummaryDialog.close();
-  canvas.focus({ preventScroll: true });
 });
 
 document.querySelector("#market-button").addEventListener("click", () => {

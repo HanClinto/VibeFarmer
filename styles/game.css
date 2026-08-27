@@ -81,6 +81,12 @@ canvas {
   background: #c0c0c0;
 }
 
+.canvas-stage {
+  position: relative;
+  width: 576px;
+  height: 480px;
+}
+
 #game-canvas {
   display: block;
   width: 576px;
@@ -88,6 +94,43 @@ canvas {
   border: 2px inset var(--canvas-border);
   background: #6da84d;
   cursor: crosshair;
+}
+
+.scene-transition {
+  position: absolute;
+  z-index: 5;
+  inset: 2px;
+  display: grid;
+  place-items: center;
+  background: #17131c;
+  color: #fff4cf;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 260ms ease-in-out;
+}
+
+.scene-transition[hidden] {
+  display: none;
+}
+
+.scene-transition.is-opaque {
+  opacity: 1;
+}
+
+.scene-transition span {
+  font-family: Georgia, serif;
+  font-size: 28px;
+}
+
+.scene-transition[data-mode="morning"] {
+  background: #f6d68a;
+  color: #49351f;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-transition {
+    transition-duration: 0.01ms;
+  }
 }
 
 .hotbar {
