@@ -52,7 +52,7 @@ Status meanings:
 | 38 | Partial | Paused intents wait and abandoned calls continue; immediate mutators still execute while paused. |
 | 39 | Met | `interact_at` accepts slot/item ID and returns structured operation/item/path/change/robot/recovery context without player inventory. |
 | 40 | Met | No plan, queue, bulk farm, speed, direct tick, or remote-storage tool is exposed. |
-| 41 | Met | Unsupported WebMCP retains local play and Inspector invocation without artificial delay. |
+| 41 | Met | Unsupported WebMCP retains local play and Inspector invocation without artificial delay. Default inspection is compact and coordinate-labeled, with map/center/radius/entity/history filters and opt-in detailed terrain JSON. |
 | 42 | Partial | Four views, registry-derived tools, raw invocation, statuses, elapsed ticks, and collapsible records exist; friendly game-facing Inspector views remain weak. |
 | 43 | Partial | Mock integration covers core discovery, pause, abort, abandonment, busy, privacy, results, and logs; full schema/parity/mid-execution matrix is incomplete. |
 | 44 | Met | Default resources support a complete profitable crop cycle and trees cannot all be cleared by one actor on day one. |

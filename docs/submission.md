@@ -20,6 +20,7 @@ The complete loop runs as a static site with no production framework or server. 
 - **Primitive tools:** WebMCP exposes single actions, not plans, queues, `plant_all`, remote storage, speed controls, or direct ticks.
 - **Visible latency:** Successful movement and item-interaction responses mean simulated work visibly completed, not merely that it entered a queue. Immediate selection, trade, transfer, and sleep commands are reported synchronously.
 - **Inspectable state:** Operations are serializable records with stable IDs, phases, statuses, ticks, results, and cancellation state.
+- **Efficient inspection:** `inspect_game` defaults to a compact local ASCII map and sparse actionable entities instead of repeating the full terrain matrix. Radius, center, map, entity type, history, and detailed-mode controls are explicit.
 - **Privacy by role:** The robot may inspect its own inventory and nearby shared storage, but not the player's inventory. It may deliver its own item into available player capacity.
 - **Replaceable adapters:** The game core has no DOM, Canvas, Promise, timer, localStorage, or WebMCP dependency.
 

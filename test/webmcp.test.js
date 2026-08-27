@@ -66,6 +66,50 @@ test("inspection exposes robot inventory but not player inventory", () => {
 
   assert.equal("inventory" in player, false);
   assert.ok(Array.isArray(robot.inventory));
+  assert.equal("terrain" in inspected, false);
+  assert.match(inspected.view.ascii, /R/);
+  assert.match(inspected.view.legend.terrain, /W watered/);
+});
+
+test("compact inspection filters a bounded area by entity type", () => {
+  const inspected = inspectGame(createController(createFarmState()), {
+    mapId: "farm",
+    x: 20,
+    y: 2,
+    radius: 2,
+    entityTypes: ["tree"],
+  });
+
+  assert.deepEqual(inspected.view.center, { x: 20, y: 2 });
+  assert.deepEqual(inspected.view.bounds, { left: 18, top: 0, right: 22, bottom: 4 });
+  assert.ok(inspected.entities.length > 0);
+  assert.ok(inspected.entities.every((entity) => entity.type === "tree"));
+  assert.equal(inspected.view.ascii.split("\n").length, 6);
+});
+
+test("detailed inspection opts into terrain, all selected-map entities, and bounded history", () => {
+  const controller = createController(createFarmState());
+  controller.execute({ type: "select_slot", actorId: "robot", slot: 2, source: "webmcp" });
+  controller.execute({ type: "select_slot", actorId: "robot", slot: 3, source: "webmcp" });
+
+  const compact = inspectGame(controller);
+  const detailed = inspectGame(controller, {
+    mode: "detailed",
+    includeHistory: true,
+    historyLimit: 1,
+  });
+
+  assert.ok(Array.isArray(detailed.terrain));
+  assert.ok(detailed.entities.some((entity) => entity.type === "decoration"));
+  assert.equal(detailed.history.length, 1);
+  assert.ok(JSON.stringify(compact).length < JSON.stringify(detailed).length * 0.6);
+});
+
+test("inspection reports an unknown map without serializing world state", () => {
+  assert.deepEqual(
+    inspectGame(createController(createFarmState()), { mapId: "missing" }),
+    { success: false, code: "MAP_NOT_FOUND", mapId: "missing" },
+  );
 });
 
 test("move_to stays pending until simulation ticks complete", async () => {

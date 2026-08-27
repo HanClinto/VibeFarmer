@@ -6,7 +6,7 @@ function formatted(value) {
 
 function sampleInput(tool) {
   const samples = {
-    inspect_game: { includeHistory: false },
+    inspect_game: { mode: "compact", radius: 6, includeHistory: false },
     move_to: { x: 3, y: 3 },
     interact_at: { x: 8, y: 2, itemId: "axe" },
     select_slot: { slot: 1 },

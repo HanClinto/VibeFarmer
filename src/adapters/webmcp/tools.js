@@ -2,6 +2,37 @@ function result(success, code, details = {}) {
   return { success, code, ...details };
 }
 
+const DEFAULT_INSPECTION_TYPES = Object.freeze([
+  "actor",
+  "bed",
+  "chest",
+  "market",
+  "plant",
+  "portal",
+  "rock",
+  "tree",
+]);
+
+const TERRAIN_SYMBOLS = Object.freeze({
+  grass: ".",
+  path: ":",
+  tilled: "=",
+  wet_tilled: "W",
+  water: "~",
+  floor: "_",
+});
+
+const ENTITY_SYMBOLS = Object.freeze({
+  bed: "B",
+  chest: "C",
+  decoration: "#",
+  market: "M",
+  plant: "p",
+  portal: "D",
+  rock: "O",
+  tree: "T",
+});
+
 function robotState(state) {
   const robot = state.world.entities.robot;
   return {
@@ -62,7 +93,7 @@ function structuredIntentResult(controller, output, operation, historyStart) {
   };
 }
 
-function publicEntity(entity, robotPosition) {
+function publicEntity(entity, robot) {
   const base = {
     id: entity.id,
     type: entity.type,
@@ -85,27 +116,127 @@ function publicEntity(entity, robotPosition) {
       base.activeIntent = entity.activeIntent;
     }
   }
-  if (entity.type === "chest" && robotPosition
-    && Math.abs(entity.position.x - robotPosition.x)
-      + Math.abs(entity.position.y - robotPosition.y) === 1) {
+  if (entity.type === "chest" && robot
+    && entity.mapId === robot.mapId
+    && Math.abs(entity.position.x - robot.position.x)
+      + Math.abs(entity.position.y - robot.position.y) === 1) {
     base.inventory = entity.inventory;
   }
   return base;
 }
 
-export function inspectGame(controller, { includeHistory = false } = {}) {
+function entitySymbol(entity) {
+  if (entity.type === "actor") return entity.role === "robot" ? "R" : "P";
+  if (entity.type === "plant") {
+    return entity.growthStage >= entity.matureStage ? "H" : "p";
+  }
+  return ENTITY_SYMBOLS[entity.type] ?? "?";
+}
+
+function inspectionBounds(map, center, radius) {
+  return {
+    left: Math.max(0, center.x - radius),
+    top: Math.max(0, center.y - radius),
+    right: Math.min(map.width - 1, center.x + radius),
+    bottom: Math.min(map.height - 1, center.y + radius),
+  };
+}
+
+function inBounds(entity, bounds, mapId) {
+  return entity.mapId === mapId
+    && entity.position
+    && entity.position.x >= bounds.left
+    && entity.position.x <= bounds.right
+    && entity.position.y >= bounds.top
+    && entity.position.y <= bounds.bottom;
+}
+
+export function asciiMap(map, entities, bounds) {
+  const cells = [];
+  for (let y = bounds.top; y <= bounds.bottom; y += 1) {
+    const row = [];
+    for (let x = bounds.left; x <= bounds.right; x += 1) {
+      row.push(TERRAIN_SYMBOLS[map.terrain[y][x]] ?? "?");
+    }
+    cells.push(row);
+  }
+  const priority = ["decoration", "portal", "market", "bed", "chest", "rock", "tree", "plant", "actor"];
+  for (const entity of [...entities].sort(
+    (first, second) => priority.indexOf(first.type) - priority.indexOf(second.type),
+  )) {
+    cells[entity.position.y - bounds.top][entity.position.x - bounds.left] = entitySymbol(entity);
+  }
+  const xAxis = Array.from(
+    { length: bounds.right - bounds.left + 1 },
+    (_value, index) => String((bounds.left + index) % 10),
+  ).join("");
+  const rows = cells.map(
+    (row, index) => `${String(bounds.top + index).padStart(2, "0")} ${row.join("")}`,
+  );
+  return `   ${xAxis}\n${rows.join("\n")}`;
+}
+
+export function inspectGame(controller, {
+  mode = "compact",
+  radius = 6,
+  mapId,
+  x,
+  y,
+  entityTypes,
+  includeHistory = false,
+  historyLimit = 20,
+} = {}) {
   const state = controller.getSnapshot();
   const robot = state.world.entities.robot;
+  const selectedMapId = mapId ?? robot.mapId;
+  const map = state.world.maps[selectedMapId];
+  if (!map) return result(false, "MAP_NOT_FOUND", { mapId: selectedMapId });
+  const center = {
+    x: Math.min(map.width - 1, Math.max(0, x ?? robot.position.x)),
+    y: Math.min(map.height - 1, Math.max(0, y ?? robot.position.y)),
+  };
+  const boundedRadius = Math.min(12, Math.max(1, radius));
+  const mapEntities = Object.values(state.world.entities)
+    .filter((entity) => entity.mapId === selectedMapId);
+  const allTypes = [...new Set(mapEntities.map((entity) => entity.type))];
+  const selectedTypes = new Set(
+    entityTypes ?? (mode === "detailed" ? allTypes : DEFAULT_INSPECTION_TYPES),
+  );
+  const bounds = inspectionBounds(map, center, boundedRadius);
+  const entities = mapEntities
+    .filter((entity) => selectedTypes.has(entity.type))
+    .filter((entity) => mode === "detailed" || inBounds(entity, bounds, selectedMapId))
+    .sort((first, second) => first.id.localeCompare(second.id));
+  const entityCounts = {};
+  for (const entity of mapEntities) {
+    entityCounts[entity.type] = (entityCounts[entity.type] ?? 0) + 1;
+  }
+  const activeOperations = Object.values(state.operations).filter(
+    (operation) => !["completed", "failed", "cancelled"].includes(operation.status),
+  );
   return result(true, "GAME_INSPECTED", {
     tick: state.tick,
     day: state.day,
     money: state.money,
-    terrain: state.world.terrain,
-    entities: Object.values(state.world.entities)
-      .sort((first, second) => first.id.localeCompare(second.id))
-      .map((entity) => publicEntity(entity, robot.position)),
-    operations: Object.values(state.operations),
-    ...(includeHistory ? { history: state.history.slice(-50) } : {}),
+    robot: robotState(state),
+    map: { id: selectedMapId, width: map.width, height: map.height },
+    entityCounts,
+    view: {
+      center,
+      radius: boundedRadius,
+      bounds,
+      ascii: asciiMap(map, mapEntities.filter(
+        (entity) => inBounds(entity, bounds, selectedMapId),
+      ), bounds),
+      legend: {
+        terrain: ". grass, : path, = tilled, W watered, ~ water, _ floor",
+        entities: "R robot, P player, T tree, p crop, H harvest-ready, C chest, B bed, M market, D door, O rock",
+      },
+    },
+    entities: entities.map((entity) => publicEntity(entity, robot)),
+    operations: mode === "detailed" ? Object.values(state.operations) : activeOperations,
+    ...(mode === "detailed" ? { terrain: map.terrain } : {}),
+    ...(includeHistory ? { history: state.history.slice(-historyLimit) } : {}),
   });
 }
 
@@ -142,12 +273,25 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     {
       name: "inspect_game",
       title: "Inspect game",
-      description: "Inspect the shared farm, robot state and inventory, visible entities, operations, and optionally recent history. Player inventory is private.",
+      description: "Inspect a compact ASCII area around the robot by default. Optionally choose a map, center, radius, entity types, bounded history, or detailed mode with the full terrain matrix. Player inventory is private.",
       inputSchema: {
         type: "object",
         properties: {
-          includeHistory: { type: "boolean", description: "Include the 50 most recent game events." },
+          mode: { type: "string", enum: ["compact", "detailed"], description: "Compact omits repetitive terrain JSON; detailed includes the selected map's full terrain and all matching entities." },
+          mapId: { type: "string", description: "Map to inspect; defaults to the robot's current map." },
+          x: { type: "integer", minimum: 0, description: "View center X; defaults to the robot." },
+          y: { type: "integer", minimum: 0, description: "View center Y; defaults to the robot." },
+          radius: { type: "integer", minimum: 1, maximum: 12, description: "Compact square radius around the center; defaults to 6." },
+          entityTypes: {
+            type: "array",
+            uniqueItems: true,
+            items: { type: "string", enum: ["actor", "bed", "chest", "decoration", "market", "plant", "portal", "rock", "tree"] },
+            description: "Only return these entity types. Compact mode excludes decorations by default.",
+          },
+          includeHistory: { type: "boolean", description: "Include recent game events." },
+          historyLimit: { type: "integer", minimum: 1, maximum: 50, description: "Maximum history records; defaults to 20." },
         },
+        additionalProperties: false,
       },
       annotations: { readOnlyHint: true },
       execute(input) {
