@@ -2,10 +2,12 @@ import { CARDINAL_DIRECTIONS, GAME_CONFIG } from "../../../config.js";
 import {
   getActor,
   isWalkable,
+  normalizeActorTarget,
   validateHarvest,
   validateUseItem,
 } from "../../../actions/actions.js";
 import { findPath } from "../../pathfinding.js";
+import { getEntityLocation } from "../../world.js";
 
 function outcome(success, code, details = {}) {
   return { success, code, ...details };
@@ -13,8 +15,9 @@ function outcome(success, code, details = {}) {
 
 function pathTo(state, actorId, target) {
   const actor = getActor(state, actorId);
+  if (target.mapId !== actor.mapId) return null;
   return findPath(
-    actor.position,
+    getEntityLocation(actor),
     target,
     (position) => isWalkable(state, position, actorId),
   );
@@ -54,6 +57,10 @@ function createOperation(state, actorId, command, details) {
 export function submitMoveTo(state, actorId, target) {
   const available = validateAvailableActor(state, actorId);
   if (!available.success) return available;
+  target = normalizeActorTarget(state, getActor(state, actorId), target);
+  if (target.mapId !== getActor(state, actorId).mapId) {
+    return outcome(false, "TARGET_DIFFERENT_MAP");
+  }
 
   const path = pathTo(state, actorId, target);
   if (!path) return outcome(false, "DESTINATION_UNREACHABLE");
@@ -69,7 +76,11 @@ export function submitMoveTo(state, actorId, target) {
 
 function interactionRoute(state, actorId, target) {
   const candidates = CARDINAL_DIRECTIONS.map((direction, tieBreak) => ({
-    position: { x: target.x + direction.x, y: target.y + direction.y },
+    position: {
+      mapId: target.mapId,
+      x: target.x + direction.x,
+      y: target.y + direction.y,
+    },
     tieBreak,
   }))
     .filter(({ position }) => isWalkable(state, position, actorId))
@@ -87,6 +98,10 @@ function interactionRoute(state, actorId, target) {
 export function submitInteractAt(state, actorId, target, selector = {}) {
   const available = validateAvailableActor(state, actorId);
   if (!available.success) return available;
+  target = normalizeActorTarget(state, getActor(state, actorId), target);
+  if (target.mapId !== getActor(state, actorId).mapId) {
+    return outcome(false, "TARGET_DIFFERENT_MAP");
+  }
 
   const validation = selector.action === "harvest"
     ? validateHarvest(state, actorId, target, { requireAdjacent: false })

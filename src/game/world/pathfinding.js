@@ -50,6 +50,7 @@ export function findPath(start, goal, isPassable) {
 
     for (const direction of CARDINAL_DIRECTIONS) {
       const next = {
+        ...(current.position.mapId ? { mapId: current.position.mapId } : {}),
         x: current.position.x + direction.x,
         y: current.position.y + direction.y,
       };

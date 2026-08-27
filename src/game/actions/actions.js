@@ -14,10 +14,12 @@ import {
   addWorldEntity,
   generateWorldEntityId,
   getBlockingWorldObject,
+  getEntityLocation,
   getWorldEntitiesByType,
   getWorldEntity,
   getWorldObject,
   isInBounds,
+  normalizeLocation,
   removeWorldEntity,
 } from "../world/world.js";
 
@@ -31,19 +33,29 @@ export function getActor(state, actorId) {
 }
 
 export function isAdjacent(first, second) {
-  return Math.abs(first.x - second.x) + Math.abs(first.y - second.y) === 1;
+  return (first.mapId === undefined || second.mapId === undefined || first.mapId === second.mapId)
+    && Math.abs(first.x - second.x) + Math.abs(first.y - second.y) === 1;
+}
+
+export function normalizeActorTarget(state, actor, target) {
+  return normalizeLocation(state.world, target, actor.mapId);
 }
 
 export function isWalkable(state, position, actorId) {
-  if (!isInBounds(state.world, position) || getBlockingWorldObject(state.world, position)) {
+  const actor = getActor(state, actorId);
+  if (!actor) return false;
+  const target = normalizeActorTarget(state, actor, position);
+  if (target.mapId !== actor.mapId
+    || !isInBounds(state.world, target)
+    || getBlockingWorldObject(state.world, target)) {
     return false;
   }
-  if (!TERRAIN_TYPES[getTerrainAt(state.world, position)]?.passable) return false;
+  if (!TERRAIN_TYPES[getTerrainAt(state.world, target)]?.passable) return false;
 
-  return !getWorldEntitiesByType(state.world, "actor").some(
+  return !getWorldEntitiesByType(state.world, "actor", actor.mapId).some(
     (actor) => actor.id !== actorId
-      && actor.position.x === position.x
-      && actor.position.y === position.y,
+      && actor.position.x === target.x
+      && actor.position.y === target.y,
   );
 }
 
@@ -81,8 +93,10 @@ export function selectSlot(state, actorId, slot) {
 export function validateUseItem(state, actorId, target, selector, { requireAdjacent = true } = {}) {
   const actor = getActor(state, actorId);
   if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
+  target = normalizeActorTarget(state, actor, target);
+  if (target.mapId !== actor.mapId) return outcome(false, "TARGET_DIFFERENT_MAP");
   if (!isInBounds(state.world, target)) return outcome(false, "TARGET_OUT_OF_BOUNDS");
-  if (requireAdjacent && !isAdjacent(actor.position, target)) {
+  if (requireAdjacent && !isAdjacent(getEntityLocation(actor), target)) {
     return outcome(false, "TARGET_NOT_ADJACENT");
   }
 
@@ -126,14 +140,17 @@ export function validateUseItem(state, actorId, target, selector, { requireAdjac
     staminaCost,
     targetObject,
     terrainType,
+    target,
   });
 }
 
 export function validateHarvest(state, actorId, target, { requireAdjacent = true } = {}) {
   const actor = getActor(state, actorId);
   if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
+  target = normalizeActorTarget(state, actor, target);
+  if (target.mapId !== actor.mapId) return outcome(false, "TARGET_DIFFERENT_MAP");
   if (!isInBounds(state.world, target)) return outcome(false, "TARGET_OUT_OF_BOUNDS");
-  if (requireAdjacent && !isAdjacent(actor.position, target)) {
+  if (requireAdjacent && !isAdjacent(getEntityLocation(actor), target)) {
     return outcome(false, "TARGET_NOT_ADJACENT");
   }
 
@@ -144,7 +161,7 @@ export function validateHarvest(state, actorId, target, { requireAdjacent = true
   if (!canAddItem(actor.inventory, plant.cropType, 1)) {
     return outcome(false, "INVENTORY_FULL");
   }
-  return outcome(true, "HARVEST_VALID", { actor, plant });
+  return outcome(true, "HARVEST_VALID", { actor, plant, target });
 }
 
 function addHistory(state, event) {
@@ -155,18 +172,20 @@ function addHistory(state, event) {
 export function moveStep(state, actorId, target) {
   const actor = getActor(state, actorId);
   if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
-  if (!isAdjacent(actor.position, target)) return outcome(false, "INVALID_MOVE_DISTANCE");
+  target = normalizeActorTarget(state, actor, target);
+  if (target.mapId !== actor.mapId) return outcome(false, "TARGET_DIFFERENT_MAP");
+  if (!isAdjacent(getEntityLocation(actor), target)) return outcome(false, "INVALID_MOVE_DISTANCE");
   if (!isWalkable(state, target, actorId)) return outcome(false, "MOVE_BLOCKED");
 
   const direction = CARDINAL_DIRECTIONS.find(
     ({ x, y }) => actor.position.x + x === target.x && actor.position.y + y === target.y,
   );
   const previousPosition = { ...actor.position };
-  actor.position = { ...target };
+  actor.position = { x: target.x, y: target.y };
   actor.facing = direction.name;
   actor.motion = {
     from: previousPosition,
-    to: { ...target },
+    to: { x: target.x, y: target.y },
     startedTick: state.tick,
     durationTicks: GAME_CONFIG.movementCooldownTicks + 1,
   };
@@ -179,6 +198,7 @@ export function useItem(state, actorId, target, selector = {}) {
   const validation = validateUseItem(state, actorId, target, selector);
   if (!validation.success) return validation;
 
+  ({ target } = validation);
   const { actor, item, slot, staminaCost, targetObject } = validation;
   actor.stamina -= staminaCost;
   actor.sleeping = false;
@@ -227,6 +247,7 @@ export function harvest(state, actorId, target) {
   const validation = validateHarvest(state, actorId, target);
   if (!validation.success) return validation;
 
+  ({ target } = validation);
   const { actor, plant } = validation;
   addItem(actor.inventory, plant.cropType, 1);
   removeWorldEntity(state.world, plant.id);
@@ -294,9 +315,10 @@ export function sellItem(state, actorId, itemId, quantity = 1) {
 
 function validateTransferPermission(requester, source, destination) {
   if (!source?.inventory || !destination?.inventory) return "NOT_A_CONTAINER";
-  if (!isAdjacent(requester.position, source.position ?? requester.position)
+  const requesterLocation = getEntityLocation(requester);
+  if (!isAdjacent(requesterLocation, getEntityLocation(source) ?? requesterLocation)
     && requester.id !== source.id) return "SOURCE_NOT_ADJACENT";
-  if (!isAdjacent(requester.position, destination.position ?? requester.position)
+  if (!isAdjacent(requesterLocation, getEntityLocation(destination) ?? requesterLocation)
     && requester.id !== destination.id) return "DESTINATION_NOT_ADJACENT";
 
   if (requester.role === "robot" && source.role === "human") {

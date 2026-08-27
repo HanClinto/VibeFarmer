@@ -46,6 +46,14 @@ export function getWorldMap(world, mapId = world.defaultMapId) {
   return world.maps?.[mapId] ?? null;
 }
 
+export function getEntityLocation(entity) {
+  return entity?.position ? { mapId: entity.mapId, ...entity.position } : null;
+}
+
+export function normalizeLocation(world, location, defaultMapId = world.defaultMapId) {
+  return { mapId: location.mapId ?? defaultMapId, x: location.x, y: location.y };
+}
+
 export function isInBounds(world, position) {
   const map = getWorldMap(world, position.mapId);
   if (!map) return false;
@@ -93,8 +101,10 @@ export function getWorldEntity(world, entityId) {
   return world.entities[entityId] ?? null;
 }
 
-export function getWorldEntitiesByType(world, type) {
-  return Object.values(world.entities).filter((entity) => entity.type === type);
+export function getWorldEntitiesByType(world, type, mapId) {
+  return Object.values(world.entities).filter(
+    (entity) => entity.type === type && (mapId === undefined || entity.mapId === mapId),
+  );
 }
 
 export function generateWorldEntityId(world, prefix) {

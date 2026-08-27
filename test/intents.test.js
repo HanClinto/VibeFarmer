@@ -47,6 +47,9 @@ test("move_to advances either actor through deterministic ticks", () => {
     });
 
     assert.equal(submission.success, true);
+    assert.ok(controller.getSnapshot().operations[submission.operationId].path.every(
+      (step) => step.mapId === "farm",
+    ));
     assert.deepEqual(controller.getSnapshot().world.entities[actorId].position, { x: 1, y: 4 });
     const ticks = runToCompletion(controller, submission.operationId);
     assert.equal(ticks, 3);
@@ -59,6 +62,43 @@ test("water terrain blocks both actors through shared pathfinding", () => {
     const state = createGameState();
     state.world.terrain[2][2] = "water";
     assert.equal(submitMoveTo(state, actorId, { x: 2, y: 2 }).code, "DESTINATION_UNREACHABLE");
+  }
+});
+
+test("targets default to the actor map and reject explicit cross-map actions", () => {
+  for (const actorId of ["player", "robot"]) {
+    const state = createParityState(actorId);
+    state.world.maps.farmhouse = {
+      id: "farmhouse",
+      width: 7,
+      height: 7,
+      terrain: Array.from({ length: 7 }, () => Array(7).fill("grass")),
+    };
+
+    const local = submitMoveTo(state, actorId, { x: 2, y: 4 });
+    assert.equal(local.success, true);
+    assert.deepEqual(state.operations[local.operationId].command.target, {
+      mapId: "farm",
+      x: 2,
+      y: 4,
+    });
+
+    state.world.entities[actorId].activeIntent = null;
+    delete state.operations[local.operationId];
+    const crossMapMove = submitMoveTo(state, actorId, {
+      mapId: "farmhouse",
+      x: 2,
+      y: 4,
+    });
+    assert.equal(crossMapMove.code, "TARGET_DIFFERENT_MAP");
+
+    const crossMapInteraction = createController(state).submit({
+      type: "interact_at",
+      actorId,
+      target: { mapId: "farmhouse", x: 4, y: 4 },
+      item: { itemId: "axe" },
+    });
+    assert.equal(crossMapInteraction.code, "TARGET_DIFFERENT_MAP");
   }
 });
 
