@@ -33,6 +33,8 @@ Run the deterministic game-core tests with:
 npm test
 ```
 
+`npm run build:site` creates the same static `_site/` artifact used by GitHub Pages. Deployment builds append the current short commit hash to the HTML entry assets and all relative ES-module imports, preventing stale mixed-version module graphs.
+
 ## Controls
 
 | Input | Action |

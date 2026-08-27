@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:site": "node scripts/build-site.mjs _site dev",
     "test": "node --test"
   }
 }
