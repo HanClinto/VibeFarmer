@@ -59,7 +59,7 @@ The browser keeps a versioned local autosave. New Game requires confirmation; re
 Robot Inspector derives its Tools view from the registered WebMCP definitions and shows robot state, schemas, manually invokable tools, operation records, game events, and WebMCP invocation timing.
 Inspector invocation records are collapsible, and the separate resizable Action Log compares player and robot controller commands with their resulting game events in parallel columns.
 
-Movement and work now advance through fixed simulation ticks. Pausing stops tick progression without cancelling active player or robot work; resuming continues the same operation.
+Movement and work now advance through fixed simulation ticks. Pausing stops tick progression without cancelling active player or robot work; pending operations remain visible as `waiting_for_ticks` in the Inspector and resume as the same operation.
 
 ## MVP Loop
 

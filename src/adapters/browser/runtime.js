@@ -38,6 +38,7 @@ export function createRuntime(controller, { onFrame = () => {} } = {}) {
     setSpeed(nextSpeed) {
       if (!GAME_SPEEDS.includes(nextSpeed)) throw new RangeError("Unsupported game speed");
       speed = nextSpeed;
+      controller.setTicksEnabled(speed > 0);
       return speed;
     },
     getSpeed() {

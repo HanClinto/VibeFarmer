@@ -14,6 +14,7 @@ function outcome(success, code, details = {}) {
 
 export function createController(initialState) {
   let state = initialState;
+  let ticksEnabled = true;
   const listeners = new Set();
   const completions = new Map();
 
@@ -75,6 +76,7 @@ export function createController(initialState) {
       }
       publish(result);
       if (!result.success) return result;
+      if (!ticksEnabled) state.operations[result.operationId].status = "waiting_for_ticks";
 
       const completion = new Promise((resolve) => {
         completions.set(result.operationId, resolve);
@@ -83,6 +85,9 @@ export function createController(initialState) {
     },
 
     tick(count = 1) {
+      if (!ticksEnabled) {
+        return publish(outcome(true, "TICKS_PAUSED", { tick: state.tick }));
+      }
       for (let index = 0; index < count; index += 1) tickGame(state);
       for (const [operationId, resolve] of completions) {
         const operation = state.operations[operationId];
@@ -91,6 +96,15 @@ export function createController(initialState) {
         resolve(operation.result);
       }
       return publish(outcome(true, "TICK_COMPLETE", { tick: state.tick }));
+    },
+
+    setTicksEnabled(enabled) {
+      ticksEnabled = Boolean(enabled);
+      for (const operation of Object.values(state.operations)) {
+        if (isOperationTerminal(operation)) continue;
+        operation.status = ticksEnabled ? "running" : "waiting_for_ticks";
+      }
+      return publish(outcome(true, ticksEnabled ? "TICKS_ENABLED" : "TICKS_PAUSED"));
     },
 
     cancel(operationId) {

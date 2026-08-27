@@ -78,6 +78,28 @@ test("completion waits for ticks and cancellation settles at a tick boundary", a
   assert.equal(controller.getSnapshot().world.entities.robot.activeIntent, null);
 });
 
+test("paused submissions wait visibly without advancing until ticks resume", async () => {
+  const controller = createController(createGameState());
+  controller.setTicksEnabled(false);
+  const submission = controller.submit({
+    type: "move_to",
+    actorId: "robot",
+    target: { x: 2, y: 2 },
+  });
+
+  assert.equal(
+    controller.getSnapshot().operations[submission.operationId].status,
+    "waiting_for_ticks",
+  );
+  assert.equal(controller.tick().code, "TICKS_PAUSED");
+  assert.equal(controller.getSnapshot().tick, 0);
+
+  controller.setTicksEnabled(true);
+  assert.equal(controller.getSnapshot().operations[submission.operationId].status, "running");
+  controller.tick();
+  assert.equal((await submission.completion).code, "DESTINATION_REACHED");
+});
+
 test("controller records comparable player and robot command submissions", () => {
   const controller = createController(createGameState());
   controller.execute({

@@ -59,6 +59,22 @@ test("active operations are interrupted on restore without replaying movement", 
   assert.deepEqual(restored.state.world.entities.player.position, positionAtSave);
 });
 
+test("operations waiting on paused ticks are interrupted on restore", () => {
+  const controller = createController(createGameState());
+  controller.setTicksEnabled(false);
+  const submission = controller.submit({
+    type: "move_to",
+    actorId: "robot",
+    target: { x: 2, y: 2 },
+  });
+
+  const restored = restoreState(serializeState(controller.getSnapshot()));
+  const operation = restored.state.operations[submission.operationId];
+  assert.equal(operation.status, "cancelled");
+  assert.equal(operation.result.code, "OPERATION_INTERRUPTED_RELOAD");
+  assert.equal(restored.state.world.entities.robot.activeIntent, null);
+});
+
 test("corrupt saves are removed and safely fall back", () => {
   const storage = createMemoryStorage();
   storage.setItem(STORAGE_KEY, "not-json");

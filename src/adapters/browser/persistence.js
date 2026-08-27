@@ -25,7 +25,7 @@ export function restoreState(serialized) {
   const state = envelope.state;
   const interruptedOperationIds = [];
   for (const operation of Object.values(state.operations)) {
-    if (operation.status !== "running") continue;
+    if (!["running", "waiting_for_ticks"].includes(operation.status)) continue;
     operation.status = "cancelled";
     operation.completedTick = state.tick;
     operation.cancellationRequested = false;
