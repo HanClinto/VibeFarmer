@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A cozy farming game for a human and a WebMCP robot companion.">
+    <title>Vibe Farmer</title>
+    <link rel="stylesheet" href="https://unpkg.com/98.css@0.1.20/dist/98.css">
+    <link rel="stylesheet" href="styles/game.css">
+  </head>
+  <body>
+    <main class="desktop">
+      <section class="window game-window" aria-label="Vibe Farmer game">
+        <div class="title-bar">
+          <div class="title-bar-text">Vibe Farmer</div>
+          <div class="title-bar-controls">
+            <button type="button" aria-label="Help" id="help-button"></button>
+          </div>
+        </div>
+        <div class="menu-bar" role="menubar" aria-label="Game menu">
+          <button type="button" id="new-game-button">New Game</button>
+          <button type="button" id="robot-demo-button">Robot: Chop Tree</button>
+        </div>
+        <div class="window-body game-layout">
+          <div class="status-strip" aria-live="polite">
+            <span>Day <strong id="day-value">1</strong></span>
+            <span>Money <strong id="money-value">100g</strong></span>
+            <span>Player stamina <strong id="stamina-value">20/20</strong></span>
+            <span id="intent-status">Ready</span>
+          </div>
+          <canvas id="game-canvas" width="576" height="480" aria-label="Farm map"></canvas>
+          <div id="hotbar" class="hotbar" aria-label="Player inventory"></div>
+          <p class="status-bar">
+            <span class="status-bar-field">Left-click to move</span>
+            <span class="status-bar-field">Shift-click to use the selected item</span>
+            <span class="status-bar-field">Keys 1-0 select slots</span>
+          </p>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

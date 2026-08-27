@@ -1,0 +1,120 @@
+:root {
+  --desktop-green: #2f6b4f;
+  --desktop-grid: rgba(255, 255, 255, 0.045);
+  --canvas-border: #1d3327;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-width: 760px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: var(--desktop-green);
+  background-image:
+    linear-gradient(var(--desktop-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--desktop-grid) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+button,
+canvas {
+  image-rendering: pixelated;
+}
+
+.desktop {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+}
+
+.game-window {
+  width: min-content;
+}
+
+.menu-bar {
+  display: flex;
+  gap: 2px;
+  padding: 2px 3px 0;
+}
+
+.menu-bar button {
+  min-width: 0;
+  padding: 2px 8px;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.game-layout {
+  display: grid;
+  gap: 6px;
+}
+
+.status-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 4px;
+}
+
+.status-strip span {
+  padding: 3px 5px;
+  border: 1px inset #fff;
+  background: #c0c0c0;
+}
+
+#game-canvas {
+  display: block;
+  width: 576px;
+  height: 480px;
+  border: 2px inset var(--canvas-border);
+  background: #6da84d;
+  cursor: crosshair;
+}
+
+.hotbar {
+  display: grid;
+  grid-template-columns: repeat(10, 52px);
+  justify-content: center;
+  gap: 3px;
+  min-height: 52px;
+}
+
+.hotbar button {
+  position: relative;
+  display: grid;
+  min-width: 52px;
+  height: 52px;
+  place-items: center;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.hotbar button[aria-pressed="true"] {
+  outline: 2px solid #001f7a;
+  outline-offset: -4px;
+}
+
+.slot-key {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  font-weight: 700;
+}
+
+.slot-item {
+  max-width: 42px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-bar {
+  margin: 0;
+}

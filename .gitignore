@@ -1,0 +1,6 @@
+.DS_Store
+node_modules/
+
+# Downloaded reference packs are not redistributable application assets.
+assets/sprites/
+assets/farm assets/
