@@ -18,6 +18,10 @@ The promoted frame is copied from stage 2. `android-farmhand-raised.png` applies
 
 `kenney/tiny-farm/farmhand-a-raised.png` and `farmhand-b-raised.png` are Vibe Farmer raised-arm modifications based on Kenney Tiny Farm `tile_0108` and `tile_0109`. They preserve the original 16x16 actor footprint and are used to present selected items above idle farmhands.
 
+## Solar Charging Station
+
+`battery_charger_full.png`, `battery_charger_med.png`, `battery_charger_almost_empty.png`, and `battery_charger_empty.png` are Vibe Farmer project art. The four native 16x16 frames share one silhouette and show the station's remaining 40-unit solar charge.
+
 ## Watered Soil
 
 `soil-wet.png` is a directionless dark recolor of Kenney Tiny Town `tile_0025`, replacing the directional furrows from Tiny Farm. The dry source color `#EAA56C` maps to `#9A6B57`; silhouette and dimensions remain unchanged. This lets players till free-form plots without every tile implying a horizontal or vertical planting row.

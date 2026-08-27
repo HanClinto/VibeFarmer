@@ -90,3 +90,25 @@ test("only the adjacent player bed exposes human sleep", () => {
   assert.equal(view.sleepEntityId, "bed-player");
   assert.deepEqual(view.sections[0].fields, [["For", "You"], ["Sleep", "Available"]]);
 });
+
+test("charging station inspection presents energy and robot access", () => {
+  const view = objectInspectionView({
+    success: true,
+    target: { x: 8, y: 6 },
+    terrain: { type: "grass", watered: false, passable: true },
+    entities: [{
+      id: "recharge-station-1",
+      type: "recharge_station",
+      name: "Solar Charging Station",
+      charge: 17,
+      capacity: 40,
+      canRecharge: false,
+    }],
+  });
+
+  assert.deepEqual(view.sections[0].fields, [
+    ["Charge", "17/40"],
+    ["Blocks movement", "Yes"],
+    ["Robot recharge", "Move robot closer"],
+  ]);
+});

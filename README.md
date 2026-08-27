@@ -84,6 +84,12 @@ Clear land, till soil, plant and water seeds, sleep through several days, harves
 
 Daily requests and changing market prices are intentionally deferred; crop economics remain deterministic and visible.
 
+## Solar Charging Station
+
+The Market sells one-slot Solar Charging Stations for 400g. Select the station and use it on an empty adjacent grass or path tile to place it. The station blocks movement and stores 40 stamina.
+
+When the robot uses `interact_at` on an adjacent station, it receives only the energy needed to reach 20 stamina. If the station cannot completely refill the robot, it transfers everything remaining. Unused charge stays in the station, and its sprite changes at full, medium, low, and empty levels. Solar charge returns to 40 each morning. The station, charge, access state, recharge result, and morning refill are visible through inspection and logs.
+
 ## Scope
 
 The challenge release targets one fixed farm, a 3-4 day crop cycle, lumber, a simple market, local autosave, WebMCP tools, and a transparent Robot Inspector. Procedural worlds, animals, crafting, cooking, buildings, customization, multiplayer networking, seasons, weather, and mobile support are deferred.

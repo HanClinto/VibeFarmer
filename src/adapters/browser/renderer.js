@@ -195,6 +195,13 @@ export function chestFrameId(isOpen) {
   return isOpen ? "entity.chest.open" : "entity.chest.closed";
 }
 
+export function rechargeStationFrameId(station) {
+  if (station.charge <= 0) return "entity.recharge_station.empty";
+  if (station.charge <= station.capacity * 0.25) return "entity.recharge_station.low";
+  if (station.charge <= station.capacity * 0.625) return "entity.recharge_station.medium";
+  return "item.recharge_station";
+}
+
 export function operationPreview(state, actorId) {
   const actor = state.world.entities[actorId];
   const operation = actor?.activeIntent ? state.operations[actor.activeIntent] : null;
@@ -440,6 +447,16 @@ export function renderGame(
     else if (object.type === "plant") drawPlant(context, object, scale, sprites);
     else if (object.type === "chest") {
       drawChest(context, object, scale, sprites, openEntityIds.has(object.id));
+    }
+    else if (object.type === "recharge_station") {
+      drawSprite(
+        context,
+        sprites,
+        rechargeStationFrameId(object),
+        object.position.x * scale,
+        object.position.y * scale,
+        scale,
+      );
     }
     else if (object.spriteId) {
       drawSprite(

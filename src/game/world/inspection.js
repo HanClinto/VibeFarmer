@@ -94,6 +94,17 @@ function inspectEntity(viewer, entity, terrainType) {
         && isAdjacent(getEntityLocation(viewer), getEntityLocation(entity)),
     };
   }
+  if (entity.type === "recharge_station") {
+    return {
+      ...base,
+      name: entity.name,
+      charge: entity.charge,
+      capacity: entity.capacity,
+      blocking: true,
+      canRecharge: viewer.role === "robot"
+        && isAdjacent(getEntityLocation(viewer), getEntityLocation(entity)),
+    };
+  }
   return { ...base, name: entity.name ?? entity.type };
 }
 

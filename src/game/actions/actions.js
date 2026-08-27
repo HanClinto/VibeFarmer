@@ -10,6 +10,7 @@ import {
 } from "../world/entities/containers/inventory.js";
 import { getItemType } from "../world/entities/items/item-types.js";
 import { createPlant } from "../world/entities/plants/plants.js";
+import { createRechargeStation } from "../world/entities/structures/recharge-stations.js";
 import {
   deterministicHarvestQuantity,
   getCropType,
@@ -113,6 +114,7 @@ export function validateUseItem(state, actorId, target, selector, { requireAdjac
   const targetObject = getWorldObject(state.world, target);
   const terrainType = getTerrainAt(state.world, target);
   const seedCrop = getCropTypeBySeed(resolved.item.itemId);
+  const itemType = getItemType(resolved.item.itemId);
   if (resolved.item.itemId === "axe" && targetObject?.type !== "tree") {
     return outcome(false, "INVALID_AXE_TARGET");
   }
@@ -136,6 +138,12 @@ export function validateUseItem(state, actorId, target, selector, { requireAdjac
   if (seedCrop
     && (targetObject || !["tilled", "wet_tilled"].includes(terrainType))) {
     return outcome(false, "INVALID_PLANT_TARGET");
+  }
+  if (itemType?.category === "placeable") {
+    const occupied = getWorldEntitiesAt(state.world, target).length > 0;
+    if (occupied || !["grass", "path"].includes(terrainType)) {
+      return outcome(false, "INVALID_PLACEMENT_TARGET");
+    }
   }
 
   const staminaCost = GAME_CONFIG.staminaCosts[resolved.item.itemId] ?? (seedCrop ? 1 : 0);
@@ -258,6 +266,13 @@ export function useItem(state, actorId, target, selector = {}) {
     }));
     item.quantity -= 1;
     if (item.quantity === 0) actor.inventory[slot - 1] = null;
+  } else if (getItemType(item.itemId)?.category === "placeable") {
+    addWorldEntity(state.world, createRechargeStation({
+      id: generateWorldEntityId(state.world, "recharge-station"),
+      position: target,
+    }));
+    item.quantity -= 1;
+    if (item.quantity === 0) actor.inventory[slot - 1] = null;
   }
 
   addHistory(state, {
@@ -272,6 +287,47 @@ export function useItem(state, actorId, target, selector = {}) {
     slot,
     target: { ...target },
     staminaCost,
+  });
+}
+
+export function validateRecharge(state, actorId, target, { requireAdjacent = true } = {}) {
+  const actor = getActor(state, actorId);
+  if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
+  if (actor.role !== "robot") return outcome(false, "ROBOT_REQUIRED");
+  target = normalizeActorTarget(state, actor, target);
+  if (target.mapId !== actor.mapId) return outcome(false, "TARGET_DIFFERENT_MAP");
+  if (!isInBounds(state.world, target)) return outcome(false, "TARGET_OUT_OF_BOUNDS");
+  if (requireAdjacent && !isAdjacent(getEntityLocation(actor), target)) {
+    return outcome(false, "TARGET_NOT_ADJACENT");
+  }
+  const station = getWorldObject(state.world, target);
+  if (station?.type !== "recharge_station") return outcome(false, "CHARGER_NOT_FOUND");
+  if (actor.stamina >= GAME_CONFIG.maxStamina) return outcome(false, "ROBOT_ALREADY_CHARGED");
+  if (station.charge <= 0) return outcome(false, "CHARGER_EMPTY");
+  return outcome(true, "RECHARGE_VALID", { actor, station, target });
+}
+
+export function rechargeRobot(state, actorId, target) {
+  const validation = validateRecharge(state, actorId, target);
+  if (!validation.success) return validation;
+  const { actor, station } = validation;
+  const transferred = Math.min(GAME_CONFIG.maxStamina - actor.stamina, station.charge);
+  actor.stamina += transferred;
+  station.charge -= transferred;
+  actor.sleeping = false;
+  addHistory(state, {
+    type: "robot_recharged",
+    actorId,
+    entityId: station.id,
+    transferred,
+    remainingCharge: station.charge,
+    target: { ...validation.target },
+  });
+  return outcome(true, "ROBOT_RECHARGED", {
+    transferred,
+    stamina: actor.stamina,
+    remainingCharge: station.charge,
+    target: { ...validation.target },
   });
 }
 

@@ -56,11 +56,11 @@ test("both farmhands are rejected when they try to trade away from the market", 
   assert.equal(sellItem(state, "robot", "logs", 1).code, "MARKET_NOT_ADJACENT");
 });
 
-test("market listings include every configured crop seed and produce item", () => {
+test("market listings include every configured purchasable and sellable item", () => {
   const listings = marketListings(ITEM_TYPES);
   assert.deepEqual(
     new Set(listings.buy.map((item) => item.id)),
-    new Set(Object.values(CROP_TYPES).map((crop) => crop.seedItemId)),
+    new Set(Object.values(ITEM_TYPES).filter((item) => item.buyPrice).map((item) => item.id)),
   );
   assert.ok(Object.values(CROP_TYPES).every(
     (crop) => listings.sell.some((item) => item.id === crop.produceItemId),

@@ -3,6 +3,7 @@ import {
   getActor,
   isWalkable,
   normalizeActorTarget,
+  validateRecharge,
   validateHarvest,
   validateUseItem,
 } from "../../../actions/actions.js";
@@ -97,7 +98,11 @@ function interactionRoute(state, actorId, target) {
 
 function resolvedInteractionSelector(state, actorId, target, selector) {
   if (selector.action === "harvest") return selector;
-  const plant = getWorldObject(state.world, target);
+  const object = getWorldObject(state.world, target);
+  if (object?.type === "recharge_station" && getActor(state, actorId).role === "robot") {
+    return { action: "recharge" };
+  }
+  const plant = object;
   return plant?.type === "plant" && plant.growthStage >= plant.matureStage
     ? { action: "harvest" }
     : selector;
@@ -114,6 +119,8 @@ export function submitInteractAt(state, actorId, target, selector = {}) {
 
   const validation = selector.action === "harvest"
     ? validateHarvest(state, actorId, target, { requireAdjacent: false })
+    : selector.action === "recharge"
+      ? validateRecharge(state, actorId, target, { requireAdjacent: false })
     : validateUseItem(state, actorId, target, selector, { requireAdjacent: false });
   if (!validation.success) return validation;
 

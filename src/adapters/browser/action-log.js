@@ -20,6 +20,12 @@ export function actionSummary(event) {
   }
   if (event.type === "move") return `[${tick}] moved → (${event.target.x},${event.target.y})`;
   if (event.type === "use_item") return `[${tick}] used ${event.itemId} → (${event.target.x},${event.target.y})`;
+  if (event.type === "robot_recharged") {
+    return `[${tick}] recharged +${event.transferred} · ${event.remainingCharge} stored`;
+  }
+  if (event.type === "station_solar_refilled") {
+    return `[${tick}] solar refill · ${event.charge} stored`;
+  }
   if (event.type.startsWith("intent_")) return `[${tick}] ${event.type} · ${event.code}`;
   return `[${tick}] ${event.type}`;
 }

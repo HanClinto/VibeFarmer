@@ -1,5 +1,5 @@
 import { GAME_CONFIG } from "./config.js";
-import { getActor, harvest, moveStep, useItem } from "./actions/actions.js";
+import { getActor, harvest, moveStep, rechargeRobot, useItem } from "./actions/actions.js";
 import { getWorldEntitiesByType } from "./world/world.js";
 import { replanOperation } from "./world/entities/actors/intents.js";
 
@@ -64,14 +64,19 @@ function advanceMovement(state, operation) {
 }
 
 function advanceWork(state, operation) {
-  const result = operation.command.item.action === "harvest"
-    ? harvest(state, operation.actorId, operation.command.target)
-    : useItem(
+  let result;
+  if (operation.command.item.action === "harvest") {
+    result = harvest(state, operation.actorId, operation.command.target);
+  } else if (operation.command.item.action === "recharge") {
+    result = rechargeRobot(state, operation.actorId, operation.command.target);
+  } else {
+    result = useItem(
       state,
       operation.actorId,
       operation.command.target,
       operation.command.item,
     );
+  }
   if (!result.success) {
     finishOperation(state, operation, "failed", result.code);
     return;

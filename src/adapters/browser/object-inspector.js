@@ -35,6 +35,10 @@ export function objectInspectionView(inspection) {
     } else if (entity.type === "bed") {
       fields.push(["For", entity.actorId === "player" ? "You" : "Robot"]);
       fields.push(["Sleep", entity.canSleep ? "Available" : "Unavailable"]);
+    } else if (entity.type === "recharge_station") {
+      fields.push(["Charge", `${entity.charge}/${entity.capacity}`]);
+      fields.push(["Blocks movement", "Yes"]);
+      fields.push(["Robot recharge", entity.canRecharge ? "Available" : "Move robot closer"]);
     }
     return { title: entity.name, fields, entity };
   });

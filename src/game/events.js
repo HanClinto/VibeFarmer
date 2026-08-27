@@ -1,6 +1,7 @@
 import { actorEventHandlers } from "./world/entities/actors/actor-events.js";
 import { recordDayEvent } from "./day-summary.js";
 import { plantEventHandlers } from "./world/entities/plants/plant-events.js";
+import { rechargeStationEventHandlers } from "./world/entities/structures/recharge-stations.js";
 import { terrainEventHandlers } from "./world/terrain/terrain-events.js";
 
 const MAX_EVENTS_PER_DISPATCH = 100;
@@ -12,6 +13,7 @@ const globalHandlers = Object.freeze({
 const entityHandlers = Object.freeze({
   actor: actorEventHandlers,
   plant: plantEventHandlers,
+  recharge_station: rechargeStationEventHandlers,
 });
 
 function recordEvent(state, event) {

@@ -4,6 +4,7 @@ const ACTION_TYPES = new Set([
   "item_bought",
   "item_sold",
   "item_transferred",
+  "robot_recharged",
 ]);
 
 function actorStats() {

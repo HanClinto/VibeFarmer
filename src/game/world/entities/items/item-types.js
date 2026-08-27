@@ -28,6 +28,14 @@ export const ITEM_TYPES = Object.freeze({
     category: "tool",
     maxStack: 1,
   }),
+  recharge_station: Object.freeze({
+    id: "recharge_station",
+    name: "Solar Charging Station",
+    category: "placeable",
+    entityType: "recharge_station",
+    buyPrice: 400,
+    maxStack: 1,
+  }),
   ...cropItems,
   logs: Object.freeze({
     id: "logs",

@@ -23,3 +23,17 @@ test("action summaries expose actor command source and clicked target", () => {
     command: { type: "interact_at", target: { id: "tree-1" } },
   }), "[14] human-ui · interact_at → tree-1");
 });
+
+test("recharge summaries expose transferred and stored energy", () => {
+  assert.equal(actionSummary({
+    type: "robot_recharged",
+    tick: 18,
+    transferred: 12,
+    remainingCharge: 28,
+  }), "[18] recharged +12 · 28 stored");
+  assert.equal(actionSummary({
+    type: "station_solar_refilled",
+    tick: 24,
+    charge: 40,
+  }), "[24] solar refill · 40 stored");
+});

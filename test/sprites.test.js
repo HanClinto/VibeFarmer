@@ -26,7 +26,9 @@ test("curated runtime art has complete CC0 provenance and native 16px dimensions
     assert.ok(catalog.sources[frame.source], `${frameId} has an unknown source`);
     assert.match(
       frame.sourceFrame,
-      frame.source === "kenney-roguelike-rpg-pack"
+      frame.source === "vibe-farmer"
+        ? /^original:[a-z0-9_]+$/
+        : frame.source === "kenney-roguelike-rpg-pack"
         ? /^roguelikeSheet_transparent:r\d+c\d+$/
         : /^tile_\d{4}$/,
     );
@@ -40,8 +42,12 @@ test("curated runtime art has complete CC0 provenance and native 16px dimensions
   }
 
   for (const source of Object.values(catalog.sources)) {
-    assert.equal(source.license, "CC0-1.0");
-    assert.ok(readFileSync(path.join(ASSET_ROOT, source.licenseFile), "utf8").includes("CC0"));
+    const license = readFileSync(path.join(ASSET_ROOT, source.licenseFile), "utf8");
+    if (source.license === "CC0-1.0") assert.ok(license.includes("CC0"));
+    else {
+      assert.equal(source.license, "MIT");
+      assert.ok(license.includes("MIT License"));
+    }
   }
 
   for (const itemId of [
@@ -57,6 +63,7 @@ test("curated runtime art has complete CC0 provenance and native 16px dimensions
     "pumpkin_seeds",
     "pumpkin",
     "logs",
+    "recharge_station",
   ]) {
     assert.ok(catalog.frames[`item.${itemId}`], `missing item icon: ${itemId}`);
   }

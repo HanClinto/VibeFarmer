@@ -37,6 +37,7 @@ const DEFAULT_INSPECTION_TYPES = Object.freeze([
   "market",
   "plant",
   "portal",
+  "recharge_station",
   "rock",
   "tree",
 ]);
@@ -56,6 +57,7 @@ const ENTITY_SYMBOLS = Object.freeze({
   decoration: "#",
   market: "M",
   portal: "D",
+  recharge_station: "E",
   rock: "O",
   tree: "T",
 });
@@ -90,6 +92,13 @@ function resolvedItem(completion) {
   const action = completion.action;
   if (action?.itemId) return { itemId: action.itemId, slot: action.slot };
   if (action?.cropType) return { action: "harvest", cropType: action.cropType };
+  if (action?.transferred) {
+    return {
+      action: "recharge",
+      transferred: action.transferred,
+      remainingCharge: action.remainingCharge,
+    };
+  }
   return null;
 }
 
@@ -140,6 +149,15 @@ function publicEntity(entity, robot, map) {
   if (entity.type === "portal") base.destination = { ...entity.destination };
   if (entity.type === "bed") base.actorId = entity.actorId;
   if (entity.type === "market") base.name = entity.name ?? "Farm Market";
+  if (entity.type === "recharge_station") {
+    base.name = entity.name;
+    base.charge = entity.charge;
+    base.capacity = entity.capacity;
+    base.canRecharge = robot?.role === "robot"
+      && entity.mapId === robot.mapId
+      && Math.abs(entity.position.x - robot.position.x)
+        + Math.abs(entity.position.y - robot.position.y) === 1;
+  }
   if (entity.type === "actor") {
     base.role = entity.role;
     base.sleeping = entity.sleeping;
@@ -200,7 +218,7 @@ export function asciiMap(map, entities, bounds) {
     }
     cells.push(row);
   }
-  const priority = ["decoration", "portal", "market", "bed", "chest", "rock", "tree", "plant", "actor"];
+  const priority = ["decoration", "portal", "market", "bed", "chest", "recharge_station", "rock", "tree", "plant", "actor"];
   for (const entity of [...entities].sort(
     (first, second) => priority.indexOf(first.type) - priority.indexOf(second.type),
   )) {
@@ -283,7 +301,7 @@ export function inspectGame(controller, {
       ), bounds),
       legend: {
         terrain: ". grass, : path, = tilled, W watered, ~ water, _ floor",
-        entities: "R robot, P player, T tree, g dry growing crop, G watered growing crop, h dry harvest-ready crop, H watered harvest-ready crop, C chest, B bed, M market, D door, O rock",
+        entities: "R robot, P player, T tree, g dry growing crop, G watered growing crop, h dry harvest-ready crop, H watered harvest-ready crop, C chest, B bed, M market, E energy station, D door, O rock",
       },
     },
     entities: entities.map((entity) => publicEntity(entity, robot, map)),
@@ -338,7 +356,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
           entityTypes: {
             type: "array",
             uniqueItems: true,
-            items: { type: "string", enum: ["actor", "bed", "chest", "decoration", "market", "plant", "portal", "rock", "tree"] },
+            items: { type: "string", enum: ["actor", "bed", "chest", "decoration", "market", "plant", "portal", "recharge_station", "rock", "tree"] },
             description: "Only return records for these entity types. The ASCII map retains all visible objects as spatial context. Compact records exclude decorations by default.",
           },
           includeHistory: { type: "boolean", description: "Include recent game events." },
@@ -376,7 +394,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     {
       name: "interact_at",
       title: "Use robot item",
-      description: "Move adjacent to a target and perform exactly one normal item use or harvest. Mature crops are harvested regardless of the held item. Otherwise, identify an owned item by slot or itemId; omit both to use the selected slot.",
+      description: "Move adjacent to a target and perform exactly one normal item use, harvest, placement, or robot recharge. Mature crops and charging stations resolve from the target. Otherwise, identify an owned item by slot or itemId; omit both to use the selected slot.",
       inputSchema: {
         type: "object",
         properties: {

@@ -8,6 +8,7 @@ import {
   operationPreview,
   operationWorkView,
   recentActionEffects,
+  rechargeStationFrameId,
   renderGame,
   terrainFrameId,
 } from "../src/adapters/browser/renderer.js";
@@ -73,6 +74,17 @@ test("completed transitions render at the authoritative tile", () => {
 test("storage presentation selects matching closed and open chest frames", () => {
   assert.equal(chestFrameId(false), "entity.chest.closed");
   assert.equal(chestFrameId(true), "entity.chest.open");
+});
+
+test("charging station presentation follows remaining energy", () => {
+  const station = { charge: 40, capacity: 40 };
+  assert.equal(rechargeStationFrameId(station), "item.recharge_station");
+  station.charge = 25;
+  assert.equal(rechargeStationFrameId(station), "entity.recharge_station.medium");
+  station.charge = 10;
+  assert.equal(rechargeStationFrameId(station), "entity.recharge_station.low");
+  station.charge = 0;
+  assert.equal(rechargeStationFrameId(station), "entity.recharge_station.empty");
 });
 
 test("water terrain selects matching nine-slice pond frames", () => {

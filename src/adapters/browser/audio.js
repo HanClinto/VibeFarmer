@@ -4,6 +4,7 @@ const EVENT_CUES = Object.freeze({
   item_sold: "coin",
   item_transferred: "transfer",
   portal_travel: "portal",
+  robot_recharged: "recharge",
   day_begin: "morning",
 });
 
@@ -27,6 +28,7 @@ const CUES = Object.freeze({
   chop: [[180, 0]],
   soil: [[240, 0]],
   plant: [[500, 0], [620, 0.06]],
+  recharge: [[330, 0], [440, 0.07], [660, 0.14]],
 });
 
 export function createGameAudio({

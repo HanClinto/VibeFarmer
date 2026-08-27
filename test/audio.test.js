@@ -9,6 +9,7 @@ test("domain events map to restrained game audio cues", () => {
   assert.equal(audioCueForEvent({ type: "use_item", itemId: "axe" }), "chop");
   assert.equal(audioCueForEvent({ type: "portal_travel" }), "portal");
   assert.equal(audioCueForEvent({ type: "day_begin" }), "morning");
+  assert.equal(audioCueForEvent({ type: "robot_recharged" }), "recharge");
   assert.equal(audioCueForEvent({ type: "move" }), null);
 });
 
