@@ -176,7 +176,8 @@ canvas {
 
 .market-window > .title-bar,
 .storage-window > .title-bar,
-.inspector-window > .title-bar {
+.inspector-window > .title-bar,
+.action-log-window > .title-bar {
   cursor: move;
   touch-action: none;
   user-select: none;
@@ -188,12 +189,18 @@ canvas {
   left: 50%;
   z-index: 10;
   width: 520px;
+  height: 520px;
+  min-width: min(420px, calc(100vw - 16px));
+  min-height: 280px;
   max-height: calc(100vh - 128px);
-  margin-left: -260px;
+  max-width: calc(100vw - 16px);
+  transform: translateX(-50%);
+  overflow: hidden;
+  resize: both;
 }
 
 .inspector-body {
-  max-height: calc(100vh - 164px);
+  height: calc(100% - 22px);
   overflow: auto;
 }
 
@@ -227,4 +234,68 @@ canvas {
   display: flex;
   gap: 6px;
   margin: 6px 0;
+}
+
+.action-log-window {
+  position: fixed;
+  top: 104px;
+  left: 50%;
+  z-index: 10;
+  width: 700px;
+  height: 500px;
+  min-width: min(480px, calc(100vw - 16px));
+  min-height: 280px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 128px);
+  transform: translateX(-50%);
+  overflow: hidden;
+  resize: both;
+}
+
+.action-log-body {
+  height: calc(100% - 22px);
+  overflow: auto;
+}
+
+.action-log-actors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.action-log-body h3 {
+  margin: 4px 0;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.action-log-world {
+  margin-top: 8px;
+}
+
+.collapsible-log {
+  display: grid;
+  gap: 4px;
+}
+
+.log-entry {
+  border: 1px solid #808080;
+  background: #fff;
+}
+
+.log-entry summary {
+  padding: 4px;
+  cursor: pointer;
+  font-family: "Courier New", monospace;
+  overflow-wrap: anywhere;
+}
+
+.log-entry pre {
+  max-height: 240px;
+  margin: 0;
+  padding: 6px;
+  overflow: auto;
+  border-top: 1px solid #c0c0c0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }

@@ -24,6 +24,7 @@
           <button type="button" id="market-button">Market</button>
           <button type="button" id="storage-button">Storage</button>
           <button type="button" id="inspector-button">Robot Inspector</button>
+          <button type="button" id="action-log-button">Action Log</button>
           <div class="speed-controls" aria-label="Simulation speed">
             <button type="button" data-speed="0">Pause</button>
             <button type="button" data-speed="1" aria-pressed="true">1x</button>
@@ -130,7 +131,31 @@
             <pre id="inspector-operations"></pre>
           </section>
           <section data-inspector-panel="log" hidden>
-            <pre id="inspector-log"></pre>
+            <div id="inspector-log" class="collapsible-log"></div>
+          </section>
+        </div>
+      </section>
+      <section id="action-log-window" class="window action-log-window" aria-label="Action Log" hidden>
+        <div class="title-bar">
+          <div class="title-bar-text">Action Log</div>
+          <div class="title-bar-controls">
+            <button type="button" aria-label="Close" id="action-log-close-button"></button>
+          </div>
+        </div>
+        <div class="window-body action-log-body">
+          <div class="action-log-actors">
+            <section>
+              <h3>Player</h3>
+              <div id="action-log-player" class="collapsible-log"></div>
+            </section>
+            <section>
+              <h3>Robot</h3>
+              <div id="action-log-robot" class="collapsible-log"></div>
+            </section>
+          </div>
+          <section class="action-log-world">
+            <h3>World</h3>
+            <div id="action-log-world" class="collapsible-log"></div>
           </section>
         </div>
       </section>

@@ -1,3 +1,5 @@
+import { renderCollapsibleLog } from "./collapsible-log.js";
+
 function formatted(value) {
   return JSON.stringify(value, null, 2);
 }
@@ -75,7 +77,9 @@ export function createInspector({
   function refresh(force = false) {
     if (root.hidden) return;
     const state = controller.getSnapshot();
-    const nextSignature = `${activeTab}:${state.tick}:${state.history.length}:${invocationLog.length}:${invocationLog.at(-1)?.status ?? ""}`;
+    const nextSignature = activeTab === "log"
+      ? `log:${invocationLog.length}:${invocationLog.at(-1)?.status ?? ""}`
+      : `${activeTab}:${state.tick}:${state.history.length}`;
     if (!force && nextSignature === renderSignature) return;
     renderSignature = nextSignature;
 
@@ -99,9 +103,12 @@ export function createInspector({
     } else if (activeTab === "operations") {
       operations.textContent = formatted(Object.values(state.operations));
     } else if (activeTab === "log") {
-      log.textContent = formatted({
-        toolInvocations: invocationLog.slice(-25),
-        gameEvents: state.history.slice(-50),
+      renderCollapsibleLog(log, invocationLog.slice(-25).reverse(), {
+        getId: (invocation) => invocation.invocationId,
+        getSummary: (invocation) => (
+          `${invocation.invocationId} · ${invocation.toolName} · ${invocation.status}`
+            + (invocation.durationMs === undefined ? "" : ` · ${invocation.durationMs}ms`)
+        ),
       });
     }
   }

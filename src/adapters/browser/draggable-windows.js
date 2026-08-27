@@ -29,6 +29,7 @@ export function makeWindowDraggable(windowElement) {
     windowElement.style.left = `${bounds.left}px`;
     windowElement.style.top = `${bounds.top}px`;
     windowElement.style.marginLeft = "0";
+    windowElement.style.transform = "none";
     titleBar.setPointerCapture(event.pointerId);
 
     function onPointerMove(moveEvent) {

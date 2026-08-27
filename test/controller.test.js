@@ -77,3 +77,32 @@ test("completion waits for ticks and cancellation settles at a tick boundary", a
   assert.equal(controller.getSnapshot().operations[submission.operationId].status, "cancelled");
   assert.equal(controller.getSnapshot().world.entities.robot.activeIntent, null);
 });
+
+test("controller records comparable player and robot command submissions", () => {
+  const controller = createController(createGameState());
+  controller.execute({
+    type: "select_slot",
+    actorId: "player",
+    source: "human-ui",
+    slot: 2,
+  });
+  controller.submit({
+    type: "move_to",
+    actorId: "robot",
+    source: "webmcp",
+    target: { x: 2, y: 2 },
+  });
+
+  const commands = controller.getSnapshot().history.filter(
+    (event) => event.type === "command_submitted",
+  );
+  assert.deepEqual(commands.map(({ actorId, source, command }) => ({
+    actorId,
+    source,
+    type: command.type,
+    target: command.target,
+  })), [
+    { actorId: "player", source: "human-ui", type: "select_slot", target: undefined },
+    { actorId: "robot", source: "webmcp", type: "move_to", target: { x: 2, y: 2 } },
+  ]);
+});

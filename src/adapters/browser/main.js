@@ -8,6 +8,7 @@ import {
 } from "../../game/index.js";
 import { renderGame } from "./renderer.js";
 import { createRuntime } from "./runtime.js";
+import { createActionLog } from "./action-log.js";
 import { makeWindowDraggable } from "./draggable-windows.js";
 import { createInspector } from "./inspector.js";
 import { createPersistence } from "./persistence.js";
@@ -29,10 +30,12 @@ const storagePlayerItems = document.querySelector("#storage-player-items");
 const storageTargetItems = document.querySelector("#storage-target-items");
 const storageStatus = document.querySelector("#storage-status");
 const inspectorWindow = document.querySelector("#inspector-window");
+const actionLogWindow = document.querySelector("#action-log-window");
 
 makeWindowDraggable(marketWindow);
 makeWindowDraggable(storageWindow);
 makeWindowDraggable(inspectorWindow);
+makeWindowDraggable(actionLogWindow);
 
 function createFarmState() {
   return createGameState({
@@ -51,6 +54,7 @@ function createFarmState() {
 const persistence = createPersistence(window.localStorage);
 const restoredSave = persistence.load();
 const controller = createController(restoredSave.state ?? createFarmState());
+const actionLog = createActionLog({ root: actionLogWindow, controller });
 const initialStatusMessages = {
   NO_SAVE: "Ready",
   SAVE_RESTORED: "Save restored",
@@ -185,15 +189,16 @@ function refresh(message) {
   tickValue.textContent = String(state.tick);
   updateStorageWindow(state);
   inspector?.refresh();
+  actionLog.refresh();
 }
 
 function runImmediate(command) {
-  const result = controller.execute(command);
+  const result = controller.execute({ source: "human-ui", ...command });
   refresh(result.success ? result.code : `Cannot act: ${result.code}`);
 }
 
 function submit(command) {
-  const submission = controller.submit(command);
+  const submission = controller.submit({ source: "human-ui", ...command });
   if (!submission.success) {
     refresh(`Cannot act: ${submission.code}`);
     return;
@@ -255,7 +260,12 @@ document.querySelector("#robot-demo-button").addEventListener("click", () => {
     refresh("No trees remain");
     return;
   }
-  submit({ type: "interact_at", actorId: "robot", target, item: { itemId: "axe" } });
+  submit({
+    type: "interact_at",
+    actorId: "robot",
+    target: { ...target.position },
+    item: { itemId: "axe" },
+  });
 });
 
 document.querySelector("#sleep-button").addEventListener("click", () => {
@@ -282,6 +292,7 @@ marketWindow.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-market-action]");
   if (!button) return;
   const result = controller.execute({
+    source: "human-ui",
     type: `${button.dataset.marketAction}_item`,
     actorId: "player",
     itemId: button.dataset.itemId,
@@ -311,6 +322,14 @@ document.querySelector("#inspector-close-button").addEventListener("click", () =
   inspectorWindow.hidden = true;
 });
 
+document.querySelector("#action-log-button").addEventListener("click", () => {
+  actionLog.open();
+});
+
+document.querySelector("#action-log-close-button").addEventListener("click", () => {
+  actionLogWindow.hidden = true;
+});
+
 storageTarget.addEventListener("change", () => {
   storageSignature = null;
   updateStorageWindow(controller.getSnapshot());
@@ -321,6 +340,7 @@ storageWindow.addEventListener("click", (event) => {
   if (!button || !storageTarget.value) return;
   const deposit = button.dataset.storageDirection === "deposit";
   const result = controller.execute({
+    source: "human-ui",
     type: "transfer_item",
     actorId: "player",
     fromEntityId: deposit ? "player" : storageTarget.value,

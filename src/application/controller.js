@@ -22,12 +22,24 @@ export function createController(initialState) {
     return result;
   }
 
+  function recordCommand(command) {
+    state.history.push({
+      type: "command_submitted",
+      tick: state.tick,
+      actorId: command.actorId ?? null,
+      source: command.source ?? "unknown",
+      command: JSON.parse(JSON.stringify(command)),
+    });
+    if (state.history.length > 200) state.history.shift();
+  }
+
   return {
     getSnapshot() {
       return state;
     },
 
     execute(command) {
+      recordCommand(command);
       let result;
       switch (command.type) {
         case "select_slot":
@@ -52,6 +64,7 @@ export function createController(initialState) {
     },
 
     submit(command) {
+      recordCommand(command);
       let result;
       if (command.type === "move_to") {
         result = submitMoveTo(state, command.actorId, command.target);

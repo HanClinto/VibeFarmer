@@ -104,6 +104,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return executeIntent(controller, {
           type: "move_to",
           actorId: "robot",
+          source: "webmcp",
           target: { x, y },
         }, signal);
       },
@@ -129,6 +130,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return executeIntent(controller, {
           type: "interact_at",
           actorId: "robot",
+          source: "webmcp",
           target: { x, y },
           item,
         }, signal);
@@ -148,6 +150,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return Promise.resolve(controller.execute({
           type: "select_slot",
           actorId: "robot",
+          source: "webmcp",
           slot,
         }));
       },
@@ -166,6 +169,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return Promise.resolve(controller.execute({
           type: "buy_item",
           actorId: "robot",
+          source: "webmcp",
           itemId,
           quantity: 1,
         }));
@@ -185,6 +189,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return Promise.resolve(controller.execute({
           type: "sell_item",
           actorId: "robot",
+          source: "webmcp",
           itemId,
           quantity: 1,
         }));
@@ -208,6 +213,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return Promise.resolve(controller.execute({
           type: "transfer_item",
           actorId: "robot",
+          source: "webmcp",
           fromEntityId,
           toEntityId,
           itemId,
@@ -221,7 +227,11 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
       description: "Put the robot to sleep. The next day begins only when every farmhand is sleeping.",
       inputSchema: { type: "object", additionalProperties: false },
       execute() {
-        return Promise.resolve(controller.execute({ type: "sleep_actor", actorId: "robot" }));
+        return Promise.resolve(controller.execute({
+          type: "sleep_actor",
+          actorId: "robot",
+          source: "webmcp",
+        }));
       },
     },
     {

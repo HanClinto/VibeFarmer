@@ -147,7 +147,7 @@ export function validateHarvest(state, actorId, target, { requireAdjacent = true
 }
 
 function addHistory(state, event) {
-  state.history.push(event);
+  state.history.push({ tick: state.tick, ...event });
   if (state.history.length > 200) state.history.shift();
 }
 
