@@ -47,19 +47,18 @@ npm test
 | Arrow keys / WASD | Move one tile |
 | `1`-`0` | Select one of ten inventory slots |
 | Space / E | Use the selected item on the faced tile |
-| Pause / 1x / 2x / 5x / 10x | Set the deterministic simulation speed |
 | Escape | Close the frontmost open window |
-| Sleep | End the day once both farmhands are sleeping |
 
 Select an empty hotbar slot and Shift-click a mature crop to harvest it.
 Crop tiles are walkable. Hoeing a stage-0 crop refunds its seed; hoeing a later crop destroys it.
-The farm-side Market buys seeds and sells turnips or logs one item at a time using shared money.
-The Storage window transfers items one unit at a time with an adjacent farm chest or the robot companion.
-Market and Storage windows can be dragged by their title bars.
+Click an adjacent produce display and choose Open Market to trade using shared money. Both farmhands must be beside the market to buy or sell.
+Click an adjacent chest or robot and choose Open Storage to transfer items. Click moves one item; Shift-click moves the visible stack.
+Click the adjacent player bed and choose Sleep. When both farmhands are ready, the game fades to night and shows separate human, robot, and farm statistics for the completed day.
+Modeless windows may remain open while playing; click the canvas to restore movement controls. Market, Storage, Inspector, Action Log, and summary windows can be dragged by their title bars.
 
-The browser keeps a versioned local autosave. New Game requires confirmation; reloading during an active operation preserves completed world changes and cancels only the unfinished operation.
+The browser keeps a versioned local autosave. New Game requires confirmation; reloading during an active current-version operation preserves completed world changes and cancels only the unfinished operation. Outdated pre-1.0 development saves reset instead of being migrated.
 
-Robot Inspector derives its Tools view from the registered WebMCP definitions and shows robot state, schemas, manually invokable tools, operation records, game events, and WebMCP invocation timing.
+Robot Inspector derives its Tools view from the registered WebMCP definitions and shows robot state, schemas, manually invokable tools, operation records, game events, and WebMCP invocation timing. Its collapsed Testing section contains simulation speed/tick controls and the chop-tree demo shortcut.
 Inspector invocation records are collapsible, and the separate resizable Action Log compares player and robot controller commands with their resulting game events in parallel columns.
 
 Movement and work now advance through fixed simulation ticks. Pausing stops tick progression without cancelling active player or robot work; pending operations remain visible as `waiting_for_ticks` in the Inspector and resume as the same operation.

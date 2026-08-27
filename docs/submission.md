@@ -45,7 +45,7 @@ Narration: "A mutating call resolves only after visible simulated work finishes.
 
 ### 1:03-1:30 - Pause, Waiting, Resume
 
-Pause the simulation. Invoke another `move_to`. Open Operations and point to `waiting_for_ticks` while the tick counter remains fixed. Resume at 1x and show completion.
+Open Robot Inspector > Overview > Testing and pause the simulation. Invoke another `move_to`. Open Operations and point to `waiting_for_ticks` while the Testing tick counter remains fixed. Resume at 1x and show completion.
 
 Narration: "Pause does not fake success or cancel the request. The same authoritative operation waits for ticks, its Promise remains pending, and resume continues it."
 
@@ -63,7 +63,7 @@ Narration: "Human controls submit the same semantic commands. The parallel log s
 
 ### 2:10-2:37 - Farm Loop
 
-Show tilled, watered, and planted soil. Sleep through the remaining days at a faster speed, rewatering each day. Harvest the mature turnip, open Market, sell it, and buy a replacement seed.
+Show tilled, watered, and planted soil. Use Robot Inspector > Testing for faster simulation, rewatering each day. Inspect the adjacent player bed to sleep and show the Day Complete report. Harvest the mature turnip, inspect an adjacent produce display to open Market, sell it, and buy a replacement seed.
 
 Narration: "The loop is complete: clear, till, plant, water, synchronize sleep, grow, harvest, sell, and reinvest. Both farmhands have separate inventories and stamina but share money and storage."
 

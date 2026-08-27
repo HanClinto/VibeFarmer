@@ -45,9 +45,9 @@ Status meanings:
 | 31 | Partial | Integer scaling and movement interpolation exist; sprite rendering, destination feedback, work animation, and visible progress do not. |
 | 32 | Met | Browser runtime schedules Pause/1x/2x/5x/10x globally. |
 | 33 | Met | Catch-up is clamped and deterministically tested. |
-| 34 | Partial | Controls/hotbar/windows/market/storage exist; planned input/UI module split, day summary, notifications, and player cancellation/replacement do not. |
+| 34 | Partial | Controls, hotbar, contextual market/storage, daily summary, route feedback, and modeless windows exist; planned input/UI module split and player cancellation/replacement remain. |
 | 35 | Met | Versioned autosave, confirmed reset, active-operation interruption, corrupt-save fallback, explicit outdated-development-save reset, and future-version preservation are implemented. Pre-1.0 backward migration is intentionally out of scope. |
-| 36 | Partial | Nine primitive tools exist; explicit adjacent `use_item` and wake are absent, and sleep remains nonspatial. |
+| 36 | Partial | Nine primitive tools exist; movement, interaction, transfer, trade, and sleep enforce shared spatial rules, while an explicit wake tool remains absent. |
 | 37 | Partial | Movement/interaction await simulation and support abort. Select, trade, transfer, and sleep mutate immediately and ignore abort. |
 | 38 | Partial | Paused intents wait and abandoned calls continue; immediate mutators still execute while paused. |
 | 39 | Met | `interact_at` accepts slot/item ID and returns structured operation/item/path/change/robot/recovery context without player inventory. |
