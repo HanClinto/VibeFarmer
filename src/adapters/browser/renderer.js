@@ -134,6 +134,42 @@ export function operationPreview(state, actorId) {
   };
 }
 
+export function operationWorkView(state, actorId) {
+  const actor = state.world.entities[actorId];
+  const operation = actor?.activeIntent ? state.operations[actor.activeIntent] : null;
+  if (!operation || operation.phase !== "working") return null;
+  const selected = actor.inventory[actor.selectedSlot - 1];
+  return {
+    progress: clamp(
+      (GAME_CONFIG.workCooldownTicks - operation.cooldown) / GAME_CONFIG.workCooldownTicks,
+      0,
+      1,
+    ),
+    itemId: operation.command.item?.itemId ?? selected?.itemId ?? null,
+    action: operation.command.item?.action ?? "use_item",
+  };
+}
+
+function drawWorkFeedback(context, actor, work, scale, sprites) {
+  if (!work) return;
+  const left = actor.position.x * scale;
+  const top = actor.position.y * scale;
+  context.fillStyle = "rgba(29, 31, 33, 0.85)";
+  context.fillRect(left + 6, top + scale - 8, scale - 12, 5);
+  context.fillStyle = actor.role === "robot" ? "#67d4d0" : "#f4d35e";
+  context.fillRect(left + 7, top + scale - 7, (scale - 14) * work.progress, 3);
+  if (work.itemId) {
+    drawSprite(
+      context,
+      sprites,
+      `item.${work.itemId}`,
+      left + scale - 20,
+      top + 2,
+      18,
+    );
+  }
+}
+
 function drawTileFeedback(context, scale, preview, hoverTarget, currentMapId) {
   if (preview) {
     context.fillStyle = "rgba(255, 244, 207, 0.62)";
@@ -273,8 +309,22 @@ export function renderGame(
   }
 
   drawActor(context, state.world.entities.player, scale, state.tick, tickProgress, sprites);
+  drawWorkFeedback(
+    context,
+    state.world.entities.player,
+    operationWorkView(state, "player"),
+    scale,
+    sprites,
+  );
   if (state.world.entities.robot.mapId === currentMapId) {
     drawActor(context, state.world.entities.robot, scale, state.tick, tickProgress, sprites);
+    drawWorkFeedback(
+      context,
+      state.world.entities.robot,
+      operationWorkView(state, "robot"),
+      scale,
+      sprites,
+    );
   }
   drawTileFeedback(
     context,

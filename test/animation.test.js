@@ -5,6 +5,7 @@ import {
   chestFrameId,
   getActorRenderPosition,
   operationPreview,
+  operationWorkView,
   terrainFrameId,
 } from "../src/adapters/browser/renderer.js";
 
@@ -91,4 +92,33 @@ test("operation preview exposes only current-map route steps and destination", (
   });
   state.world.entities.player.activeIntent = null;
   assert.equal(operationPreview(state, "player"), null);
+});
+
+test("work feedback exposes shared cooldown progress and selected item", () => {
+  const state = {
+    world: {
+      entities: {
+        player: {
+          activeIntent: "operation-1",
+          selectedSlot: 1,
+          inventory: [{ itemId: "axe", quantity: 1 }],
+        },
+      },
+    },
+    operations: {
+      "operation-1": {
+        phase: "working",
+        cooldown: 1,
+        command: { item: { itemId: "watering_can" } },
+      },
+    },
+  };
+
+  assert.deepEqual(operationWorkView(state, "player"), {
+    progress: 0.5,
+    itemId: "watering_can",
+    action: "use_item",
+  });
+  state.operations["operation-1"].phase = "moving";
+  assert.equal(operationWorkView(state, "player"), null);
 });
