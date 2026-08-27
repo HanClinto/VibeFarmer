@@ -48,7 +48,7 @@ export function getWorldObject(world, position) {
 
 export function getBlockingWorldObject(world, position) {
   return Object.values(world.entities).find(
-    (entity) => ["tree", "rock", "debris", "chest"].includes(entity.type)
+    (entity) => (entity.blocking || ["tree", "rock", "debris", "chest"].includes(entity.type))
       && entity.position?.x === position.x
       && entity.position?.y === position.y,
   ) ?? null;

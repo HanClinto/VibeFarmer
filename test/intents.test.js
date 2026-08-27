@@ -4,6 +4,7 @@ import test from "node:test";
 import { createController } from "../src/application/controller.js";
 import { GAME_CONFIG } from "../src/game/config.js";
 import { createGameState } from "../src/game/state.js";
+import { submitMoveTo } from "../src/game/world/entities/actors/intents.js";
 import { createPlant } from "../src/game/world/entities/plants/plants.js";
 import { addWorldEntity, createWorld } from "../src/game/world/world.js";
 
@@ -50,6 +51,14 @@ test("move_to advances either actor through deterministic ticks", () => {
     const ticks = runToCompletion(controller, submission.operationId);
     assert.equal(ticks, 3);
     assert.deepEqual(controller.getSnapshot().world.entities[actorId].position, { x: 3, y: 4 });
+  }
+});
+
+test("water terrain blocks both actors through shared pathfinding", () => {
+  for (const actorId of ["player", "robot"]) {
+    const state = createGameState();
+    state.world.terrain[2][2] = "water";
+    assert.equal(submitMoveTo(state, actorId, { x: 2, y: 2 }).code, "DESTINATION_UNREACHABLE");
   }
 });
 

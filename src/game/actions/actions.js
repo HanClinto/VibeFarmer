@@ -9,7 +9,7 @@ import {
 } from "../world/entities/containers/inventory.js";
 import { getItemType } from "../world/entities/items/item-types.js";
 import { createPlant } from "../world/entities/plants/plants.js";
-import { getTerrainAt, setTerrainAt } from "../world/terrain/terrain.js";
+import { TERRAIN_TYPES, getTerrainAt, setTerrainAt } from "../world/terrain/terrain.js";
 import {
   addWorldEntity,
   generateWorldEntityId,
@@ -38,6 +38,7 @@ export function isWalkable(state, position, actorId) {
   if (!isInBounds(state.world, position) || getBlockingWorldObject(state.world, position)) {
     return false;
   }
+  if (!TERRAIN_TYPES[getTerrainAt(state.world, position)]?.passable) return false;
 
   return !getWorldEntitiesByType(state.world, "actor").some(
     (actor) => actor.id !== actorId

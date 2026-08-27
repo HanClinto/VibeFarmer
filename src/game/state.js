@@ -27,9 +27,13 @@ function createActor(id, position, sleeping) {
   };
 }
 
-export function createGameState({ world = createWorld() } = {}) {
-  addWorldEntity(world, createActor("player", { x: 1, y: 1 }, false));
-  addWorldEntity(world, createActor("robot", { x: 2, y: 1 }, true));
+export function createGameState({
+  world = createWorld(),
+  playerPosition = { x: 1, y: 1 },
+  robotPosition = { x: 2, y: 1 },
+} = {}) {
+  addWorldEntity(world, createActor("player", playerPosition, false));
+  addWorldEntity(world, createActor("robot", robotPosition, true));
 
   return {
     version: 2,

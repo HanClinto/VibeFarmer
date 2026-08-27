@@ -119,6 +119,32 @@ export function chestFrameId(isOpen) {
   return isOpen ? "entity.chest.open" : "entity.chest.closed";
 }
 
+export function terrainFrameId(world, x, y) {
+  const terrainType = world.terrain[y][x];
+  if (terrainType === "path") return "terrain.path";
+  if (terrainType !== "water") {
+    if (terrainType === "grass") return (x + y) % 5 === 0
+      ? "terrain.grass_tufts"
+      : "terrain.grass";
+    return `terrain.${terrainType}`;
+  }
+
+  const waterAt = (nextX, nextY) => world.terrain[nextY]?.[nextX] === "water";
+  const north = waterAt(x, y - 1);
+  const south = waterAt(x, y + 1);
+  const west = waterAt(x - 1, y);
+  const east = waterAt(x + 1, y);
+  if (!north && !west) return "terrain.water.top_left";
+  if (!north && !east) return "terrain.water.top_right";
+  if (!south && !west) return "terrain.water.bottom_left";
+  if (!south && !east) return "terrain.water.bottom_right";
+  if (!north) return "terrain.water.top";
+  if (!south) return "terrain.water.bottom";
+  if (!west) return "terrain.water.left";
+  if (!east) return "terrain.water.right";
+  return "terrain.water.center";
+}
+
 function drawChest(context, chest, scale, sprites, isOpen) {
   const left = chest.position.x * scale;
   const top = chest.position.y * scale;
@@ -158,8 +184,7 @@ export function renderGame(
   for (let y = 0; y < state.world.height; y += 1) {
     for (let x = 0; x < state.world.width; x += 1) {
       const terrainType = state.world.terrain[y][x];
-      const grassFrame = (x + y) % 5 === 0 ? "terrain.grass_tufts" : "terrain.grass";
-      const frameId = terrainType === "grass" ? grassFrame : `terrain.${terrainType}`;
+      const frameId = terrainFrameId(state.world, x, y);
       if (!drawSprite(context, sprites, frameId, x * scale, y * scale, scale)) {
         context.fillStyle = terrainColor(terrainType, (x + y) % 2 !== 0);
         context.fillRect(x * scale, y * scale, scale, scale);
@@ -174,6 +199,16 @@ export function renderGame(
     else if (object.type === "plant") drawPlant(context, object, scale, sprites);
     else if (object.type === "chest") {
       drawChest(context, object, scale, sprites, openEntityIds.has(object.id));
+    }
+    else if (object.spriteId) {
+      drawSprite(
+        context,
+        sprites,
+        object.spriteId,
+        object.position.x * scale,
+        object.position.y * scale,
+        scale,
+      );
     }
   }
 

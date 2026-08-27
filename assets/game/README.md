@@ -37,6 +37,15 @@ Missing production frames include the robot companion, directional actor movemen
 - License copy: `licenses/kenney-tiny-dungeon.txt`
 - Curated frames provide chest states, interior floors/walls/doors, storage props, and portal/arch cues. Combat assets are intentionally excluded.
 
+### Kenney Tiny Battle
+
+- Author: Kenney
+- Source: https://kenney.nl/assets/tiny-battle
+- License: CC0 1.0
+- Original tile size: 16x16
+- License copy: `licenses/kenney-tiny-battle.txt`
+- Curated frames provide the complete nine-slice grass/water pond family. Unit/combat art is intentionally excluded. Tiny Ski was reviewed and not used because it did not add relevant farm assets.
+
 Credit is not required by these CC0 packs, but Vibe Farmer credits Kenney to keep provenance visible.
 
 ## Policy

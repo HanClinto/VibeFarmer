@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   chestFrameId,
   getActorRenderPosition,
+  terrainFrameId,
 } from "../src/adapters/browser/renderer.js";
 
 test("actor rendering interpolates a tile transition without changing game position", () => {
@@ -43,4 +44,23 @@ test("completed transitions render at the authoritative tile", () => {
 test("storage presentation selects matching closed and open chest frames", () => {
   assert.equal(chestFrameId(false), "entity.chest.closed");
   assert.equal(chestFrameId(true), "entity.chest.open");
+});
+
+test("water terrain selects matching nine-slice pond frames", () => {
+  const world = {
+    terrain: Array.from({ length: 3 }, () => Array(3).fill("water")),
+  };
+  assert.equal(terrainFrameId(world, 0, 0), "terrain.water.top_left");
+  assert.equal(terrainFrameId(world, 1, 0), "terrain.water.top");
+  assert.equal(terrainFrameId(world, 2, 0), "terrain.water.top_right");
+  assert.equal(terrainFrameId(world, 0, 1), "terrain.water.left");
+  assert.equal(terrainFrameId(world, 1, 1), "terrain.water.center");
+  assert.equal(terrainFrameId(world, 2, 1), "terrain.water.right");
+  assert.equal(terrainFrameId(world, 0, 2), "terrain.water.bottom_left");
+  assert.equal(terrainFrameId(world, 1, 2), "terrain.water.bottom");
+  assert.equal(terrainFrameId(world, 2, 2), "terrain.water.bottom_right");
+});
+
+test("path terrain uses the stepping-stone route frame", () => {
+  assert.equal(terrainFrameId({ terrain: [["path"]] }, 0, 0), "terrain.path");
 });

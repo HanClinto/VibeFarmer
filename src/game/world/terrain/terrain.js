@@ -2,6 +2,8 @@ export const TERRAIN_TYPES = Object.freeze({
   grass: Object.freeze({ id: "grass", tillable: true, passable: true }),
   tilled: Object.freeze({ id: "tilled", tillable: false, passable: true }),
   wet_tilled: Object.freeze({ id: "wet_tilled", tillable: false, passable: true }),
+  path: Object.freeze({ id: "path", tillable: false, passable: true }),
+  water: Object.freeze({ id: "water", tillable: false, passable: false }),
 });
 
 export function getTerrainAt(world, position) {

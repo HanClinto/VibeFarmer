@@ -14,6 +14,10 @@ Modification stages are preserved under `assets/game/experiments/manual-android/
 
 The promoted frame is copied from stage 2. Future north/east/west and action frames should preserve the same palette mapping and foot alignment.
 
+## Watered Soil
+
+`soil-wet.png` is a directionless dark recolor of Kenney Tiny Town `tile_0025`, replacing the directional furrows from Tiny Farm. The dry source color `#EAA56C` maps to `#9A6B57`; silhouette and dimensions remain unchanged. This lets players till free-form plots without every tile implying a horizontal or vertical planting row.
+
 ## Turnip Lifecycle Candidates
 
 The normalized 16x16 seed, stage, and harvested-turnip candidates are preserved under `assets/game/experiments/retrodiffusion/005-plus-turnip-lifecycle/normalized/` with their full request, response, sheets, crops, and notes.
