@@ -286,14 +286,23 @@ canvas {
   top: 84px;
   left: 50%;
   z-index: 10;
-  width: 440px;
+  width: 480px;
+  height: 560px;
+  min-width: min(420px, calc(100vw - 16px));
+  min-height: 360px;
   max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 108px);
   transform: translateX(-50%);
+  overflow: hidden;
+  resize: both;
 }
 
 .market-body {
   display: grid;
+  grid-template-rows: auto minmax(100px, 1fr) minmax(100px, 1fr) auto;
+  height: calc(100% - 22px);
   gap: 8px;
+  overflow: hidden;
 }
 
 .market-wallet {
@@ -308,7 +317,12 @@ canvas {
 
 .market-items {
   display: grid;
+  align-content: start;
   gap: 4px;
+  min-height: 0;
+  padding-right: 3px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .market-item-copy small {
@@ -326,8 +340,13 @@ canvas {
 }
 
 .market-body fieldset {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.market-body fieldset .market-items {
+  flex: 1;
 }
 
 .market-item-row {
