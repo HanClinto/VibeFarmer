@@ -6,6 +6,7 @@ Use a **hybrid CC0 + original** art pipeline for the first refinement screenshot
 
 - Kenney Tiny Farm provides the coherent 16x16 farming/environment/item base.
 - Kenney Tiny Town provides matching 16x16 water, fences, building exteriors, doors, signs, and map-composition tiles.
+- Kenney Roguelike/RPG Pack provides single-tile beds and a warmer domestic floor/wall family for the farmhouse interior.
 - Vibe Farmer extends the Kenney farmhand silhouette into a directional human/android identity layer: identical proportions and action vocabulary, gray/teal synthetic recolor, tool-use poses, charging dock, portal cues, and interaction effects.
 - 0x72's CC0 Robot Tileset may be evaluated as a robot reference/base, but its 16x32 industrial characters must be palette-tested against Kenney before inclusion.
 - The currently downloaded packs under `assets/sprites/` remain private references and are never copied, traced, or shipped.
@@ -26,7 +27,23 @@ This decision is provisional until an in-game screenshot compares the hybrid com
 - License: Creative Commons Zero (CC0 1.0)
 - Attribution: not required; credit will still be included
 - Redistribution/modification: permitted under CC0
-- Useful coverage: soil states, crop stages, seed bags, produce, paths, trees, rocks, chest, beds, crates, tools, watering can, player/farmer sprites, market/farm props, animals
+- Useful coverage: soil states, crop stages, seed packets, produce, paths, trees, rocks, chest, crates, tools, watering can, player/farmer sprites, market/farm props, animals
+
+### Kenney Roguelike/RPG Pack
+
+- Source: https://kenney.nl/assets/roguelike-rpg-pack
+- Native tile size: 16x16 with a 1px sheet margin
+- License: Creative Commons Zero (CC0 1.0)
+- Useful coverage: single-tile beds, wood floors, warm masonry walls, furniture, doors, windows, and broad terrain/building families
+- Current runtime frames: cream bed `r3c17`, orange bed `r3c15`, wood floor `r3c8`, warm masonry wall `r3c5`
+
+### Kenney RPG Urban Pack
+
+- Source: https://kenney.nl/assets/rpg-urban-pack
+- Native tile size: 16x16
+- License: Creative Commons Zero (CC0 1.0)
+- Useful coverage: four-direction animated character columns and modern environment props
+- Decision: retained as a labeled reference candidate; do not replace the current human/android pair until parity silhouettes, animation contracts, and palette cohesion are compared in-game
 
 ### Kenney Tiny Town
 
@@ -80,16 +97,16 @@ These IDs come from the official individual `Tiles/` directory and are candidate
 | --- | --- |
 | Dry/wet soil | `tile_0000`, `tile_0001`, `tile_0036`, `tile_0037` |
 | Path segments | `tile_0105` through `tile_0119` |
-| Tree variants | `tile_0015`, `tile_0027` |
+| Complete tree variants | `tile_0027`, `tile_0028` (`tile_0015` is a lower tree half) |
 | Rock/debris | `tile_0077`, `tile_0089` |
 | Crop stages | `tile_0052`, `tile_0053`, `tile_0054`, `tile_0056` |
 | Root produce | `tile_0055` |
-| Seed bags | `tile_0057`, `tile_0058`, `tile_0059` |
-| Watering can | `tile_0085` |
+| Seed packet | `tile_0058` (`tile_0057` is the larger sack) |
+| Watering can | `tile_0084` (`tile_0085` is the barrel) |
 | Hoe/shovel/sickle | `tile_0086`, `tile_0087`, `tile_0088` |
 | Chest | `tile_0076` |
 | Player/farmer concepts | `tile_0108`, `tile_0109` |
-| Bed variants | `tile_0110` through `tile_0113` |
+| Water/feed trough variants | `tile_0110` through `tile_0113` (not beds) |
 | Market/produce crate | `tile_0035`, `tile_0047`, `tile_0059` |
 | Logs/trunk | `tile_0014`, `tile_0026`, `tile_0038` |
 
@@ -161,7 +178,7 @@ assets/game/
   manifest.json
 ```
 
-Do not check in entire archives when only a curated subset is used. Every imported file must map back to an official archive/source tile ID in `assets/game/README.md`.
+Do not check full archives into runtime directories when only a curated subset is used. Preserve official CC0 source sheets and adjacency-preserving labeled copies under `assets/reference/kenney/`; every runtime import must still map back to an exact source tile ID or row/column coordinate in `assets/game/catalog.json`.
 
 ## Acceptance
 

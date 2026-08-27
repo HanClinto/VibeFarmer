@@ -65,6 +65,6 @@ test("path terrain uses the stepping-stone route frame", () => {
   assert.equal(terrainFrameId({ terrain: [["path"]] }, 0, 0), "terrain.path");
 });
 
-test("interior floor terrain uses the light dungeon floor frame", () => {
-  assert.equal(terrainFrameId({ terrain: [["floor"]] }, 0, 0), "interior.floor_light");
+test("interior floor terrain uses the wood floor frame", () => {
+  assert.equal(terrainFrameId({ terrain: [["floor"]] }, 0, 0), "interior.floor_wood");
 });

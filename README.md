@@ -72,8 +72,10 @@ Clear land, till soil, plant and water seeds, sleep through several days, harves
 
 The challenge release targets one fixed farm, a 3-4 day crop cycle, lumber, a simple market, local autosave, WebMCP tools, and a transparent Robot Inspector. Procedural worlds, animals, crafting, cooking, buildings, customization, multiplayer networking, seasons, weather, and mobile support are deferred.
 
+Browser QA targets desktop Chromium at 1280x900 or larger. The interface intentionally keeps a fixed 576x480 game canvas and a 760px minimum document width; narrow/mobile layouts are not release targets.
+
 ## Assets and License
 
-Application code is licensed under the MIT License. Current game-world visuals are procedural Canvas placeholders. A curated CC0 16x16 base and its exact provenance now live under `assets/game/`; custom player/robot/effect frames and renderer integration remain refinement work. Third-party dependencies are documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Application code is licensed under the MIT License. The Canvas world and DOM inventory use a curated CC0 16x16 runtime catalog under `assets/game/`; directional actor/action frames and effects remain refinement work. Official Kenney source sheets and adjacency-preserving labeled copies live in [assets/reference/kenney/README.md](assets/reference/kenney/README.md), making exact tile requests reproducible. Third-party dependencies are documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 Downloaded packs under `assets/sprites/` are local design references and are excluded from version control because their licenses do not permit redistribution. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

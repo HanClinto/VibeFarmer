@@ -46,14 +46,14 @@ Missing production frames include the robot companion, directional actor movemen
 - License copy: `licenses/kenney-tiny-battle.txt`
 - Curated frames provide the complete nine-slice grass/water pond family. Unit/combat art is intentionally excluded. Tiny Ski was reviewed and not used because it did not add relevant farm assets.
 
-### Kenney Roguelike Indoors 1.0
+### Kenney Roguelike/RPG Pack 1.0
 
 - Author: Kenney
-- Source: https://kenney.nl/assets/roguelike-indoors
+- Source: https://kenney.nl/assets/roguelike-rpg-pack
 - License: CC0 1.0
 - Original tile size: 16x16 with a 1px sheet margin
-- License copy: `licenses/kenney-roguelike-indoors.txt`
-- Curated frames provide the green player bed and orange robot charging berth. Catalog provenance uses exact zero-based sheet row and column coordinates.
+- License copy: `licenses/kenney-roguelike-rpg-pack.txt`
+- Curated frames provide single-tile player/robot beds, a wood floor, and warm masonry walls. Catalog provenance uses exact zero-based sheet row and column coordinates.
 
 Credit is not required by these CC0 packs, but Vibe Farmer credits Kenney to keep provenance visible.
 
@@ -61,6 +61,6 @@ Credit is not required by these CC0 packs, but Vibe Farmer credits Kenney to kee
 
 - Do not copy files from `assets/sprites/` or `assets/farm assets/`; those local packs are restricted or lack redistribution evidence.
 - Do not add an asset without author, source URL, exact license, and source-frame provenance.
-- Prefer a curated semantic subset over checking in full source archives.
+- Keep runtime directories curated. Full CC0 source sheets and adjacency-preserving labeled copies belong under `assets/reference/kenney/`, not `assets/game/`.
 - Keep source art and final raster files where project-original frames are added.
 - Canvas and DOM inventory UI must eventually resolve the same catalog IDs.

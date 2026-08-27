@@ -26,8 +26,8 @@ test("curated runtime art has complete CC0 provenance and native 16px dimensions
     assert.ok(catalog.sources[frame.source], `${frameId} has an unknown source`);
     assert.match(
       frame.sourceFrame,
-      frame.source === "kenney-roguelike-indoors"
-        ? /^roguelikeIndoor_transparent:r\d+c\d+$/
+      frame.source === "kenney-roguelike-rpg-pack"
+        ? /^roguelikeSheet_transparent:r\d+c\d+$/
         : /^tile_\d{4}$/,
     );
     assert.equal(usedFiles.has(frame.file), false, `${frame.file} is mapped more than once`);

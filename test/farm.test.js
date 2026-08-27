@@ -20,10 +20,22 @@ test("canonical farm construction is headless and uses stable entity ids", () =>
   assert.equal(first.world.entities["portal-farmhouse-door"].name, "Farmhouse door");
   assert.equal(first.world.maps.farmhouse.width, 8);
   assert.equal(first.world.entities["bed-player"].mapId, "farmhouse");
-  assert.equal(first.world.entities["bed-player"].spriteId, "furniture.bed_green.left");
-  assert.equal(first.world.entities["bed-robot"].spriteId, "furniture.bed_orange.left");
+  assert.equal(first.world.entities["bed-player"].spriteId, "furniture.bed_cream");
+  assert.equal(first.world.entities["bed-robot"].spriteId, "furniture.bed_orange");
+  assert.equal(first.world.entities["bed-player-foot"], undefined);
+  assert.equal(first.world.entities["bed-robot-foot"], undefined);
   assert.equal(first.world.entities["inside-wall-top-0"].mapId, "farmhouse");
-  assert.ok(first.world.entities["market-sign"]);
+  assert.equal(
+    first.world.entities["inside-wall-top-0"].spriteId,
+    "interior.wall_warm_masonry",
+  );
+  assert.deepEqual(
+    ["market-corn-crate", "market-tomato-crate", "market-leafy-crate"].map(
+      (entityId) => first.world.entities[entityId].spriteId,
+    ),
+    ["entity.produce_corn", "entity.produce_tomato", "entity.produce_leafy"],
+  );
+  assert.ok(first.world.entities["market-corn-crate"]);
   assert.ok(first.world.entities["tree-8"]);
   assert.equal(first.world.terrain[3][16], "water");
   assert.equal(first.world.terrain[6][10], "path");

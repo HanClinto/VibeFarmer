@@ -3,7 +3,7 @@ import { createGameState } from "./state.js";
 import { createChest } from "./world/entities/containers/chests.js";
 import { addWorldEntity, addWorldMap, createWorld } from "./world/world.js";
 
-const FARM_DEFINITION_VERSION = 4;
+const FARM_DEFINITION_VERSION = 7;
 
 function copy(value) {
   return JSON.parse(JSON.stringify(value));
@@ -66,9 +66,13 @@ function canonicalDecorations() {
     }));
   }
   entities.push(
-    decoration("market-sign", "building.sign", 18, 11, { name: "Farm market" }),
-    decoration("market-crate-a", "entity.crate_a", 19, 11, { name: "Produce crate" }),
-    decoration("market-crate-b", "entity.crate_b", 20, 11, { name: "Produce crate" }),
+    decoration("market-corn-crate", "entity.produce_corn", 18, 11, { name: "Corn crate" }),
+    decoration("market-tomato-crate", "entity.produce_tomato", 19, 11, {
+      name: "Tomato crate",
+    }),
+    decoration("market-leafy-crate", "entity.produce_leafy", 20, 11, {
+      name: "Leafy produce crate",
+    }),
   );
   return entities;
 }
@@ -86,7 +90,7 @@ function addFarmhouseInterior(world) {
   for (let x = 0; x < width; x += 1) {
     addWorldEntity(world, interiorDecoration(
       `inside-wall-top-${x}`,
-      "interior.wall_light",
+      "interior.wall_warm_masonry",
       x,
       0,
     ));
@@ -94,13 +98,13 @@ function addFarmhouseInterior(world) {
   for (let y = 1; y < height; y += 1) {
     addWorldEntity(world, interiorDecoration(
       `inside-wall-left-${y}`,
-      "interior.wall_light",
+      "interior.wall_warm_masonry",
       0,
       y,
     ));
     addWorldEntity(world, interiorDecoration(
       `inside-wall-right-${y}`,
-      "interior.wall_light",
+      "interior.wall_warm_masonry",
       width - 1,
       y,
     ));
@@ -109,7 +113,7 @@ function addFarmhouseInterior(world) {
     if (x === 4) continue;
     addWorldEntity(world, interiorDecoration(
       `inside-wall-bottom-${x}`,
-      "interior.wall_light",
+      "interior.wall_warm_masonry",
       x,
       height - 1,
     ));
@@ -131,27 +135,21 @@ function addFarmhouseInterior(world) {
       type: "bed",
       mapId: "farmhouse",
       actorId: "player",
-      spriteId: "furniture.bed_green.left",
+      spriteId: "furniture.bed_cream",
       name: "Player bed",
       blocking: true,
       position: { x: 1, y: 2 },
     },
-    interiorDecoration("bed-player-foot", "furniture.bed_green.right", 2, 2, {
-      name: "Player bed",
-    }),
     {
       id: "bed-robot",
       type: "bed",
       mapId: "farmhouse",
       actorId: "robot",
-      spriteId: "furniture.bed_orange.left",
+      spriteId: "furniture.bed_orange",
       name: "Robot charging berth",
       blocking: true,
       position: { x: 5, y: 2 },
     },
-    interiorDecoration("bed-robot-foot", "furniture.bed_orange.right", 6, 2, {
-      name: "Robot charging berth",
-    }),
   ];
   for (const entity of interiorEntities) {
     entity.mapId ??= "farmhouse";
@@ -200,14 +198,25 @@ export function createFarmState() {
 export function upgradeFarmWorldDefinition(world) {
   const isCanonicalFarm = world.definitionId === "farm"
     || world.entities?.["market-sign"]
+    || world.entities?.["market-corn-crate"]
     || world.entities?.["house-3-1"];
   if (!isCanonicalFarm || world.definitionVersion >= FARM_DEFINITION_VERSION) return false;
 
   const canonical = createFarmState().world;
   delete world.entities["house-3-1"];
+  delete world.entities["bed-player-foot"];
+  delete world.entities["bed-robot-foot"];
+  delete world.entities["market-sign"];
+  delete world.entities["market-crate-a"];
+  delete world.entities["market-crate-b"];
   world.maps.farmhouse = copy(canonical.maps.farmhouse);
   for (const entity of Object.values(canonical.entities)) {
-    if (entity.id === "portal-farmhouse-door" || entity.mapId === "farmhouse") {
+    if ([
+      "portal-farmhouse-door",
+      "market-corn-crate",
+      "market-tomato-crate",
+      "market-leafy-crate",
+    ].includes(entity.id) || entity.mapId === "farmhouse") {
       world.entities[entity.id] = copy(entity);
     }
   }

@@ -123,7 +123,7 @@ export function chestFrameId(isOpen) {
 
 export function terrainFrameId(world, x, y) {
   const terrainType = world.terrain[y][x];
-  if (terrainType === "floor") return "interior.floor_light";
+  if (terrainType === "floor") return "interior.floor_wood";
   if (terrainType === "path") return "terrain.path";
   if (terrainType !== "water") {
     if (terrainType === "grass") return (x + y) % 5 === 0

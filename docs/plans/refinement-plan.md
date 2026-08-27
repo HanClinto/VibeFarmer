@@ -28,7 +28,7 @@ This plan is a corrective pass, not a declaration that the original MVP is done.
 13. **Map transitions:** There is one global map and bare `{x,y}` locations. Buildings/interiors and portal regions require map-qualified locations throughout state, pathfinding, actions, operations, history, inspection, and persistence.
 14. **Movement feel:** Each keyboard step is a complete intent; held movement can hit `ACTOR_BUSY`. There is no buffered turn, click-path cancellation/replacement, or visible path feedback.
 15. **Animation/audio:** Only movement interpolation exists. Tools, damage, watering, planting, harvest, growth, chest opening, transactions, sleep, and robot state changes have no visual or audio response.
-16. **Responsive/accessibility:** The page enforces a 760px minimum width. Canvas world information has no keyboard-accessible equivalent; the live region updates with ticks; modal focus behavior and reduced-motion/audio controls are incomplete.
+16. **Desktop accessibility:** The desktop-only page intentionally enforces a 760px minimum width. Canvas world information has no keyboard-accessible equivalent; the live region updates with ticks; modal focus behavior and reduced-motion/audio controls are incomplete.
 
 ### Architecture and Contract Gaps
 
@@ -369,7 +369,7 @@ Checkpoints:
 
 Goal: verify the game as a product, not only as a headless system.
 
-1. Add browser automation for desktop and narrow viewports, console errors, missing assets, focus, overlap, and canvas nonblank checks.
+1. Add browser automation at the 1280x900 desktop baseline for console errors, missing assets, focus, overlap, and canvas nonblank checks.
 2. Add screenshot baselines for farm center/edge, farmhouse, storage, market, Object Inspector, Robot Inspector, Action Log, sleep summary, and pause/cancel states.
 3. Test human-only, robot-assisted, and mixed loops across maps.
 4. Verify WebMCP discovery and invocation in enabled Chrome and ChatGPT's in-app browser.
@@ -379,7 +379,7 @@ Acceptance:
 
 - Full deterministic suite, browser suite, build, and public HTTPS smoke test pass.
 - No missing/forbidden assets or console errors.
-- Desktop and target narrow viewport have no incoherent overlap or page-level horizontal scroll.
+- The 1280x900 desktop baseline has no incoherent overlap or page-level horizontal scroll.
 - Public asset SHA matches the release commit.
 - Submission claims match observable behavior.
 
@@ -409,7 +409,7 @@ Do not start portals, beds, or inventory transfer schema changes until map-aware
 
 - Run the narrowest affected tests immediately after the first edit.
 - Run `npm test`, `npm run build:site`, diagnostics, and `git diff --check` before commit.
-- For renderer/UI changes, start the local site and verify with Chromium at desktop and narrow viewport sizes.
+- For renderer/UI changes, start the local site and verify with Chromium at 1280x900 or larger.
 - For Canvas changes, capture screenshots and inspect canvas pixels for nonblank output and missing assets.
 - For schema changes, test migration from a serialized current-version fixture and preserve unknown future saves.
 - Commit and push one isolated, validated concern at a time with no unrelated formatting churn.
@@ -421,7 +421,7 @@ These do not block R0-R3 and should not interrupt work prematurely:
 1. Whether the market is a staffed stall, shipping bin, or both.
 2. Whether robot-only play gets an explicit player auto-readiness mode for day transition.
 3. Whether `inspect_at` becomes a tenth WebMCP tool or `inspect_game` gains a location filter.
-4. Whether narrow mobile support is a release target or a graceful read-only/limited-control layout.
+4. Mobile support remains deferred until browser WebMCP implementations make it a meaningful target.
 5. Final art direction after the first original sprite-sheet screenshot: brighter storybook farm, muted working farm, or another coherent palette.
 
 ## Definition of Refined Release
