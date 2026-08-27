@@ -50,6 +50,11 @@ test("default resources sustain a complete profitable crop cycle", () => {
   }
 
   assert.equal(harvest(state, "player", target).code, "CROP_HARVESTED");
+  addWorldEntity(state.world, {
+    id: "market-test",
+    type: "market",
+    position: { x: 0, y: 1 },
+  });
   assert.equal(sellItem(state, "player", "turnip", 1).code, "ITEM_SOLD");
   assert.equal(buyItem(state, "player", "turnip_seeds", 1).code, "ITEM_BOUGHT");
 

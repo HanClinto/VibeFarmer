@@ -313,9 +313,16 @@ export function sleepActor(state, actorId) {
   return outcome(true, "DAY_ADVANCED", { day: state.day, summary });
 }
 
+function isActorAtMarket(state, actor) {
+  return getWorldEntitiesByType(state.world, "market", actor.mapId).some(
+    (market) => isAdjacent(getEntityLocation(actor), getEntityLocation(market)),
+  );
+}
+
 export function buyItem(state, actorId, itemId, quantity = 1) {
   const actor = getActor(state, actorId);
   if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
+  if (!isActorAtMarket(state, actor)) return outcome(false, "MARKET_NOT_ADJACENT");
   const itemType = getItemType(itemId);
   if (!itemType?.buyPrice) return outcome(false, "ITEM_NOT_FOR_SALE");
   if (!Number.isInteger(quantity) || quantity < 1) return outcome(false, "INVALID_QUANTITY");
@@ -332,6 +339,7 @@ export function buyItem(state, actorId, itemId, quantity = 1) {
 export function sellItem(state, actorId, itemId, quantity = 1) {
   const actor = getActor(state, actorId);
   if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
+  if (!isActorAtMarket(state, actor)) return outcome(false, "MARKET_NOT_ADJACENT");
   const itemType = getItemType(itemId);
   if (!itemType?.sellPrice) return outcome(false, "ITEM_NOT_SELLABLE");
   if (!Number.isInteger(quantity) || quantity < 1) return outcome(false, "INVALID_QUANTITY");

@@ -31,6 +31,8 @@ test("day advance returns complete player and robot activity statistics", () => 
   state.world.entities["summary-turnip"].growthStage = 3;
   harvest(state, "robot", { x: 6, y: 7 });
   addItem(player.inventory, "logs", 1);
+  player.position = { x: 18, y: 12 };
+  robot.position = { x: 19, y: 12 };
   sellItem(state, "player", "logs", 1);
   buyItem(state, "robot", "turnip_seeds", 1);
 

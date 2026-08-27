@@ -5,6 +5,7 @@ import { createController } from "../src/application/controller.js";
 import { registerWebMcp } from "../src/adapters/webmcp/adapter.js";
 import { createWebMcpTools, inspectGame } from "../src/adapters/webmcp/tools.js";
 import { createGameState } from "../src/game/state.js";
+import { createFarmState } from "../src/game/farm.js";
 import { createChest } from "../src/game/world/entities/containers/chests.js";
 import { addWorldEntity } from "../src/game/world/world.js";
 
@@ -191,6 +192,15 @@ test("WebMCP storage permits delivery but not player inventory withdrawal", asyn
   });
   assert.equal(privateWithdrawal.code, "PLAYER_INVENTORY_PRIVATE");
   assert.equal("inventory" in privateWithdrawal, false);
+});
+
+test("WebMCP trade follows the same market adjacency rule as the human", async () => {
+  const state = createFarmState();
+  const buy = toolByName(createWebMcpTools(createController(state)), "buy_item");
+
+  assert.equal((await buy.execute({ itemId: "turnip_seeds" })).code, "MARKET_NOT_ADJACENT");
+  state.world.entities.robot.position = { x: 18, y: 12 };
+  assert.equal((await buy.execute({ itemId: "turnip_seeds" })).code, "ITEM_BOUGHT");
 });
 
 test("tool abort requests cancellation and resolves with a structured result", async () => {
