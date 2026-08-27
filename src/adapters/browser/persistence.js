@@ -1,6 +1,8 @@
 const STORAGE_KEY = "vibe-farmer.save";
-const SAVE_VERSION = 1;
-const GAME_STATE_VERSION = 2;
+const SAVE_VERSION = 2;
+const GAME_STATE_VERSION = 3;
+
+class UnsupportedSaveError extends Error {}
 
 export function serializeState(state) {
   return JSON.stringify({
@@ -12,17 +14,66 @@ export function serializeState(state) {
 function validateState(state) {
   return state?.version === GAME_STATE_VERSION
     && Number.isInteger(state.tick)
+    && state.world?.maps?.[state.world.defaultMapId]
     && state.world?.entities
     && state.operations;
 }
 
-export function restoreState(serialized) {
-  const envelope = JSON.parse(serialized);
-  if (envelope?.saveVersion !== SAVE_VERSION || !validateState(envelope.state)) {
-    throw new Error("Unsupported or invalid save data");
+function migrateLegacyState(legacyState) {
+  if (legacyState?.version !== 2 || !legacyState.world?.entities || !legacyState.operations) {
+    throw new Error("Invalid legacy save data");
   }
 
-  const state = envelope.state;
+  const state = legacyState;
+  const world = state.world;
+  world.definitionVersion = 1;
+  world.defaultMapId = world.defaultMapId ?? "farm";
+  world.maps ??= {
+    [world.defaultMapId]: {
+      id: world.defaultMapId,
+      width: world.width,
+      height: world.height,
+      terrain: world.terrain,
+    },
+  };
+  const defaultMap = world.maps[world.defaultMapId];
+  if (!defaultMap) throw new Error("Legacy save has no default map");
+  world.width = defaultMap.width;
+  world.height = defaultMap.height;
+  world.terrain = defaultMap.terrain;
+
+  for (const entity of Object.values(world.entities)) {
+    if (entity.position) entity.mapId ??= world.defaultMapId;
+  }
+  for (const operation of Object.values(state.operations)) {
+    if (operation.command?.target) operation.command.target.mapId ??= world.defaultMapId;
+    for (const step of operation.path ?? []) step.mapId ??= world.defaultMapId;
+  }
+  for (const event of state.history ?? []) {
+    if (event.target) event.target.mapId ??= world.defaultMapId;
+  }
+  state.version = GAME_STATE_VERSION;
+  return state;
+}
+
+function parseEnvelope(serialized) {
+  const envelope = JSON.parse(serialized);
+  if (!Number.isInteger(envelope?.saveVersion)) throw new Error("Invalid save envelope");
+  if (envelope.saveVersion > SAVE_VERSION) throw new UnsupportedSaveError();
+  if (Number.isInteger(envelope.state?.version)
+    && envelope.state.version > GAME_STATE_VERSION) throw new UnsupportedSaveError();
+  if (envelope.saveVersion === 1) {
+    return { state: migrateLegacyState(envelope.state), migrated: true };
+  }
+  if (envelope.saveVersion !== SAVE_VERSION || !validateState(envelope.state)) {
+    throw new Error("Invalid save data");
+  }
+  return { state: envelope.state, migrated: false };
+}
+
+export function restoreState(serialized) {
+  const { state, migrated } = parseEnvelope(serialized);
+
   const interruptedOperationIds = [];
   for (const operation of Object.values(state.operations)) {
     if (!["running", "waiting_for_ticks"].includes(operation.status)) continue;
@@ -51,7 +102,7 @@ export function restoreState(serialized) {
     });
   }
 
-  return { state, interruptedOperationIds };
+  return { state, interruptedOperationIds, migrated };
 }
 
 export function createPersistence(
@@ -80,11 +131,16 @@ export function createPersistence(
         const restored = restoreState(serialized);
         return {
           ...restored,
-          code: restored.interruptedOperationIds.length > 0
-            ? "SAVE_RESTORED_WITH_INTERRUPTED_OPERATION"
-            : "SAVE_RESTORED",
+          code: restored.migrated
+            ? "SAVE_MIGRATED"
+            : restored.interruptedOperationIds.length > 0
+              ? "SAVE_RESTORED_WITH_INTERRUPTED_OPERATION"
+              : "SAVE_RESTORED",
         };
-      } catch (_error) {
+      } catch (error) {
+        if (error instanceof UnsupportedSaveError) {
+          return { state: null, code: "SAVE_UNSUPPORTED" };
+        }
         storage.removeItem(STORAGE_KEY);
         return { state: null, code: "SAVE_CORRUPT" };
       }

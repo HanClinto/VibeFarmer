@@ -97,6 +97,8 @@ const initialStatusMessages = {
   NO_SAVE: "Ready",
   SAVE_RESTORED: "Save restored",
   SAVE_RESTORED_WITH_INTERRUPTED_OPERATION: "Save restored; active work was cancelled",
+  SAVE_MIGRATED: "Save upgraded",
+  SAVE_UNSUPPORTED: "Save was created by a newer version",
   SAVE_CORRUPT: "Invalid save removed; new game started",
 };
 let statusMessage = initialStatusMessages[restoredSave.code];
