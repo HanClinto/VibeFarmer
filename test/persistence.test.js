@@ -166,10 +166,14 @@ test("pre-interior canonical farms gain portals and beds without losing progress
 
   assert.equal(restored.migrated, true);
   assert.equal(restored.state.money, 321);
-  assert.equal(restored.state.world.definitionVersion, 3);
+  assert.equal(restored.state.world.definitionVersion, 4);
   assert.equal(restored.state.world.entities["house-3-1"], undefined);
   assert.equal(restored.state.world.entities["portal-farmhouse-door"].type, "portal");
   assert.equal(restored.state.world.entities["bed-player"].mapId, "farmhouse");
+  assert.equal(
+    restored.state.world.entities["bed-player"].spriteId,
+    "furniture.bed_green.left",
+  );
   assert.equal(restored.state.world.maps.farmhouse.width, 8);
 });
 

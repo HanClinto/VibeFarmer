@@ -1,10 +1,10 @@
 # Runtime Art
 
-This directory contains only artwork cleared for redistribution in Vibe Farmer's public source repository.
+This directory contains only artwork cleared for redistribution in Vibe Farmer's public source repository. The Canvas renderer and DOM inventory UI load these files through `catalog.json`.
 
 ## Current Status
 
-The checked-in files are the first curated CC0 art base. They are not yet runtime-complete and are not wired into the renderer. See `catalog.json` and `docs/plans/art-direction.md`.
+The checked-in files are the curated CC0 runtime art base. They are not yet runtime-complete. See `catalog.json` and `docs/plans/art-direction.md`.
 
 Missing production frames include the robot companion, directional actor movement/work frames, axe, water/shore tiles, effects, charging dock, and portal cues. The catalog's `runtimeComplete` flag must remain `false` until those frames exist and the sprite renderer is validated.
 
@@ -45,6 +45,15 @@ Missing production frames include the robot companion, directional actor movemen
 - Original tile size: 16x16
 - License copy: `licenses/kenney-tiny-battle.txt`
 - Curated frames provide the complete nine-slice grass/water pond family. Unit/combat art is intentionally excluded. Tiny Ski was reviewed and not used because it did not add relevant farm assets.
+
+### Kenney Roguelike Indoors 1.0
+
+- Author: Kenney
+- Source: https://kenney.nl/assets/roguelike-indoors
+- License: CC0 1.0
+- Original tile size: 16x16 with a 1px sheet margin
+- License copy: `licenses/kenney-roguelike-indoors.txt`
+- Curated frames provide the green player bed and orange robot charging berth. Catalog provenance uses exact zero-based sheet row and column coordinates.
 
 Credit is not required by these CC0 packs, but Vibe Farmer credits Kenney to keep provenance visible.
 

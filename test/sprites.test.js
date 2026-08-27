@@ -24,7 +24,12 @@ test("curated runtime art has complete CC0 provenance and native 16px dimensions
   for (const [frameId, frame] of Object.entries(catalog.frames)) {
     assert.equal(frame.file.includes(".."), false, `${frameId} escapes the asset root`);
     assert.ok(catalog.sources[frame.source], `${frameId} has an unknown source`);
-    assert.match(frame.sourceFrame, /^tile_\d{4}$/);
+    assert.match(
+      frame.sourceFrame,
+      frame.source === "kenney-roguelike-indoors"
+        ? /^roguelikeIndoor_transparent:r\d+c\d+$/
+        : /^tile_\d{4}$/,
+    );
     assert.equal(usedFiles.has(frame.file), false, `${frame.file} is mapped more than once`);
     usedFiles.add(frame.file);
     assert.deepEqual(

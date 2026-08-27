@@ -3,7 +3,7 @@ import { createGameState } from "./state.js";
 import { createChest } from "./world/entities/containers/chests.js";
 import { addWorldEntity, addWorldMap, createWorld } from "./world/world.js";
 
-const FARM_DEFINITION_VERSION = 3;
+const FARM_DEFINITION_VERSION = 4;
 
 function copy(value) {
   return JSON.parse(JSON.stringify(value));
@@ -131,12 +131,12 @@ function addFarmhouseInterior(world) {
       type: "bed",
       mapId: "farmhouse",
       actorId: "player",
-      spriteId: "furniture.bed_blue.left",
+      spriteId: "furniture.bed_green.left",
       name: "Player bed",
       blocking: true,
       position: { x: 1, y: 2 },
     },
-    interiorDecoration("bed-player-foot", "furniture.bed_blue.right", 2, 2, {
+    interiorDecoration("bed-player-foot", "furniture.bed_green.right", 2, 2, {
       name: "Player bed",
     }),
     {
@@ -144,12 +144,12 @@ function addFarmhouseInterior(world) {
       type: "bed",
       mapId: "farmhouse",
       actorId: "robot",
-      spriteId: "furniture.bed_yellow.left",
+      spriteId: "furniture.bed_orange.left",
       name: "Robot charging berth",
       blocking: true,
       position: { x: 5, y: 2 },
     },
-    interiorDecoration("bed-robot-foot", "furniture.bed_yellow.right", 6, 2, {
+    interiorDecoration("bed-robot-foot", "furniture.bed_orange.right", 6, 2, {
       name: "Robot charging berth",
     }),
   ];

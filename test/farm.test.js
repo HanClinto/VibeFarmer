@@ -20,6 +20,8 @@ test("canonical farm construction is headless and uses stable entity ids", () =>
   assert.equal(first.world.entities["portal-farmhouse-door"].name, "Farmhouse door");
   assert.equal(first.world.maps.farmhouse.width, 8);
   assert.equal(first.world.entities["bed-player"].mapId, "farmhouse");
+  assert.equal(first.world.entities["bed-player"].spriteId, "furniture.bed_green.left");
+  assert.equal(first.world.entities["bed-robot"].spriteId, "furniture.bed_orange.left");
   assert.equal(first.world.entities["inside-wall-top-0"].mapId, "farmhouse");
   assert.ok(first.world.entities["market-sign"]);
   assert.ok(first.world.entities["tree-8"]);
