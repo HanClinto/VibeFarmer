@@ -3,7 +3,7 @@ import { createGameState } from "./state.js";
 import { createChest } from "./world/entities/containers/chests.js";
 import { addWorldEntity, addWorldMap, createWorld } from "./world/world.js";
 
-export const FARM_DEFINITION_VERSION = 8;
+export const FARM_DEFINITION_VERSION = 9;
 
 function decoration(id, spriteId, x, y, { blocking = true, name, type = "decoration" } = {}) {
   return {
@@ -167,11 +167,23 @@ export function createFarmState() {
       ...canonicalDecorations(),
     ],
     objects: [
+      { id: "tree-9", type: "tree", x: 7, y: 2, hitPoints: GAME_CONFIG.treeHitPoints },
+      { id: "tree-10", type: "tree", x: 10, y: 3, hitPoints: GAME_CONFIG.treeHitPoints },
+      { id: "tree-11", type: "tree", x: 13, y: 1, hitPoints: GAME_CONFIG.treeHitPoints },
       { id: "tree-1", type: "tree", x: 20, y: 2, hitPoints: GAME_CONFIG.treeHitPoints },
       { id: "tree-2", type: "tree", x: 22, y: 4, hitPoints: GAME_CONFIG.treeHitPoints },
+      { id: "tree-12", type: "tree", x: 1, y: 8, hitPoints: GAME_CONFIG.treeHitPoints },
+      { id: "tree-13", type: "tree", x: 2, y: 11, hitPoints: GAME_CONFIG.treeHitPoints },
+      { id: "tree-14", type: "tree", x: 7, y: 9, hitPoints: GAME_CONFIG.treeHitPoints },
+      { id: "tree-15", type: "tree", x: 10, y: 8, hitPoints: GAME_CONFIG.treeHitPoints },
+      { id: "tree-16", type: "tree", x: 12, y: 10, hitPoints: GAME_CONFIG.treeHitPoints },
+      { id: "tree-17", type: "tree", x: 14, y: 9, hitPoints: GAME_CONFIG.treeHitPoints },
       { id: "tree-3", type: "tree", x: 21, y: 9, hitPoints: GAME_CONFIG.treeHitPoints },
       { id: "tree-4", type: "tree", x: 22, y: 14, hitPoints: GAME_CONFIG.treeHitPoints },
       { id: "tree-5", type: "tree", x: 18, y: 15, hitPoints: GAME_CONFIG.treeHitPoints },
+      { id: "tree-18", type: "tree", x: 7, y: 14, hitPoints: GAME_CONFIG.treeHitPoints },
+      { id: "tree-19", type: "tree", x: 11, y: 14, hitPoints: GAME_CONFIG.treeHitPoints },
+      { id: "tree-20", type: "tree", x: 16, y: 15, hitPoints: GAME_CONFIG.treeHitPoints },
       { id: "tree-6", type: "tree", x: 14, y: 16, hitPoints: GAME_CONFIG.treeHitPoints },
       { id: "tree-7", type: "tree", x: 10, y: 16, hitPoints: GAME_CONFIG.treeHitPoints },
       { id: "tree-8", type: "tree", x: 1, y: 15, hitPoints: GAME_CONFIG.treeHitPoints },

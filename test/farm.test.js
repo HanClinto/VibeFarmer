@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { createController } from "../src/application/controller.js";
 import { isWalkable } from "../src/game/actions/actions.js";
 import { createFarmState } from "../src/game/farm.js";
-import { getWorldObject } from "../src/game/world/world.js";
+import { getWorldEntitiesByType, getWorldObject } from "../src/game/world/world.js";
 
 test("canonical farm construction is headless and uses stable entity ids", () => {
   assert.equal(typeof document, "undefined");
@@ -38,6 +39,9 @@ test("canonical farm construction is headless and uses stable entity ids", () =>
   assert.equal(first.world.entities["market-corn-crate"].type, "market");
   assert.ok(first.world.entities["market-corn-crate"]);
   assert.ok(first.world.entities["tree-8"]);
+  assert.equal(getWorldEntitiesByType(first.world, "tree", "farm").length, 20);
+  assert.ok(first.world.entities["tree-14"]);
+  assert.ok(first.world.entities["tree-19"]);
   assert.equal(first.world.terrain[3][16], "water");
   assert.equal(first.world.terrain[6][10], "path");
   assert.equal(isWalkable(first, { x: 4, y: 4 }, "player"), false);
@@ -45,6 +49,29 @@ test("canonical farm construction is headless and uses stable entity ids", () =>
   assert.equal(isWalkable(first, { x: 4, y: 7 }, "player"), true);
   assert.deepEqual(first, second);
   assert.notEqual(first.world, second.world);
+});
+
+test("dense starting trees preserve grass placement and critical farm routes", () => {
+  const state = createFarmState();
+  const trees = getWorldEntitiesByType(state.world, "tree", "farm");
+  const positions = new Set(trees.map((tree) => `${tree.position.x},${tree.position.y}`));
+
+  assert.equal(positions.size, trees.length);
+  assert.ok(trees.every(
+    (tree) => state.world.maps.farm.terrain[tree.position.y][tree.position.x] === "grass",
+  ));
+  for (const target of [
+    { x: 3, y: 4 },
+    { x: 18, y: 12 },
+    { x: 8, y: 8 },
+  ]) {
+    const controller = createController(createFarmState());
+    assert.equal(controller.submit({
+      type: "move_to",
+      actorId: "player",
+      target,
+    }).success, true);
+  }
 });
 
 test("world queries isolate entities on different maps", () => {
