@@ -8,6 +8,7 @@ import {
 } from "../../game/index.js";
 import { renderGame } from "./renderer.js";
 import { createRuntime } from "./runtime.js";
+import { makeWindowDraggable } from "./draggable-windows.js";
 
 const canvas = document.querySelector("#game-canvas");
 const context = canvas.getContext("2d");
@@ -24,6 +25,9 @@ const storageTarget = document.querySelector("#storage-target");
 const storagePlayerItems = document.querySelector("#storage-player-items");
 const storageTargetItems = document.querySelector("#storage-target-items");
 const storageStatus = document.querySelector("#storage-status");
+
+makeWindowDraggable(marketWindow);
+makeWindowDraggable(storageWindow);
 
 function createFarmState() {
   return createGameState({

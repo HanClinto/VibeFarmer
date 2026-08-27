@@ -48,8 +48,10 @@ npm test
 | Sleep | End the day once both farmhands are sleeping |
 
 Select an empty hotbar slot and Shift-click a mature crop to harvest it.
+Crop tiles are walkable. Hoeing a stage-0 crop refunds its seed; hoeing a later crop destroys it.
 The farm-side Market buys seeds and sells turnips or logs one item at a time using shared money.
 The Storage window transfers items one unit at a time with an adjacent farm chest or the robot companion.
+Market and Storage windows can be dragged by their title bars.
 
 Movement and work now advance through fixed simulation ticks. Pausing stops tick progression without cancelling active player or robot work; resuming continues the same operation.
 
