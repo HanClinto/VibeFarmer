@@ -207,6 +207,13 @@ canvas {
   margin-top: 6px;
 }
 
+.storage-context {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 7px;
+  border: 1px inset #fff;
+}
+
 .hotbar button[aria-pressed="true"] {
   outline: 2px solid #001f7a;
   outline-offset: -4px;

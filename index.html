@@ -21,7 +21,6 @@
           <button type="button" id="new-game-button">New Game</button>
           <button type="button" id="sleep-button">Sleep</button>
           <button type="button" id="market-button">Market</button>
-          <button type="button" id="storage-button">Storage</button>
           <button type="button" id="inspector-button">Robot Inspector</button>
           <button type="button" id="action-log-button">Action Log</button>
           <div class="speed-controls" aria-label="Simulation speed">
@@ -88,8 +87,10 @@
           </div>
         </div>
         <div class="window-body storage-body">
-          <label for="storage-target">Adjacent container</label>
-          <select id="storage-target"></select>
+          <div class="storage-context">
+            <span>Container</span>
+            <strong id="storage-target-name">None</strong>
+          </div>
           <fieldset>
             <legend>Player inventory</legend>
             <div id="storage-player-items" class="storage-items"></div>
@@ -191,6 +192,7 @@
         <div class="window-body object-inspector-body">
           <p id="object-inspector-location" class="object-location"></p>
           <div id="object-inspector-content"></div>
+          <button type="button" id="object-inspector-storage-button" hidden>Open Storage</button>
           <button type="button" id="object-inspector-robot-button" hidden>Open Robot Inspector</button>
           <details>
             <summary>Raw details</summary>

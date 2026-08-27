@@ -37,7 +37,7 @@ const marketStatus = document.querySelector("#market-status");
 const marketMoneyValue = document.querySelector("#market-money-value");
 const marketCoinIcon = document.querySelector("#market-coin-icon");
 const storageWindow = document.querySelector("#storage-window");
-const storageTarget = document.querySelector("#storage-target");
+const storageTargetName = document.querySelector("#storage-target-name");
 const storagePlayerItems = document.querySelector("#storage-player-items");
 const storageTargetItems = document.querySelector("#storage-target-items");
 const storageStatus = document.querySelector("#storage-status");
@@ -59,6 +59,7 @@ makeWindowDraggable(daySummaryWindow);
 const persistence = createPersistence(window.localStorage);
 const restoredSave = persistence.load();
 const controller = createController(restoredSave.state ?? createFarmState());
+let activeStorageTargetId = null;
 const actionLog = createActionLog({ root: actionLogWindow, controller });
 const objectInspector = createObjectInspector({
   root: objectInspectorWindow,
@@ -66,6 +67,12 @@ const objectInspector = createObjectInspector({
   inspect: inspectLocation,
   openRobotInspector() {
     inspectorDialog.open();
+  },
+  openStorage(entityId) {
+    activeStorageTargetId = entityId;
+    objectInspectorDialog.close();
+    marketDialog.close();
+    storageDialog.open();
   },
 });
 const marketDialog = windowManager.register({
@@ -75,7 +82,7 @@ const marketDialog = windowManager.register({
 });
 const storageDialog = windowManager.register({
   windowElement: storageWindow,
-  launcher: document.querySelector("#storage-button"),
+  launcher: document.querySelector("#object-inspector-storage-button"),
   closeButton: document.querySelector("#storage-close-button"),
   onOpen() {
     storageSignature = null;
@@ -225,6 +232,7 @@ function itemButton(stack, direction) {
   button.className = "item-action-button";
   button.dataset.storageDirection = direction;
   button.dataset.itemId = stack.itemId;
+  button.dataset.quantity = String(stack.quantity);
   const iconFrame = sprites.frames[`item.${stack.itemId}`];
   if (iconFrame) {
     const icon = document.createElement("img");
@@ -306,10 +314,7 @@ function updateMarketWindow(state) {
 function updateStorageWindow(state) {
   if (storageWindow.hidden) return;
   const containers = adjacentContainers(state);
-  const currentTargetId = storageTarget.value;
-  const selectedTarget = containers.find((entity) => entity.id === currentTargetId)
-    ?? containers[0]
-    ?? null;
+  const selectedTarget = containers.find((entity) => entity.id === activeStorageTargetId) ?? null;
   const nextSignature = JSON.stringify({
     player: state.world.entities.player.inventory,
     containers: containers.map((entity) => ({ id: entity.id, inventory: entity.inventory })),
@@ -318,13 +323,9 @@ function updateStorageWindow(state) {
   if (nextSignature === storageSignature) return;
   storageSignature = nextSignature;
 
-  storageTarget.replaceChildren(...containers.map((entity) => {
-    const option = document.createElement("option");
-    option.value = entity.id;
-    option.textContent = entity.type === "chest" ? "Farm Chest" : "Robot";
-    option.selected = entity.id === selectedTarget?.id;
-    return option;
-  }));
+  storageTargetName.textContent = selectedTarget
+    ? selectedTarget.type === "chest" ? "Farm Chest" : "Robot Farmhand"
+    : "Out of reach";
   storagePlayerItems.replaceChildren(
     ...state.world.entities.player.inventory.filter(Boolean)
       .map((stack) => itemButton(stack, "deposit")),
@@ -340,7 +341,7 @@ function refresh(message) {
   if (message) statusMessage = message;
   const state = controller.getSnapshot();
   const openEntityIds = new Set(
-    storageWindow.hidden || !storageTarget.value ? [] : [storageTarget.value],
+    storageWindow.hidden || !activeStorageTargetId ? [] : [activeStorageTargetId],
   );
   camera = renderGame(context, state, { tickProgress, sprites, openEntityIds });
   updateHotbar(state);
@@ -519,11 +520,6 @@ marketWindow.addEventListener("click", (event) => {
   refresh(result.success ? result.code : `Cannot trade: ${result.code}`);
 });
 
-document.querySelector("#storage-button").addEventListener("click", () => {
-  marketDialog.close();
-  storageDialog.open();
-});
-
 document.querySelector("#inspector-button").addEventListener("click", () => {
   inspectorDialog.open();
 });
@@ -532,23 +528,19 @@ document.querySelector("#action-log-button").addEventListener("click", () => {
   actionLogDialog.open();
 });
 
-storageTarget.addEventListener("change", () => {
-  storageSignature = null;
-  updateStorageWindow(controller.getSnapshot());
-});
-
 storageWindow.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-storage-direction]");
-  if (!button || !storageTarget.value) return;
+  if (!button || !activeStorageTargetId) return;
   const deposit = button.dataset.storageDirection === "deposit";
+  const quantity = event.shiftKey ? Number(button.dataset.quantity) : 1;
   const result = controller.execute({
     source: "human-ui",
     type: "transfer_item",
     actorId: "player",
-    fromEntityId: deposit ? "player" : storageTarget.value,
-    toEntityId: deposit ? storageTarget.value : "player",
+    fromEntityId: deposit ? "player" : activeStorageTargetId,
+    toEntityId: deposit ? activeStorageTargetId : "player",
     itemId: button.dataset.itemId,
-    quantity: 1,
+    quantity,
   });
   storageStatus.textContent = result.code;
   storageSignature = null;
