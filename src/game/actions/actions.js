@@ -306,6 +306,16 @@ export function harvest(state, actorId, target) {
   });
 }
 
+function advanceDay(state) {
+  dispatchLifecycleEvent(state, "day_end");
+  const summary = finalizeDaySummary(state);
+  state.lastDaySummary = summary;
+  state.day += 1;
+  state.dayStats = createDayStats(state.day);
+  dispatchLifecycleEvent(state, "day_begin");
+  return outcome(true, "DAY_ADVANCED", { day: state.day, summary });
+}
+
 export function sleepActor(state, actorId) {
   const actor = getActor(state, actorId);
   if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
@@ -341,13 +351,34 @@ export function sleepActor(state, actorId) {
     return outcome(true, "WAITING_FOR_OTHER_ACTORS", { actorId });
   }
 
-  dispatchLifecycleEvent(state, "day_end");
-  const summary = finalizeDaySummary(state);
-  state.lastDaySummary = summary;
-  state.day += 1;
-  state.dayStats = createDayStats(state.day);
-  dispatchLifecycleEvent(state, "day_begin");
-  return outcome(true, "DAY_ADVANCED", { day: state.day, summary });
+  return advanceDay(state);
+}
+
+export function sleepAnyway(state, actorId) {
+  const actor = getActor(state, actorId);
+  if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
+  if (!actor.sleeping) return outcome(false, "ACTOR_NOT_SLEEPING");
+  const actors = getWorldEntitiesByType(state.world, "actor");
+  const busyActor = actors.find((candidate) => candidate.activeIntent);
+  if (busyActor) {
+    return outcome(false, "OTHER_ACTOR_BUSY", {
+      actorId: busyActor.id,
+      operationId: busyActor.activeIntent,
+    });
+  }
+  for (const candidate of actors) {
+    if (candidate.sleeping) continue;
+    candidate.sleeping = true;
+    addHistory(state, {
+      type: "actor_slept",
+      actorId: candidate.id,
+      initiatedByActorId: actorId,
+      forced: true,
+      tick: state.tick,
+      day: state.day,
+    });
+  }
+  return advanceDay(state);
 }
 
 function isActorAtMarket(state, actor) {

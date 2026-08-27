@@ -232,6 +232,22 @@
           <button type="button" id="day-summary-continue-button" autofocus>Start the new day</button>
         </div>
       </section>
+      <section id="sleep-anyway-window" class="window sleep-anyway-window" role="dialog" aria-label="Waiting for robot" tabindex="-1" hidden>
+        <div class="title-bar">
+          <div class="title-bar-text">Waiting for Robot</div>
+          <div class="title-bar-controls">
+            <button type="button" aria-label="Close" id="sleep-anyway-close-button"></button>
+          </div>
+        </div>
+        <div class="window-body sleep-anyway-body">
+          <p id="sleep-anyway-message">The robot is still awake.</p>
+          <p id="sleep-anyway-robot-status" class="sleep-anyway-status"></p>
+          <div class="sleep-anyway-actions">
+            <button type="button" id="sleep-anyway-wait-button">Keep waiting</button>
+            <button type="button" id="sleep-anyway-confirm-button">Sleep anyway</button>
+          </div>
+        </div>
+      </section>
     </main>
     <script type="module" src="src/adapters/browser/main.js"></script>
   </body>

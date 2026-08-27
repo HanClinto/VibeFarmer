@@ -12,11 +12,12 @@ export function createSceneTransition(
     (resolve) => setTimer(resolve, duration(milliseconds)),
   );
 
-  function show(label, mode) {
+  function show(label, mode, opacityClass = "is-opaque") {
     element.hidden = false;
     element.dataset.mode = mode;
     element.querySelector("span").textContent = label;
-    nextFrame(() => element.classList.add("is-opaque"));
+    element.classList.remove("is-opaque", "is-dimmed");
+    nextFrame(() => element.classList.add(opacityClass));
   }
 
   return {
@@ -37,12 +38,24 @@ export function createSceneTransition(
       return currentId === transitionId;
     },
 
+    beginWaiting() {
+      transitionId += 1;
+      show("Waiting for robot...", "waiting", "is-dimmed");
+    },
+
+    clearWaiting() {
+      if (element.dataset.mode !== "waiting") return;
+      transitionId += 1;
+      element.classList.remove("is-opaque", "is-dimmed");
+      element.hidden = true;
+    },
+
     async wake() {
       const currentId = ++transitionId;
       element.hidden = false;
       element.dataset.mode = "morning";
       element.querySelector("span").textContent = "Good morning";
-      element.classList.remove("is-opaque");
+      element.classList.remove("is-opaque", "is-dimmed");
       await wait(500);
       if (currentId === transitionId) element.hidden = true;
     },

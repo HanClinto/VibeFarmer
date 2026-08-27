@@ -11,7 +11,7 @@ function fakeElement() {
     dataset: {},
     classList: {
       add: (name) => classes.add(name),
-      remove: (name) => classes.delete(name),
+      remove: (...names) => names.forEach((name) => classes.delete(name)),
       contains: (name) => classes.has(name),
     },
     querySelector: () => label,
@@ -52,4 +52,24 @@ test("night holds until the morning transition completes", async () => {
   assert.equal(element.label.textContent, "Good morning");
   assert.equal(element.classList.contains("is-opaque"), false);
   assert.equal(element.hidden, true);
+});
+
+test("sleep waiting dims until cleared without clearing a later night", async () => {
+  const element = fakeElement();
+  const transition = createSceneTransition(element, immediateOptions());
+
+  transition.beginWaiting();
+  assert.equal(element.label.textContent, "Waiting for robot...");
+  assert.equal(element.dataset.mode, "waiting");
+  assert.equal(element.classList.contains("is-dimmed"), true);
+
+  transition.clearWaiting();
+  assert.equal(element.classList.contains("is-dimmed"), false);
+  assert.equal(element.hidden, true);
+
+  await transition.beginNight();
+  transition.clearWaiting();
+  assert.equal(element.dataset.mode, "night");
+  assert.equal(element.classList.contains("is-opaque"), true);
+  assert.equal(element.hidden, false);
 });

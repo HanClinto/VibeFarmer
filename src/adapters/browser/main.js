@@ -27,6 +27,7 @@ import { contextualActions } from "./contextual-actions.js";
 import { actionForCanvasClick } from "./pointer-controls.js";
 import { marketListings, marketStateSignature } from "./market.js";
 import { createGameAudio } from "./audio.js";
+import { createSleepWaitFlow } from "./sleep-wait.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 import { inspectGame } from "../webmcp/tools.js";
 
@@ -55,6 +56,10 @@ const inspectorWindow = document.querySelector("#inspector-window");
 const actionLogWindow = document.querySelector("#action-log-window");
 const objectInspectorWindow = document.querySelector("#object-inspector-window");
 const daySummaryWindow = document.querySelector("#day-summary-window");
+const sleepAnywayWindow = document.querySelector("#sleep-anyway-window");
+const sleepAnywayMessage = document.querySelector("#sleep-anyway-message");
+const sleepAnywayRobotStatus = document.querySelector("#sleep-anyway-robot-status");
+const sleepAnywayConfirmButton = document.querySelector("#sleep-anyway-confirm-button");
 const sceneTransition = createSceneTransition(document.querySelector("#scene-transition"));
 const windowManager = createWindowManager();
 const sprites = await loadSpriteCatalog();
@@ -85,6 +90,7 @@ makeWindowDraggable(inspectorWindow);
 makeWindowDraggable(actionLogWindow);
 makeWindowDraggable(objectInspectorWindow);
 makeWindowDraggable(daySummaryWindow);
+makeWindowDraggable(sleepAnywayWindow);
 
 const persistence = createPersistence(window.localStorage);
 const restoredSave = persistence.load();
@@ -109,7 +115,12 @@ function openMarket() {
 
 function sleepPlayer() {
   objectInspectorDialog.close();
-  runImmediate({ type: "sleep_actor", actorId: "player" });
+  const result = runImmediate({ type: "sleep_actor", actorId: "player" });
+  if (result.code === "WAITING_FOR_OTHER_ACTORS") {
+    refresh("Waiting for robot");
+    sleepWaitFlow.begin();
+  }
+  return result;
 }
 
 const objectInspector = createObjectInspector({
@@ -169,6 +180,11 @@ const daySummaryDialog = windowManager.register({
     sceneTransition.wake().then(() => canvas.focus({ preventScroll: true }));
   },
 });
+const sleepAnywayDialog = windowManager.register({
+  windowElement: sleepAnywayWindow,
+  launcher: document.querySelector("#object-inspector-sleep-button"),
+  closeButton: document.querySelector("#sleep-anyway-close-button"),
+});
 const initialStatusMessages = {
   NO_SAVE: "Ready",
   SAVE_RESTORED: "Save restored",
@@ -194,6 +210,35 @@ const runtime = createRuntime(controller, {
   },
 });
 
+function updateSleepAnywayWindow() {
+  const robot = controller.getSnapshot().world.entities.robot;
+  const busy = Boolean(robot.activeIntent);
+  sleepAnywayMessage.textContent = busy
+    ? "The robot is finishing its current work. You can sleep once it is idle."
+    : "The robot is still awake. End the day and let it power down where it is?";
+  sleepAnywayRobotStatus.textContent = busy
+    ? `Working · ${robot.mapId} (${robot.position.x}, ${robot.position.y})`
+    : `Idle · ${robot.mapId} (${robot.position.x}, ${robot.position.y})`;
+  sleepAnywayConfirmButton.disabled = busy;
+}
+
+const sleepWaitFlow = createSleepWaitFlow({
+  shouldContinue() {
+    const state = controller.getSnapshot();
+    return state.world.entities.player.sleeping
+      && !state.world.entities.robot.sleeping;
+  },
+  onWaiting: () => sceneTransition.beginWaiting(),
+  onPrompt() {
+    updateSleepAnywayWindow();
+    sleepAnywayDialog.open();
+  },
+  onClear() {
+    sceneTransition.clearWaiting();
+    if (!sleepAnywayWindow.hidden) sleepAnywayDialog.close();
+  },
+});
+
 controller.subscribe(async ({ state, result }) => {
   persistence.scheduleSave(state);
   const previousEventIndex = observedHistoryEvent ? state.history.indexOf(observedHistoryEvent) : -1;
@@ -207,6 +252,7 @@ controller.subscribe(async ({ state, result }) => {
     sceneTransition.playMapChange(mapName);
   }
   if (result.code === "DAY_ADVANCED") {
+    sleepWaitFlow.clear();
     heldMovement.clear();
     await sceneTransition.beginNight();
     renderDaySummary(daySummaryWindow, result.summary);
@@ -452,11 +498,14 @@ function refresh(message) {
   inspector?.refresh();
   actionLog.refresh();
   objectInspector.refresh();
+  sleepWaitFlow?.sync();
+  if (!sleepAnywayWindow.hidden) updateSleepAnywayWindow();
 }
 
 function runImmediate(command) {
   const result = controller.execute({ source: "human-ui", ...command });
   refresh(result.success ? result.code : `Cannot act: ${result.code}`);
+  return result;
 }
 
 function submit(command) {
@@ -603,6 +652,15 @@ document.querySelector("#robot-demo-button").addEventListener("click", () => {
 
 document.querySelector("#day-summary-continue-button").addEventListener("click", () => {
   daySummaryDialog.close();
+});
+
+document.querySelector("#sleep-anyway-wait-button").addEventListener("click", () => {
+  sleepAnywayDialog.close();
+});
+
+sleepAnywayConfirmButton.addEventListener("click", () => {
+  const result = runImmediate({ type: "sleep_anyway", actorId: "player" });
+  if (!result.success) updateSleepAnywayWindow();
 });
 
 marketWindow.addEventListener("click", (event) => {

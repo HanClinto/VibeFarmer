@@ -55,7 +55,7 @@ Interact with a mature crop to harvest it regardless of the selected hotbar item
 Crop tiles are walkable. Hoeing a stage-0 crop refunds its seed; hoeing a later crop destroys it.
 Nearby contextual actions appear automatically in the game menu. Beside a produce display, choose Open Market to trade using shared money; both farmhands must be beside the market to buy or sell.
 Beside a chest or the robot, choose Open Chest or Open Robot Storage. Click moves one item; Shift-click moves the visible stack.
-Beside the player bed, choose Sleep. When both farmhands are ready, the game fades to night and shows separate human, robot, and farm statistics for the completed day. The same actions also remain available through Object Inspector.
+Beside the player bed, choose Sleep. When both farmhands are ready, the game fades to night and shows separate human, robot, and farm statistics for the completed day. If the robot remains awake, the farm dims and offers a Sleep anyway confirmation after a short wait; an idle robot is readied for night where it is, while active robot operations are never interrupted. The same actions also remain available through Object Inspector.
 Modeless windows may remain open while playing; click the canvas to restore movement controls. Market, Storage, Inspector, Action Log, and summary windows can be dragged by their title bars.
 
 Sound is opt-in from the game menu. Short synthesized cues cover farming actions, harvests, transfers, market transactions, portal travel, and morning; no external audio files or autoplay are used.

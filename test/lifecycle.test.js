@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { sleepActor } from "../src/game/actions/actions.js";
+import { sleepActor, sleepAnyway } from "../src/game/actions/actions.js";
 import { restoreState, serializeState } from "../src/adapters/browser/persistence.js";
 import { GAME_CONFIG } from "../src/game/config.js";
 import { createFarmState } from "../src/game/farm.js";
@@ -119,6 +119,47 @@ test("canonical player bed and robot berth apply the same sleep rule", () => {
   assert.equal(sleepActor(state, "player").code, "WAITING_FOR_OTHER_ACTORS");
   assert.equal(sleepActor(state, "robot").code, "DAY_ADVANCED");
   assert.equal(state.day, 2);
+});
+
+test("a sleeping actor can end the day with an idle awake companion", () => {
+  const state = createFarmState();
+  const player = state.world.entities.player;
+  const robot = state.world.entities.robot;
+  player.mapId = "farmhouse";
+  player.position = { x: 1, y: 3 };
+  robot.sleeping = false;
+
+  assert.equal(sleepActor(state, "player").code, "WAITING_FOR_OTHER_ACTORS");
+  const result = sleepAnyway(state, "player");
+
+  assert.equal(result.code, "DAY_ADVANCED");
+  assert.equal(state.day, 2);
+  assert.ok(state.history.some(
+    (event) => event.type === "actor_slept"
+      && event.actorId === "robot"
+      && event.initiatedByActorId === "player"
+      && event.forced === true,
+  ));
+});
+
+test("sleep anyway does not interrupt active companion work", () => {
+  const state = createFarmState();
+  const player = state.world.entities.player;
+  const robot = state.world.entities.robot;
+  player.mapId = "farmhouse";
+  player.position = { x: 1, y: 3 };
+  robot.sleeping = false;
+  robot.activeIntent = "operation-robot";
+
+  assert.equal(sleepActor(state, "player").code, "WAITING_FOR_OTHER_ACTORS");
+  assert.deepEqual(sleepAnyway(state, "player"), {
+    success: false,
+    code: "OTHER_ACTOR_BUSY",
+    actorId: "robot",
+    operationId: "operation-robot",
+  });
+  assert.equal(state.day, 1);
+  assert.equal(robot.sleeping, false);
 });
 
 test("robot sleep advances the day when the idle player is already beside their bed", () => {

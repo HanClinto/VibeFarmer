@@ -139,9 +139,17 @@ canvas {
   opacity: 1;
 }
 
+.scene-transition.is-dimmed {
+  opacity: 0.48;
+}
+
 .scene-transition span {
   font-family: Georgia, serif;
   font-size: 28px;
+}
+
+.scene-transition[data-mode="waiting"] span {
+  font-size: 18px;
 }
 
 .scene-transition[data-mode="morning"] {
@@ -180,6 +188,33 @@ canvas {
   left: 50%;
   width: 460px;
   transform: translate(-50%, -50%);
+}
+
+.sleep-anyway-window {
+  position: fixed;
+  z-index: 35;
+  top: 50%;
+  left: 50%;
+  width: 360px;
+  max-width: calc(100vw - 16px);
+  transform: translate(-50%, -50%);
+}
+
+.sleep-anyway-body p {
+  margin: 4px 0 8px;
+}
+
+.sleep-anyway-status {
+  min-height: 24px;
+  padding: 4px 6px;
+  border: 1px inset #fff;
+  background: #fff;
+}
+
+.sleep-anyway-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 .day-summary-body {
@@ -480,7 +515,8 @@ canvas {
 .storage-window > .title-bar,
 .inspector-window > .title-bar,
 .action-log-window > .title-bar,
-.object-inspector-window > .title-bar {
+.object-inspector-window > .title-bar,
+.sleep-anyway-window > .title-bar {
   cursor: move;
   touch-action: none;
   user-select: none;

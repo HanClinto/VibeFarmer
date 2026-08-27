@@ -2,6 +2,7 @@ import {
   buyItem,
   selectSlot,
   sellItem,
+  sleepAnyway,
   sleepActor,
   transferItem,
 } from "../game/actions/actions.js";
@@ -48,6 +49,9 @@ export function createController(initialState) {
           break;
         case "sleep_actor":
           result = sleepActor(state, command.actorId);
+          break;
+        case "sleep_anyway":
+          result = sleepAnyway(state, command.actorId);
           break;
         case "buy_item":
           result = buyItem(state, command.actorId, command.itemId, command.quantity);
