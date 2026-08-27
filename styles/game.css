@@ -300,6 +300,10 @@ canvas {
   resize: both;
 }
 
+.market-window[hidden] {
+  display: none;
+}
+
 .market-body {
   display: grid;
   grid-template-rows: auto minmax(100px, 1fr) minmax(100px, 1fr) auto;

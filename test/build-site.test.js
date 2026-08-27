@@ -50,3 +50,9 @@ test("deployment artifact versions the entry point and transitive module imports
     rmSync(temporaryDirectory, { recursive: true, force: true });
   }
 });
+
+test("resizable Market layout preserves the hidden window contract", () => {
+  const css = readFileSync("styles/game.css", "utf8");
+  assert.match(css, /\.market-window\s*\{[^}]*display:\s*flex;/s);
+  assert.match(css, /\.market-window\[hidden\]\s*\{[^}]*display:\s*none;/s);
+});
