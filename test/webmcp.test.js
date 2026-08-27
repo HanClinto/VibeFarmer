@@ -83,6 +83,49 @@ test("move_to stays pending until simulation ticks complete", async () => {
   const result = await promise;
   assert.equal(result.code, "DESTINATION_REACHED");
   assert.ok(result.completedTick > result.submittedTick);
+  assert.deepEqual(result.finalPosition, { x: 2, y: 3 });
+  assert.equal(result.pathResult.status, "completed");
+  assert.equal(result.pathResult.remainingSteps, 0);
+  assert.ok(result.changedState.eventTypes.includes("move"));
+  assert.ok(result.changedState.eventTypes.includes("intent_completed"));
+  assert.deepEqual(result.robot.position, { x: 2, y: 3 });
+  assert.equal("player" in result, false);
+  assert.ok(result.recoverableNextActions.includes("interact_at"));
+});
+
+test("failed intent results include privacy-safe recovery context", async () => {
+  const controller = createController(createGameState());
+  const tools = createWebMcpTools(controller);
+  const first = toolByName(tools, "move_to").execute({ x: 2, y: 3 });
+  const busy = await toolByName(tools, "move_to").execute({ x: 3, y: 3 });
+
+  assert.equal(busy.code, "ACTOR_BUSY");
+  assert.equal(busy.pathResult, null);
+  assert.deepEqual(busy.recoverableNextActions, ["inspect_game", "cancel_operation"]);
+  assert.ok(Array.isArray(busy.robot.inventory));
+  assert.equal("playerInventory" in busy, false);
+
+  tickUntilIdle(controller);
+  await first;
+});
+
+test("interact_at reports the resolved item and changed action state", async () => {
+  const controller = createController(createGameState());
+  const tools = createWebMcpTools(controller);
+  const promise = toolByName(tools, "interact_at").execute({
+    x: 2,
+    y: 2,
+    itemId: "hoe",
+  });
+
+  tickUntilIdle(controller);
+  const output = await promise;
+  assert.equal(output.code, "INTERACTION_COMPLETE");
+  assert.deepEqual(output.resolvedItem, { itemId: "hoe", slot: 2 });
+  assert.ok(output.changedState.eventTypes.includes("use_item"));
+  assert.equal(output.robot.stamina, 19);
+  assert.equal(output.robot.inventory[1].itemId, "hoe");
+  assert.equal("playerInventory" in output.robot, false);
 });
 
 test("tool abort requests cancellation and resolves with a structured result", async () => {

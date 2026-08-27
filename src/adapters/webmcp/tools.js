@@ -2,6 +2,65 @@ function result(success, code, details = {}) {
   return { success, code, ...details };
 }
 
+function robotState(state) {
+  const robot = state.world.entities.robot;
+  return {
+    position: { ...robot.position },
+    facing: robot.facing,
+    stamina: robot.stamina,
+    sleeping: robot.sleeping,
+    selectedSlot: robot.selectedSlot,
+    inventory: robot.inventory.map((stack) => (stack ? { ...stack } : null)),
+    activeIntent: robot.activeIntent,
+  };
+}
+
+function recoverableNextActions(output) {
+  if (output.success) {
+    return ["inspect_game", "move_to", "interact_at", "transfer_item", "sleep"];
+  }
+  if (output.code === "ACTOR_BUSY") return ["inspect_game", "cancel_operation"];
+  if (output.code === "NOT_ENOUGH_STAMINA") return ["sleep", "inspect_game"];
+  if (["ITEM_NOT_FOUND", "INVALID_INVENTORY_SLOT"].includes(output.code)) {
+    return ["inspect_game", "select_slot"];
+  }
+  return ["inspect_game", "move_to"];
+}
+
+function resolvedItem(completion) {
+  const action = completion.action;
+  if (action?.itemId) return { itemId: action.itemId, slot: action.slot };
+  if (action?.cropType) return { action: "harvest", cropType: action.cropType };
+  return null;
+}
+
+function structuredIntentResult(controller, output, operation, historyStart) {
+  const state = controller.getSnapshot();
+  const events = state.history.slice(historyStart).filter((event) => (
+    event.operationId === operation?.operationId || event.actorId === "robot"
+  ));
+  return {
+    ...output,
+    operationId: operation?.operationId ?? output.operationId ?? null,
+    submittedTick: operation?.submittedTick ?? null,
+    completedTick: operation?.completedTick ?? null,
+    resolvedItem: resolvedItem(output),
+    finalPosition: { ...state.world.entities.robot.position },
+    pathResult: operation ? {
+      status: operation.status,
+      replanCount: operation.replanCount,
+      replanned: operation.replanCount > 0,
+      remainingSteps: operation.path.length,
+    } : null,
+    changedState: {
+      eventTypes: events.map((event) => event.type),
+      events,
+    },
+    robot: robotState(state),
+    recoverableNextActions: recoverableNextActions(output),
+  };
+}
+
 function publicEntity(entity, robotPosition) {
   const base = {
     id: entity.id,
@@ -49,21 +108,27 @@ export function inspectGame(controller, { includeHistory = false } = {}) {
 }
 
 async function executeIntent(controller, command, signal) {
-  if (signal?.aborted) return result(false, "TOOL_CANCELLED_BEFORE_SUBMISSION");
+  if (signal?.aborted) {
+    const historyStart = controller.getSnapshot().history.length;
+    return structuredIntentResult(
+      controller,
+      result(false, "TOOL_CANCELLED_BEFORE_SUBMISSION"),
+      null,
+      historyStart,
+    );
+  }
   const submission = controller.submit(command);
-  if (!submission.success) return submission;
+  const historyStart = controller.getSnapshot().history.length;
+  if (!submission.success) {
+    return structuredIntentResult(controller, submission, null, historyStart);
+  }
 
   const cancel = () => controller.cancel(submission.operationId);
   signal?.addEventListener("abort", cancel, { once: true });
   try {
     const completion = await submission.completion;
     const operation = controller.getSnapshot().operations[submission.operationId];
-    return {
-      ...completion,
-      operationId: submission.operationId,
-      submittedTick: operation.submittedTick,
-      completedTick: operation.completedTick,
-    };
+    return structuredIntentResult(controller, completion, operation, historyStart);
   } finally {
     signal?.removeEventListener("abort", cancel);
   }
