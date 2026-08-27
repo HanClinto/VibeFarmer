@@ -24,7 +24,7 @@ import { createPersistence } from "./persistence.js";
 import { renderDaySummary } from "./day-summary.js";
 import { createSceneTransition } from "./scene-transition.js";
 import { contextualActions } from "./contextual-actions.js";
-import { actionForCanvasClick } from "./pointer-controls.js";
+import { actionForCanvasClick, actionTargetForPointer } from "./pointer-controls.js";
 import { marketListings, marketStateSignature } from "./market.js";
 import { createGameAudio } from "./audio.js";
 import { createSleepWaitFlow } from "./sleep-wait.js";
@@ -474,6 +474,10 @@ function updateContextualActions(state) {
 function refresh(message) {
   if (message) statusMessage = message;
   const state = controller.getSnapshot();
+  const pointerActionTarget = actionTargetForPointer(
+    state.world.entities.player,
+    hoverTarget,
+  );
   const openEntityIds = new Set(
     storageWindow.hidden || !activeStorageTargetId ? [] : [activeStorageTargetId],
   );
@@ -482,6 +486,7 @@ function refresh(message) {
     sprites,
     openEntityIds,
     hoverTarget,
+    actionTarget: pointerActionTarget,
   });
   updateHotbar(state);
   staminaValue.textContent = `${state.world.entities.player.stamina}/${GAME_CONFIG.maxStamina}`;
@@ -613,6 +618,10 @@ window.addEventListener("keydown", (event) => {
   const player = controller.getSnapshot().world.entities.player;
   const command = commandForGameplayKey(event.key, player);
   if (!command) return;
+  const actionTarget = actionTargetForPointer(player, hoverTarget);
+  if (["e", " "].includes(event.key.toLowerCase()) && actionTarget) {
+    command.target = actionTarget;
+  }
   event.preventDefault();
   submit(command);
 });

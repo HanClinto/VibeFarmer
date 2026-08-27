@@ -12,7 +12,11 @@ Modification stages are preserved under `assets/game/experiments/manual-android/
 2. `02-glow-details.png`: changes the existing eye pixels to cyan and adds one amber status-light pixel.
 3. `comparison.png`: nearest-neighbor comparison with the source farmer.
 
-The promoted frame is copied from stage 2. Future north/east/west and action frames should preserve the same palette mapping and foot alignment.
+The promoted frame is copied from stage 2. `android-farmhand-raised.png` applies the same palette and glow details to the project raised-arm variant based on `tile_0109`. Future north/east/west and action frames should preserve the same palette mapping and foot alignment.
+
+## Raised-Arm Farmhands
+
+`kenney/tiny-farm/farmhand-a-raised.png` and `farmhand-b-raised.png` are Vibe Farmer raised-arm modifications based on Kenney Tiny Farm `tile_0108` and `tile_0109`. They preserve the original 16x16 actor footprint and are used to present selected items above idle farmhands.
 
 ## Watered Soil
 

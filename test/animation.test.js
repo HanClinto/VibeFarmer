@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  actorHeldItemView,
   chestFrameId,
   getActorRenderPosition,
   operationPreview,
@@ -29,6 +30,29 @@ test("actor rendering interpolates a tile transition without changing game posit
   assert.deepEqual(getActorRenderPosition(actor, 8, 0.5), { x: 2.75, y: 2 });
   assert.deepEqual(getActorRenderPosition(actor, 8, 1), { x: 3, y: 2 });
   assert.deepEqual(actor.position, { x: 3, y: 2 });
+});
+
+test("idle actors raise selected items toward the pointer-directed action tile", () => {
+  const actor = {
+    role: "human",
+    mapId: "farm",
+    position: { x: 4, y: 3 },
+    facing: "south",
+    sleeping: false,
+    activeIntent: null,
+    selectedSlot: 1,
+    inventory: [{ itemId: "turnip", quantity: 2 }],
+  };
+
+  assert.deepEqual(actorHeldItemView(actor, { mapId: "farm", x: 3, y: 3 }), {
+    itemId: "turnip",
+    facing: "west",
+    frameId: "actor.farmhand_b.raised",
+  });
+  actor.role = "robot";
+  assert.equal(actorHeldItemView(actor).frameId, "actor.robot.raised");
+  actor.activeIntent = "operation-1";
+  assert.equal(actorHeldItemView(actor), null);
 });
 
 test("completed transitions render at the authoritative tile", () => {

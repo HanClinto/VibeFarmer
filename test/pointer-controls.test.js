@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { actionForCanvasClick } from "../src/adapters/browser/pointer-controls.js";
+import {
+  actionForCanvasClick,
+  actionTargetForPointer,
+} from "../src/adapters/browser/pointer-controls.js";
 import { createFarmState } from "../src/game/farm.js";
 
 test("ordinary portal clicks move while other occupied tiles inspect", () => {
@@ -35,4 +38,23 @@ test("Shift-click keeps interaction semantics on occupied tiles", () => {
       item: undefined,
     },
   });
+});
+
+test("pointer direction selects one adjacent keyboard action tile", () => {
+  const player = {
+    mapId: "farm",
+    position: { x: 5, y: 5 },
+    facing: "south",
+  };
+
+  assert.deepEqual(actionTargetForPointer(player, { mapId: "farm", x: 11, y: 7 }), {
+    mapId: "farm", x: 6, y: 5,
+  });
+  assert.deepEqual(actionTargetForPointer(player, { mapId: "farm", x: 4, y: 0 }), {
+    mapId: "farm", x: 5, y: 4,
+  });
+  assert.deepEqual(actionTargetForPointer(player, { mapId: "farm", x: 5, y: 5 }), {
+    mapId: "farm", x: 5, y: 6,
+  });
+  assert.equal(actionTargetForPointer(player, { mapId: "farmhouse", x: 5, y: 5 }), null);
 });

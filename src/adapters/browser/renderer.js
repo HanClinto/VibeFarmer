@@ -71,7 +71,26 @@ export function getActorRenderPosition(actor, simulationTick, tickProgress) {
   };
 }
 
-function drawActor(context, actor, scale, simulationTick, tickProgress, sprites) {
+export function actorHeldItemView(actor, actionTarget = null) {
+  if (actor.sleeping || actor.activeIntent) return null;
+  const selected = actor.inventory[actor.selectedSlot - 1];
+  if (!selected) return null;
+  let facing = actor.facing;
+  if (actionTarget?.mapId === actor.mapId) {
+    const deltaX = actionTarget.x - actor.position.x;
+    const deltaY = actionTarget.y - actor.position.y;
+    if (Math.abs(deltaX) + Math.abs(deltaY) === 1) {
+      facing = deltaX < 0 ? "west" : deltaX > 0 ? "east" : deltaY < 0 ? "north" : "south";
+    }
+  }
+  return {
+    itemId: selected.itemId,
+    facing,
+    frameId: actor.role === "robot" ? "actor.robot.raised" : "actor.farmhand_b.raised",
+  };
+}
+
+function drawActor(context, actor, scale, simulationTick, tickProgress, sprites, heldItemView) {
   const position = getActorRenderPosition(actor, simulationTick, tickProgress);
   const left = position.x * scale;
   const top = position.y * scale;
@@ -79,7 +98,14 @@ function drawActor(context, actor, scale, simulationTick, tickProgress, sprites)
   context.fillRect(left + scale * 0.2, top + scale * 0.76, scale * 0.62, scale * 0.14);
 
   if (actor.role === "robot") {
-    if (drawSprite(context, sprites, "actor.robot.south", left, top, scale)) return;
+    if (drawSprite(
+      context,
+      sprites,
+      heldItemView?.frameId ?? "actor.robot.south",
+      left,
+      top,
+      scale,
+    )) return;
     context.fillStyle = COLORS.robot;
     context.fillRect(left + scale * 0.24, top + scale * 0.18, scale * 0.54, scale * 0.64);
     context.fillStyle = COLORS.robotPanel;
@@ -87,12 +113,54 @@ function drawActor(context, actor, scale, simulationTick, tickProgress, sprites)
     return;
   }
 
-  if (drawSprite(context, sprites, "actor.farmhand_b.south", left, top, scale)) return;
+  if (drawSprite(
+    context,
+    sprites,
+    heldItemView?.frameId ?? "actor.farmhand_b.south",
+    left,
+    top,
+    scale,
+  )) return;
 
   context.fillStyle = COLORS.player;
   context.fillRect(left + scale * 0.28, top + scale * 0.26, scale * 0.48, scale * 0.58);
   context.fillStyle = COLORS.playerHat;
   context.fillRect(left + scale * 0.18, top + scale * 0.14, scale * 0.68, scale * 0.2);
+}
+
+function drawHeldItem(context, actor, heldItemView, scale, simulationTick, tickProgress, sprites) {
+  if (!heldItemView) return;
+  const position = getActorRenderPosition(actor, simulationTick, tickProgress);
+  const offsets = {
+    north: { x: 0, y: -4 },
+    east: { x: 5, y: 0 },
+    south: { x: 0, y: 4 },
+    west: { x: -5, y: 0 },
+  };
+  const offset = offsets[heldItemView.facing] ?? offsets.south;
+  const size = Math.round(scale * 0.42);
+  drawSprite(
+    context,
+    sprites,
+    `item.${heldItemView.itemId}`,
+    (position.x * scale) + ((scale - size) / 2) + offset.x,
+    (position.y * scale) - (size * 0.32) + offset.y,
+    size,
+  );
+}
+
+function drawActorWithHeldItem(
+  context,
+  actor,
+  scale,
+  simulationTick,
+  tickProgress,
+  sprites,
+  actionTarget,
+) {
+  const heldItemView = actorHeldItemView(actor, actionTarget);
+  drawActor(context, actor, scale, simulationTick, tickProgress, sprites, heldItemView);
+  drawHeldItem(context, actor, heldItemView, scale, simulationTick, tickProgress, sprites);
 }
 
 function drawPlant(context, plant, scale, sprites) {
@@ -227,7 +295,7 @@ function drawActionEffects(context, effects, scale) {
   }
 }
 
-function drawTileFeedback(context, scale, preview, hoverTarget, currentMapId) {
+function drawTileFeedback(context, scale, preview, hoverTarget, actionTarget, currentMapId) {
   if (preview) {
     context.fillStyle = "rgba(255, 244, 207, 0.62)";
     for (const step of preview.path) {
@@ -257,6 +325,23 @@ function drawTileFeedback(context, scale, preview, hoverTarget, currentMapId) {
       (hoverTarget.y * scale) + 2,
       scale - 4,
       scale - 4,
+    );
+  }
+  if (actionTarget?.mapId === currentMapId) {
+    context.fillStyle = "rgba(244, 211, 94, 0.18)";
+    context.fillRect(
+      (actionTarget.x * scale) + 3,
+      (actionTarget.y * scale) + 3,
+      scale - 6,
+      scale - 6,
+    );
+    context.strokeStyle = "#f4d35e";
+    context.lineWidth = 2;
+    context.strokeRect(
+      (actionTarget.x * scale) + 5,
+      (actionTarget.y * scale) + 5,
+      scale - 10,
+      scale - 10,
     );
   }
 }
@@ -308,6 +393,7 @@ export function renderGame(
     sprites = null,
     openEntityIds = new Set(),
     hoverTarget = null,
+    actionTarget = null,
     focusActorId = "player",
   } = {},
 ) {
@@ -368,7 +454,15 @@ export function renderGame(
   }
 
   if (state.world.entities.player.mapId === currentMapId) {
-    drawActor(context, state.world.entities.player, scale, state.tick, tickProgress, sprites);
+    drawActorWithHeldItem(
+      context,
+      state.world.entities.player,
+      scale,
+      state.tick,
+      tickProgress,
+      sprites,
+      focusActorId === "player" ? actionTarget : null,
+    );
     drawWorkFeedback(
       context,
       state.world.entities.player,
@@ -378,7 +472,15 @@ export function renderGame(
     );
   }
   if (state.world.entities.robot.mapId === currentMapId) {
-    drawActor(context, state.world.entities.robot, scale, state.tick, tickProgress, sprites);
+    drawActorWithHeldItem(
+      context,
+      state.world.entities.robot,
+      scale,
+      state.tick,
+      tickProgress,
+      sprites,
+      null,
+    );
     drawWorkFeedback(
       context,
       state.world.entities.robot,
@@ -392,6 +494,7 @@ export function renderGame(
     scale,
     operationPreview(state, focusActorId),
     hoverTarget,
+    actionTarget,
     currentMapId,
   );
   drawActionEffects(context, recentActionEffects(state, currentMapId), scale);

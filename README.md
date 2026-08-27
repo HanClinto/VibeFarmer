@@ -51,6 +51,8 @@ npm test
 | Space / E | Use the selected item on the faced tile |
 | Escape | Close the frontmost open window |
 
+Moving the pointer across the farm highlights one adjacent action tile in that direction. While the pointer remains over the farm, Space or E uses that tile; leaving the farm returns keyboard actions to the actor's saved facing direction. Idle farmhands raise their selected item above their head, with a subtle directional offset matching the action tile.
+
 Interact with a mature crop to harvest it regardless of the selected hotbar item.
 Crop tiles are walkable. Hoeing a stage-0 crop refunds its seed; hoeing a later crop destroys it.
 Nearby contextual actions appear automatically in the game menu. Beside a produce display, choose Open Market to trade using shared money; both farmhands must be beside the market to buy or sell.
