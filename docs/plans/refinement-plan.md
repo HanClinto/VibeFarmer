@@ -39,7 +39,7 @@ This plan is a corrective pass, not a declaration that the original MVP is done.
 21. **Sleep asymmetry:** Robot-only multi-day play cannot advance because the player begins each day awake. A refined design needs explicit readiness/autonomy rules rather than relying on the robot starting asleep.
 22. **Missing deterministic systems:** The original plan mentions seeded randomness, autonomous handlers, ordinary domain-event dispatch, and actual replan coverage; these are absent or partial.
 23. **Missing browser module boundaries:** Planned `input.js` and `ui.js` were folded into a large `main.js`, making interaction growth harder to maintain.
-24. **Save handling:** The current save format has no migration path. Multi-map locations, beds, portals, canonical map revisions, and slot-addressed inventory require a versioned migration instead of deleting old saves as corrupt.
+24. **Save handling:** Pre-1.0 development saves intentionally require an exact schema and canonical-world version. Outdated saves reset with explicit status copy; malformed saves reset separately, and unknown future versions remain preserved.
 
 ### Asset and Licensing Decision
 
@@ -193,21 +193,21 @@ Goal: remove the single-map architectural ceiling before visual expansion.
 1. Move canonical world creation from browser `main.js` into `src/game/world/maps/`.
 2. Introduce `world.maps`, `mapId` on spatial entities, map-aware terrain/bounds/entity queries, and normalized locations.
 3. Update actions, adjacency, occupancy, pathfinding, intents, operations, history, and inspection projections.
-4. Add state v3/save v2 migration from current saves; cancel active operations at migration boundary.
+4. Version state/save envelopes, reset outdated development saves explicitly, preserve unknown future versions, and cancel active operations on same-version reload.
 5. Preserve the current small farm visually until the schema is stable.
 
 Acceptance:
 
 - Same-map movement/interactions remain deterministic and parity tests pass for both actors.
 - Cross-map adjacency/collision is impossible.
-- Old saves retain day, money, inventories, terrain changes, crops, trees, chest contents, and actor positions on `farm`.
+- Outdated pre-1.0 saves reset cleanly rather than accumulating migration code during rapid iteration.
 - Unknown future save versions are preserved and reported unsupported rather than deleted.
 
 Checkpoints:
 
 1. Map schema/query commit.
 2. Actions/intents/tests commit.
-3. Persistence migration commit.
+3. Persistence version-policy commit.
 
 ### Phase R2 - Camera and Handcrafted Farm
 
@@ -318,7 +318,7 @@ Goal: replace programmer-facing transactions with familiar game interactions.
 
 1. Build reusable icon slot-grid and item tooltip components.
 2. Upgrade hotbar and add full player inventory view.
-3. Add slot-addressed transfer semantics and migration-compatible command handling.
+3. Add slot-addressed transfer semantics and current-schema command handling.
 4. Replace storage text buttons with two-pane chest/robot inventory.
 5. Replace market text buttons with icon rows/grid, quantities, owned counts, affordability, and projected balance.
 6. Open chest/robot/market through world interaction and proximity.
@@ -396,14 +396,14 @@ Work in this order and push after every validated checkpoint:
 
 1. **Audit/truth pass:** land this plan, traceability, and documentation corrections.
 2. **R1 map schema:** introduce map-aware state and tests without changing visuals.
-3. **R1 migration:** preserve current saves and publish a rollback point.
+3. **R1 save policy:** preserve current-version saves, reset outdated development saves, and publish a rollback point.
 4. **R2 camera helpers:** pure math, pointer conversion, and tests.
 5. **R2 farm definition:** move world construction into the core and author the larger map.
 6. **R3 asset foundation:** palette, manifest, licensing metadata, and the first original terrain/item sheets.
 7. **R3 renderer slice:** render the farm, chest, trees, crops, player, and robot from files.
 8. **R5 early companion slice:** if time remains, add the friendly robot inventory/status panel because it has high user value and does not require portals.
 
-Do not start portals, beds, or inventory transfer schema changes until map-aware state and save migration are pushed and green. Do not redesign every window before the shared icon/slot component exists. Do not publish generated `_site` files or any local reference-pack asset.
+Do not start portals, beds, or inventory transfer schema changes until map-aware state and save-version policy are pushed and green. Do not redesign every window before the shared icon/slot component exists. Do not publish generated `_site` files or any local restricted reference-pack asset.
 
 ## Validation at Every Checkpoint
 
@@ -411,7 +411,7 @@ Do not start portals, beds, or inventory transfer schema changes until map-aware
 - Run `npm test`, `npm run build:site`, diagnostics, and `git diff --check` before commit.
 - For renderer/UI changes, start the local site and verify with Chromium at 1280x900 or larger.
 - For Canvas changes, capture screenshots and inspect canvas pixels for nonblank output and missing assets.
-- For schema changes, test migration from a serialized current-version fixture and preserve unknown future saves.
+- For schema changes, bump the save/state version, test explicit outdated-save reset, and preserve unknown future saves.
 - Commit and push one isolated, validated concern at a time with no unrelated formatting churn.
 
 ## Decisions Needed Later

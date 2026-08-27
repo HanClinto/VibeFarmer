@@ -46,7 +46,7 @@ Status meanings:
 | 32 | Met | Browser runtime schedules Pause/1x/2x/5x/10x globally. |
 | 33 | Met | Catch-up is clamped and deterministically tested. |
 | 34 | Partial | Controls/hotbar/windows/market/storage exist; planned input/UI module split, day summary, notifications, and player cancellation/replacement do not. |
-| 35 | Met | Versioned autosave, confirmed reset, active-operation interruption, and corrupt-save fallback are implemented. Migration is not. |
+| 35 | Met | Versioned autosave, confirmed reset, active-operation interruption, corrupt-save fallback, explicit outdated-development-save reset, and future-version preservation are implemented. Pre-1.0 backward migration is intentionally out of scope. |
 | 36 | Partial | Nine primitive tools exist; explicit adjacent `use_item` and wake are absent, and sleep remains nonspatial. |
 | 37 | Partial | Movement/interaction await simulation and support abort. Select, trade, transfer, and sleep mutate immediately and ignore abort. |
 | 38 | Partial | Paused intents wait and abandoned calls continue; immediate mutators still execute while paused. |

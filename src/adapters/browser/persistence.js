@@ -1,10 +1,11 @@
-import { upgradeFarmWorldDefinition } from "../../game/farm.js";
+import { FARM_DEFINITION_VERSION } from "../../game/farm.js";
 
 const STORAGE_KEY = "vibe-farmer.save";
-const SAVE_VERSION = 2;
-const GAME_STATE_VERSION = 3;
+const SAVE_VERSION = 3;
+const GAME_STATE_VERSION = 4;
 
 class UnsupportedSaveError extends Error {}
+class OutdatedSaveError extends Error {}
 
 export function serializeState(state) {
   return JSON.stringify({
@@ -18,44 +19,9 @@ function validateState(state) {
     && Number.isInteger(state.tick)
     && state.world?.maps?.[state.world.defaultMapId]
     && state.world?.entities
-    && state.operations;
-}
-
-function migrateLegacyState(legacyState) {
-  if (legacyState?.version !== 2 || !legacyState.world?.entities || !legacyState.operations) {
-    throw new Error("Invalid legacy save data");
-  }
-
-  const state = legacyState;
-  const world = state.world;
-  world.definitionVersion = 1;
-  world.defaultMapId = world.defaultMapId ?? "farm";
-  world.maps ??= {
-    [world.defaultMapId]: {
-      id: world.defaultMapId,
-      width: world.width,
-      height: world.height,
-      terrain: world.terrain,
-    },
-  };
-  const defaultMap = world.maps[world.defaultMapId];
-  if (!defaultMap) throw new Error("Legacy save has no default map");
-  world.width = defaultMap.width;
-  world.height = defaultMap.height;
-  world.terrain = defaultMap.terrain;
-
-  for (const entity of Object.values(world.entities)) {
-    if (entity.position) entity.mapId ??= world.defaultMapId;
-  }
-  for (const operation of Object.values(state.operations)) {
-    if (operation.command?.target) operation.command.target.mapId ??= world.defaultMapId;
-    for (const step of operation.path ?? []) step.mapId ??= world.defaultMapId;
-  }
-  for (const event of state.history ?? []) {
-    if (event.target) event.target.mapId ??= world.defaultMapId;
-  }
-  state.version = GAME_STATE_VERSION;
-  return state;
+    && state.operations
+    && state.dayStats
+    && "lastDaySummary" in state;
 }
 
 function parseEnvelope(serialized) {
@@ -64,22 +30,22 @@ function parseEnvelope(serialized) {
   if (envelope.saveVersion > SAVE_VERSION) throw new UnsupportedSaveError();
   if (Number.isInteger(envelope.state?.version)
     && envelope.state.version > GAME_STATE_VERSION) throw new UnsupportedSaveError();
-  if (envelope.saveVersion === 1) {
-    const state = migrateLegacyState(envelope.state);
-    upgradeFarmWorldDefinition(state.world);
-    return { state, migrated: true };
-  }
+  if (envelope.saveVersion < SAVE_VERSION
+    || (Number.isInteger(envelope.state?.version)
+      && envelope.state.version < GAME_STATE_VERSION)) throw new OutdatedSaveError();
   if (envelope.saveVersion !== SAVE_VERSION || !validateState(envelope.state)) {
     throw new Error("Invalid save data");
   }
-  return {
-    state: envelope.state,
-    migrated: upgradeFarmWorldDefinition(envelope.state.world),
-  };
+  const definitionVersion = envelope.state.world.definitionVersion;
+  if (envelope.state.world.definitionId === "farm"
+    && definitionVersion > FARM_DEFINITION_VERSION) throw new UnsupportedSaveError();
+  if (envelope.state.world.definitionId === "farm"
+    && definitionVersion < FARM_DEFINITION_VERSION) throw new OutdatedSaveError();
+  return envelope.state;
 }
 
 export function restoreState(serialized) {
-  const { state, migrated } = parseEnvelope(serialized);
+  const state = parseEnvelope(serialized);
 
   const interruptedOperationIds = [];
   for (const operation of Object.values(state.operations)) {
@@ -109,7 +75,7 @@ export function restoreState(serialized) {
     });
   }
 
-  return { state, interruptedOperationIds, migrated };
+  return { state, interruptedOperationIds };
 }
 
 export function createPersistence(
@@ -138,15 +104,17 @@ export function createPersistence(
         const restored = restoreState(serialized);
         return {
           ...restored,
-          code: restored.migrated
-            ? "SAVE_MIGRATED"
-            : restored.interruptedOperationIds.length > 0
-              ? "SAVE_RESTORED_WITH_INTERRUPTED_OPERATION"
-              : "SAVE_RESTORED",
+          code: restored.interruptedOperationIds.length > 0
+            ? "SAVE_RESTORED_WITH_INTERRUPTED_OPERATION"
+            : "SAVE_RESTORED",
         };
       } catch (error) {
         if (error instanceof UnsupportedSaveError) {
           return { state: null, code: "SAVE_UNSUPPORTED" };
+        }
+        if (error instanceof OutdatedSaveError) {
+          storage.removeItem(STORAGE_KEY);
+          return { state: null, code: "SAVE_OUTDATED" };
         }
         storage.removeItem(STORAGE_KEY);
         return { state: null, code: "SAVE_CORRUPT" };

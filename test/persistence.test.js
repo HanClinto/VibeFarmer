@@ -9,7 +9,6 @@ import {
   serializeState,
 } from "../src/adapters/browser/persistence.js";
 import { createGameState } from "../src/game/state.js";
-import { createFarmState } from "../src/game/farm.js";
 
 function createMemoryStorage() {
   const values = new Map();
@@ -38,7 +37,6 @@ test("versioned state round-trips without changing completed world state", () =>
   assert.equal(restored.state.money, 145);
   assert.equal(restored.state.world.terrain[2][2], "tilled");
   assert.deepEqual(restored.interruptedOperationIds, []);
-  assert.equal(restored.migrated, false);
 });
 
 test("active operations are interrupted on restore without replaying movement", () => {
@@ -86,40 +84,15 @@ test("corrupt saves are removed and safely fall back", () => {
   assert.equal(storage.getItem(STORAGE_KEY), null);
 });
 
-test("legacy single-map saves migrate without losing farm progress", () => {
-  const controller = createController(createGameState());
-  const submission = controller.submit({
-    type: "move_to",
-    actorId: "player",
-    target: { x: 1, y: 3 },
-  });
-  const state = controller.getSnapshot();
-  state.version = 2;
-  state.day = 4;
-  state.money = 212;
-  state.world.terrain[2][2] = "wet_tilled";
-  delete state.world.definitionVersion;
-  delete state.world.defaultMapId;
-  delete state.world.maps;
-  for (const entity of Object.values(state.world.entities)) delete entity.mapId;
-  delete state.operations[submission.operationId].command.target.mapId;
-  for (const step of state.operations[submission.operationId].path) delete step.mapId;
-  const serialized = JSON.stringify({ saveVersion: 1, state });
+test("outdated development saves are removed instead of migrated", () => {
+  const storage = createMemoryStorage();
+  const state = createGameState();
+  state.version = 3;
+  const serialized = JSON.stringify({ saveVersion: 2, state });
+  storage.setItem(STORAGE_KEY, serialized);
 
-  const restored = restoreState(serialized);
-
-  assert.equal(restored.migrated, true);
-  assert.equal(restored.state.version, 3);
-  assert.equal(restored.state.day, 4);
-  assert.equal(restored.state.money, 212);
-  assert.equal(restored.state.world.maps.farm.terrain[2][2], "wet_tilled");
-  assert.equal(restored.state.world.terrain, restored.state.world.maps.farm.terrain);
-  assert.equal(restored.state.world.entities.player.mapId, "farm");
-  assert.equal(restored.state.operations[submission.operationId].command.target.mapId, "farm");
-  assert.ok(restored.state.operations[submission.operationId].path.every(
-    (step) => step.mapId === "farm",
-  ));
-  assert.equal(restored.state.operations[submission.operationId].status, "cancelled");
+  assert.deepEqual(createPersistence(storage).load(), { state: null, code: "SAVE_OUTDATED" });
+  assert.equal(storage.getItem(STORAGE_KEY), null);
 });
 
 test("unsupported future saves are preserved for a newer game version", () => {
@@ -136,54 +109,22 @@ test("future game-state versions are also preserved", () => {
   const storage = createMemoryStorage();
   const state = createGameState();
   state.version = 99;
-  const serialized = JSON.stringify({ saveVersion: 2, state });
+  const serialized = JSON.stringify({ saveVersion: 3, state });
   storage.setItem(STORAGE_KEY, serialized);
 
   assert.equal(createPersistence(storage).load().code, "SAVE_UNSUPPORTED");
   assert.equal(storage.getItem(STORAGE_KEY), serialized);
 });
 
-test("pre-interior canonical farms gain portals and beds without losing progress", () => {
-  const state = createFarmState();
-  state.money = 321;
-  state.world.definitionVersion = 1;
-  delete state.world.definitionId;
-  delete state.world.maps.farmhouse;
-  for (const [entityId, entity] of Object.entries(state.world.entities)) {
-    if (entity.mapId === "farmhouse" || entityId === "portal-farmhouse-door") {
-      delete state.world.entities[entityId];
-    }
-  }
-  state.world.entities["house-3-1"] = {
-    id: "house-3-1",
-    type: "decoration",
-    mapId: "farm",
-    blocking: true,
-    position: { x: 3, y: 4 },
-  };
+test("outdated canonical farm definitions are reset", () => {
+  const storage = createMemoryStorage();
+  const state = createGameState();
+  state.world.definitionId = "farm";
+  state.world.definitionVersion = 6;
+  storage.setItem(STORAGE_KEY, serializeState(state));
 
-  const restored = restoreState(serializeState(state));
-
-  assert.equal(restored.migrated, true);
-  assert.equal(restored.state.money, 321);
-  assert.equal(restored.state.world.definitionVersion, 7);
-  assert.equal(restored.state.world.entities["house-3-1"], undefined);
-  assert.equal(restored.state.world.entities["portal-farmhouse-door"].type, "portal");
-  assert.equal(restored.state.world.entities["bed-player"].mapId, "farmhouse");
-  assert.equal(
-    restored.state.world.entities["bed-player"].spriteId,
-    "furniture.bed_cream",
-  );
-  assert.equal(restored.state.world.entities["bed-player-foot"], undefined);
-  assert.equal(restored.state.world.entities["bed-robot-foot"], undefined);
-  assert.equal(
-    restored.state.world.entities["market-corn-crate"].spriteId,
-    "entity.produce_corn",
-  );
-  assert.equal(restored.state.world.entities["market-sign"], undefined);
-  assert.equal(restored.state.world.entities["market-crate-a"], undefined);
-  assert.equal(restored.state.world.entities["market-crate-b"], undefined);
-  assert.equal(restored.state.world.maps.farmhouse.width, 8);
+  assert.equal(createPersistence(storage).load().code, "SAVE_OUTDATED");
+  assert.equal(storage.getItem(STORAGE_KEY), null);
 });
 
 test("coalesced autosave writes the latest state without postponing indefinitely", () => {

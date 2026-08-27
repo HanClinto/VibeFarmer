@@ -3,11 +3,7 @@ import { createGameState } from "./state.js";
 import { createChest } from "./world/entities/containers/chests.js";
 import { addWorldEntity, addWorldMap, createWorld } from "./world/world.js";
 
-const FARM_DEFINITION_VERSION = 7;
-
-function copy(value) {
-  return JSON.parse(JSON.stringify(value));
-}
+export const FARM_DEFINITION_VERSION = 7;
 
 function decoration(id, spriteId, x, y, { blocking = true, name } = {}) {
   return {
@@ -193,34 +189,4 @@ export function createFarmState() {
     playerPosition: { x: 5, y: 5 },
     robotPosition: { x: 6, y: 5 },
   });
-}
-
-export function upgradeFarmWorldDefinition(world) {
-  const isCanonicalFarm = world.definitionId === "farm"
-    || world.entities?.["market-sign"]
-    || world.entities?.["market-corn-crate"]
-    || world.entities?.["house-3-1"];
-  if (!isCanonicalFarm || world.definitionVersion >= FARM_DEFINITION_VERSION) return false;
-
-  const canonical = createFarmState().world;
-  delete world.entities["house-3-1"];
-  delete world.entities["bed-player-foot"];
-  delete world.entities["bed-robot-foot"];
-  delete world.entities["market-sign"];
-  delete world.entities["market-crate-a"];
-  delete world.entities["market-crate-b"];
-  world.maps.farmhouse = copy(canonical.maps.farmhouse);
-  for (const entity of Object.values(canonical.entities)) {
-    if ([
-      "portal-farmhouse-door",
-      "market-corn-crate",
-      "market-tomato-crate",
-      "market-leafy-crate",
-    ].includes(entity.id) || entity.mapId === "farmhouse") {
-      world.entities[entity.id] = copy(entity);
-    }
-  }
-  world.definitionId = "farm";
-  world.definitionVersion = FARM_DEFINITION_VERSION;
-  return true;
 }
