@@ -1,0 +1,15 @@
+{
+  "prompt": "A single south-facing friendly agricultural utility robot companion, compact squat cream metal body, dark plum outline, muted teal rectangular face display with two simple eyes, tiny amber status light and leaf-shaped sensor antenna, short practical arms with a farm-tool socket, two sturdy boots, cozy handmade farm machinery rather than futuristic combat technology, centered full body with empty margin, no text, no logo, no weapon, no scenery",
+  "prompt_style": "rd_mini__topdown_item",
+  "width": 16,
+  "height": 16,
+  "num_images": 1,
+  "input_palette": "iVBORw0KGgoAAAANSUhEUgAAAAkAAAABBAMAAAD+7JlOAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAeUExURQAAAD8mMW1BQ8NLNbxrSFebbuSYZITGacPDuQAAAKfdYNsAAAABdFJOUwBA5thmAAAAAWJLR0QAiAUdSAAAAAd0SU1FB+oIGwQWHbT0eMkAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMDgtMjdUMDQ6MTg6MTIrMDA6MDAX3K1QAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTA4LTI3VDA0OjE4OjEyKzAwOjAwZoEV7AAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0wOC0yN1QwNDoyMjoyOSswMDowMDPckeIAAAAOSURBVAjXY2BUdk1vAAACtAFR9vOYMAAAAABJRU5ErkJggg==",
+  "remove_bg": true,
+  "return_non_bg_removed": true,
+  "upscale_output_factor": 1,
+  "upload_outputs": true,
+  "include_downloadable_data": true,
+  "seed": 16107,
+  "timeout_seconds": 180
+}

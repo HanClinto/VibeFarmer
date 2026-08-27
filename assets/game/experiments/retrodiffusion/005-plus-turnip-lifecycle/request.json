@@ -1,0 +1,15 @@
+{
+  "prompt": "Exactly two complete turnip crop asset sequences arranged as two neat horizontal rows of six isolated sprites each on a plain light gray background. Each row, left to right: a small paper seed bag marked only by a tiny turnip picture with no letters; a newly planted turnip seed mound with one tiny shoot; a young two-leaf turnip sprout; a medium leafy turnip plant with the top of a round white-and-purple bulb beginning to show; a mature harvest-ready leafy turnip with a clear round white bulb and purple shoulders; one harvested whole turnip with green leaves. Row one and row two are alternate visual variants of the same six-step sequence. Strict aligned grid, consistent small cozy farming game scale, dark plum outlines, simple two-to-four-tone shading, each cell exactly one asset, no labels, no text, no extra crops, no scenery",
+  "prompt_style": "rd_plus__item_sheet",
+  "width": 256,
+  "height": 256,
+  "num_images": 1,
+  "input_palette": "iVBORw0KGgoAAAANSUhEUgAAAAkAAAABBAMAAAD+7JlOAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAeUExURQAAAD8mMW1BQ8NLNbxrSFebbuSYZITGacPDuQAAAKfdYNsAAAABdFJOUwBA5thmAAAAAWJLR0QAiAUdSAAAAAd0SU1FB+oIGwQWHbT0eMkAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMDgtMjdUMDQ6MTg6MTIrMDA6MDAX3K1QAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTA4LTI3VDA0OjE4OjEyKzAwOjAwZoEV7AAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0wOC0yN1QwNDoyMjoyOSswMDowMDPckeIAAAAOSURBVAjXY2BUdk1vAAACtAFR9vOYMAAAAABJRU5ErkJggg==",
+  "remove_bg": true,
+  "return_non_bg_removed": true,
+  "upscale_output_factor": 1,
+  "upload_outputs": true,
+  "include_downloadable_data": true,
+  "seed": 62013,
+  "timeout_seconds": 180
+}

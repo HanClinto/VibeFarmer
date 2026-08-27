@@ -73,6 +73,7 @@ function drawActor(context, actor, scale, simulationTick, tickProgress, sprites)
   context.fillRect(left + scale * 0.2, top + scale * 0.76, scale * 0.62, scale * 0.14);
 
   if (actor.role === "robot") {
+    if (drawSprite(context, sprites, "actor.robot.south", left, top, scale)) return;
     context.fillStyle = COLORS.robot;
     context.fillRect(left + scale * 0.24, top + scale * 0.18, scale * 0.54, scale * 0.64);
     context.fillStyle = COLORS.robotPanel;

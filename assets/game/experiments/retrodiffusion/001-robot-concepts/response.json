@@ -1,0 +1,29 @@
+{
+  "created_at": 1787804160,
+  "model": "rd_pro",
+  "balance_cost": 0.72,
+  "remaining_balance": 4.33,
+  "remaining_credits": 0,
+  "output_urls": [
+    "output-01.png",
+    "output-02.png",
+    "output-03.png",
+    "output-04.png"
+  ],
+  "output_images_count": 0,
+  "base64_images_count": 4,
+  "downloadable_data": null,
+  "request_id": "ac94238f-b961-4bdb-ab56-765afd12941c",
+  "outputs_retained_until": 1787890472,
+  "output_url_expires_at": 1787805061,
+  "warnings": null,
+  "delivery_status": "url",
+  "requested_images_count": 4,
+  "resolved_prompt_style": "rd_pro__topdown",
+  "used_input_image": false,
+  "reference_images_count": 0,
+  "used_extra_input_image": false,
+  "used_input_palette": false,
+  "used_strength": false,
+  "effective_timeout_seconds": 180
+}

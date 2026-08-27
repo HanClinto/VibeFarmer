@@ -42,6 +42,7 @@ test("deployment artifact versions the entry point and transitive module imports
       existsSync(path.join(outputDirectory, "assets/game/licenses/kenney-tiny-farm.txt")),
       true,
     );
+    assert.equal(existsSync(path.join(outputDirectory, "assets/game/experiments")), false);
     assert.equal(existsSync(path.join(outputDirectory, "src/.DS_Store")), false);
     assert.equal(existsSync(path.join(outputDirectory, "assets/sprites")), false);
     assert.equal(existsSync(path.join(outputDirectory, "assets/farm assets")), false);

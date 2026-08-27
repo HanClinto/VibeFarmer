@@ -6,7 +6,7 @@ Use a **hybrid CC0 + original** art pipeline for the first refinement screenshot
 
 - Kenney Tiny Farm provides the coherent 16x16 farming/environment/item base.
 - Kenney Tiny Town provides matching 16x16 water, fences, building exteriors, doors, signs, and map-composition tiles.
-- Vibe Farmer creates or generates an original farmhand identity layer: directional player, distinctive robot companion, tool-use poses, charging dock, portal cues, and interaction effects.
+- Vibe Farmer extends the Kenney farmhand silhouette into a directional human/android identity layer: identical proportions and action vocabulary, gray/teal synthetic recolor, tool-use poses, charging dock, portal cues, and interaction effects.
 - 0x72's CC0 Robot Tileset may be evaluated as a robot reference/base, but its 16x32 industrial characters must be palette-tested against Kenney before inclusion.
 - The currently downloaded packs under `assets/sprites/` remain private references and are never copied, traced, or shipped.
 
@@ -97,8 +97,8 @@ These IDs come from the official individual `Tiles/` directory and are candidate
 
 The following should be project-original or generated specifically for Vibe Farmer:
 
-1. Robot companion with four-direction idle/walk, work pose, sleep/charging state, and readable selected-tool silhouette.
-2. Player four-direction idle/walk and work poses matching the robot's frame contract.
+1. Android farmhand with four-direction idle/walk, work pose, sleep/charging state, and readable selected-tool silhouette. Preserve the human farmhand's proportions to communicate gameplay parity.
+2. Player four-direction idle/walk and work poses matching the android frame contract.
 3. Axe icon if no selected CC0 source matches the palette.
 4. Robot charging dock/bed that communicates sleep parity without looking like a human bed recolor.
 5. Destination, invalid-target, impact, watering splash, planting, harvest, portal, and task-progress effects.
@@ -106,13 +106,13 @@ The following should be project-original or generated specifically for Vibe Farm
 
 ## Image Generator Access
 
-No image-generation tool is currently exposed to this coding session. Enabling one would be useful for concept exploration, especially robot silhouettes and palette studies, but generated output should not be accepted directly as production sprites.
+RetroDiffusion is available through MCP. Generated output is preserved with prompts, seeds, responses, costs, and decisions under `assets/game/experiments/retrodiffusion/`; it remains source material until cleaned and cataloged.
 
 A useful image-generation workflow would be:
 
-1. Generate a contact sheet of 6-12 robot companion concepts constrained to top-down 16x32 pixel art, cozy farm palette, neutral background, no text.
-2. Select one silhouette based on readability beside Tiny Farm/Tiny Town.
-3. Redraw/clean it onto the exact pixel grid and author the directional/action frames consistently.
+1. Use the accepted Kenney farmer-derived android as the base silhouette.
+2. Generate only missing directional/action contracts or targeted identity details, using cost estimates and the model-selection ladder in `asset-production-backlog.md`.
+3. Redraw/clean outputs onto the exact pixel grid and preserve human/android frame alignment.
 4. Record tool/model/date/prompt and confirm the generated-output license permits redistribution and modification.
 5. Keep final edited source and PNG frames under `assets/game/original/` with project licensing metadata.
 

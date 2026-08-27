@@ -1,0 +1,14 @@
+{
+  "prompt": "A single compact friendly agricultural utility robot companion viewed from a three-quarter top-down angle, squat rounded cream metal body, dark plum outline, warm teal face display with two simple eyes, small amber status light and leaf-shaped sensor antenna, short sturdy arms with a universal farm-tool mount, practical little boots, subtle wood-toned side panels, cozy handmade farm machinery rather than futuristic combat technology, centered full body with generous empty margin on a plain white background, no text, no logo, no weapon, no scenery, no other character",
+  "prompt_style": "rd_pro__topdown",
+  "width": 32,
+  "height": 32,
+  "num_images": 4,
+  "remove_bg": true,
+  "return_non_bg_removed": true,
+  "upscale_output_factor": 1,
+  "upload_outputs": true,
+  "include_downloadable_data": true,
+  "seed": 72401,
+  "timeout_seconds": 180
+}

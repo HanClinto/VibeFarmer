@@ -4,14 +4,16 @@ import path from "node:path";
 const outputDirectory = process.argv[2] ?? "_site";
 const version = process.argv[3] ?? process.env.GITHUB_SHA?.slice(0, 7) ?? "dev";
 
-async function copyDirectory(source, destination) {
+async function copyDirectory(source, destination, { excludedNames = new Set() } = {}) {
   await fileSystem.mkdir(destination, { recursive: true });
   const entries = await fileSystem.readdir(source, { withFileTypes: true });
   for (const entry of entries) {
-    if (entry.name === ".DS_Store") continue;
+    if (entry.name === ".DS_Store" || excludedNames.has(entry.name)) continue;
     const sourcePath = path.join(source, entry.name);
     const destinationPath = path.join(destination, entry.name);
-    if (entry.isDirectory()) await copyDirectory(sourcePath, destinationPath);
+    if (entry.isDirectory()) {
+      await copyDirectory(sourcePath, destinationPath, { excludedNames });
+    }
     else await fileSystem.copyFile(sourcePath, destinationPath);
   }
 }
@@ -53,7 +55,9 @@ await copyDirectory("src", path.join(outputDirectory, "src"));
 await copyDirectory("styles", path.join(outputDirectory, "styles"));
 
 try {
-  await copyDirectory("assets/game", path.join(outputDirectory, "assets/game"));
+  await copyDirectory("assets/game", path.join(outputDirectory, "assets/game"), {
+    excludedNames: new Set(["experiments"]),
+  });
 } catch (error) {
   if (error.code !== "ENOENT") throw error;
 }

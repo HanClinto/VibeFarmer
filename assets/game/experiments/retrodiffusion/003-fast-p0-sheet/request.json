@@ -1,0 +1,15 @@
+{
+  "prompt": "An organized reusable collection of exactly sixteen cozy top-down farming game assets in a four by four grid on a plain light gray background: one practical steel axe with wooden handle; one neat stack of cut logs; one compact cream-and-teal robot charging dock; one golden destination marker; one red invalid-target marker; one burst of wooden axe-impact chips; one blue-green watering splash; one brown planting soil puff; one warm harvest sparkle; one teal doorway portal marker; one open wooden chest; one visibly damaged evergreen tree; one tree stump; one rural mailbox; one wooden produce shipping bin; one gold coin. Each asset isolated and centered in an evenly spaced grid cell, consistent small game-sprite scale, dark plum outlines, simple two-to-four-tone shading, no text, no labels, no characters, no scenery",
+  "prompt_style": "item_sheet",
+  "width": 256,
+  "height": 256,
+  "num_images": 1,
+  "input_palette": "iVBORw0KGgoAAAANSUhEUgAAAAkAAAABBAMAAAD+7JlOAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAeUExURQAAAD8mMW1BQ8NLNbxrSFebbuSYZITGacPDuQAAAKfdYNsAAAABdFJOUwBA5thmAAAAAWJLR0QAiAUdSAAAAAd0SU1FB+oIGwQWHbT0eMkAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMDgtMjdUMDQ6MTg6MTIrMDA6MDAX3K1QAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTA4LTI3VDA0OjE4OjEyKzAwOjAwZoEV7AAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0wOC0yN1QwNDoyMjoyOSswMDowMDPckeIAAAAOSURBVAjXY2BUdk1vAAACtAFR9vOYMAAAAABJRU5ErkJggg==",
+  "remove_bg": true,
+  "return_non_bg_removed": true,
+  "upscale_output_factor": 1,
+  "upload_outputs": true,
+  "include_downloadable_data": true,
+  "seed": 41616,
+  "timeout_seconds": 180
+}

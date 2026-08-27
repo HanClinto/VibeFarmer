@@ -1,0 +1,27 @@
+{
+  "created_at": 1787804849,
+  "model": "rd_plus",
+  "balance_cost": 0.058,
+  "remaining_balance": 4.221,
+  "remaining_credits": 0,
+  "output_urls": [
+    "output-01.png",
+    "output-02.png"
+  ],
+  "output_images_count": 0,
+  "base64_images_count": 2,
+  "downloadable_data": null,
+  "request_id": "46445c22-c96d-4f97-a583-fb378eb70f62",
+  "outputs_retained_until": 1787891222,
+  "output_url_expires_at": 1787805749,
+  "warnings": null,
+  "delivery_status": "url",
+  "requested_images_count": 1,
+  "resolved_prompt_style": "rd_plus__item_sheet",
+  "used_input_image": false,
+  "reference_images_count": 0,
+  "used_extra_input_image": false,
+  "used_input_palette": true,
+  "used_strength": false,
+  "effective_timeout_seconds": 180
+}
