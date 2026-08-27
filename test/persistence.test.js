@@ -36,6 +36,7 @@ test("versioned state round-trips without changing completed world state", () =>
   assert.equal(restored.state.day, 3);
   assert.equal(restored.state.money, 145);
   assert.equal(restored.state.world.terrain[2][2], "tilled");
+  assert.equal(restored.state.world.terrain, restored.state.world.maps.farm.terrain);
   assert.deepEqual(restored.interruptedOperationIds, []);
 });
 

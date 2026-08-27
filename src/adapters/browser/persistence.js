@@ -46,6 +46,10 @@ function parseEnvelope(serialized) {
 
 export function restoreState(serialized) {
   const state = parseEnvelope(serialized);
+  const defaultMap = state.world.maps[state.world.defaultMapId];
+  state.world.width = defaultMap.width;
+  state.world.height = defaultMap.height;
+  state.world.terrain = defaultMap.terrain;
 
   const interruptedOperationIds = [];
   for (const operation of Object.values(state.operations)) {

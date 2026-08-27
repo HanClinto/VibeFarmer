@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { sleepActor } from "../src/game/actions/actions.js";
+import { restoreState, serializeState } from "../src/adapters/browser/persistence.js";
 import { GAME_CONFIG } from "../src/game/config.js";
 import { createFarmState } from "../src/game/farm.js";
 import { createGameState } from "../src/game/state.js";
@@ -118,4 +119,24 @@ test("canonical player bed and robot berth apply the same sleep rule", () => {
   assert.equal(sleepActor(state, "player").code, "WAITING_FOR_OTHER_ACTORS");
   assert.equal(sleepActor(state, "robot").code, "DAY_ADVANCED");
   assert.equal(state.day, 2);
+});
+
+test("restored farm terrain dries when actors sleep inside the farmhouse", () => {
+  const saved = createFarmState();
+  saved.world.maps.farm.terrain[8][8] = "wet_tilled";
+  const state = restoreState(serializeState(saved)).state;
+  const player = state.world.entities.player;
+  const robot = state.world.entities.robot;
+  assert.equal(state.world.terrain, state.world.maps.farm.terrain);
+
+  player.mapId = "farmhouse";
+  player.position = { x: 1, y: 3 };
+  robot.sleeping = false;
+  robot.mapId = "farmhouse";
+  robot.position = { x: 5, y: 3 };
+
+  assert.equal(sleepActor(state, "player").code, "WAITING_FOR_OTHER_ACTORS");
+  assert.equal(sleepActor(state, "robot").code, "DAY_ADVANCED");
+  assert.equal(state.world.maps.farm.terrain[8][8], "tilled");
+  assert.equal(state.world.terrain[8][8], "tilled");
 });
