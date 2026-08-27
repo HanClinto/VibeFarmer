@@ -2,7 +2,7 @@ import { GAME_CONFIG } from "../../game/config.js";
 
 export const GAME_SPEEDS = Object.freeze([0, 1, 2, 5, 10]);
 
-export function createRuntime(controller, { onTick = () => {} } = {}) {
+export function createRuntime(controller, { onFrame = () => {} } = {}) {
   let speed = 1;
   let previousTime = null;
   let accumulatedMs = 0;
@@ -19,11 +19,9 @@ export function createRuntime(controller, { onTick = () => {} } = {}) {
       if (ticks > 0) {
         accumulatedMs -= ticks * GAME_CONFIG.tickDurationMs;
         controller.tick(ticks);
-        onTick(controller.getSnapshot());
       }
-    } else {
-      accumulatedMs = 0;
     }
+    onFrame(controller.getSnapshot(), accumulatedMs / GAME_CONFIG.tickDurationMs);
     frameId = requestAnimationFrame(frame);
   }
 
@@ -40,7 +38,6 @@ export function createRuntime(controller, { onTick = () => {} } = {}) {
     setSpeed(nextSpeed) {
       if (!GAME_SPEEDS.includes(nextSpeed)) throw new RangeError("Unsupported game speed");
       speed = nextSpeed;
-      accumulatedMs = 0;
       return speed;
     },
     getSpeed() {

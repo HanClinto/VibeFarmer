@@ -79,6 +79,26 @@ test("interact_at has identical tick count and effects for player and robot", ()
   assert.equal(results[0].operation.result.code, "INTERACTION_COMPLETE");
 });
 
+test("interact_at uses an adjacent target without walking away first", () => {
+  const state = createParityState("player");
+  state.world.entities.player.position = { x: 3, y: 4 };
+  const controller = createController(state);
+
+  const submission = controller.submit({
+    type: "interact_at",
+    actorId: "player",
+    target: { x: 4, y: 4 },
+    item: { itemId: "axe" },
+  });
+
+  assert.equal(submission.success, true);
+  assert.deepEqual(state.operations[submission.operationId].path, []);
+  const ticks = runToCompletion(controller, submission.operationId);
+  assert.equal(ticks, GAME_CONFIG.workCooldownTicks + 1);
+  assert.deepEqual(state.world.entities.player.position, { x: 3, y: 4 });
+  assert.equal(state.world.entities["tree-1"].hitPoints, GAME_CONFIG.treeHitPoints - 1);
+});
+
 test("a second intent for the same actor is rejected as busy", () => {
   const controller = createController(createParityState("robot"));
   const first = controller.submit({

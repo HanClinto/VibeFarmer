@@ -21,6 +21,7 @@ function createActor(id, position, sleeping) {
     selectedSlot: 1,
     inventory,
     activeIntent: null,
+    motion: null,
   };
 }
 

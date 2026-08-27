@@ -108,8 +108,14 @@ export function moveStep(state, actorId, target) {
   const direction = CARDINAL_DIRECTIONS.find(
     ({ x, y }) => actor.position.x + x === target.x && actor.position.y + y === target.y,
   );
+  const previousPosition = { ...actor.position };
   actor.position = { ...target };
   actor.facing = direction.name;
+  actor.motion = {
+    from: previousPosition,
+    to: { ...target },
+    startedTick: state.tick,
+  };
   actor.sleeping = false;
   addHistory(state, { type: "move", actorId, target: { ...target } });
   return outcome(true, "MOVED", { position: { ...actor.position } });

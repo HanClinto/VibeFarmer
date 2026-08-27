@@ -25,9 +25,25 @@ function drawTree(context, object, scale) {
   context.fillRect(left + scale * 0.22, top + scale * 0.2, scale * 0.28, scale * 0.16);
 }
 
-function drawActor(context, actor, scale) {
-  const left = actor.position.x * scale;
-  const top = actor.position.y * scale;
+function clamp(value, minimum, maximum) {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
+export function getActorRenderPosition(actor, simulationTick, tickProgress) {
+  const motion = actor.motion;
+  if (!motion || simulationTick !== motion.startedTick) return actor.position;
+
+  const progress = clamp(tickProgress, 0, 1);
+  return {
+    x: motion.from.x + ((motion.to.x - motion.from.x) * progress),
+    y: motion.from.y + ((motion.to.y - motion.from.y) * progress),
+  };
+}
+
+function drawActor(context, actor, scale, simulationTick, tickProgress) {
+  const position = getActorRenderPosition(actor, simulationTick, tickProgress);
+  const left = position.x * scale;
+  const top = position.y * scale;
   context.fillStyle = COLORS.shadow;
   context.fillRect(left + scale * 0.2, top + scale * 0.76, scale * 0.62, scale * 0.14);
 
@@ -45,7 +61,7 @@ function drawActor(context, actor, scale) {
   context.fillRect(left + scale * 0.18, top + scale * 0.14, scale * 0.68, scale * 0.2);
 }
 
-export function renderGame(context, state) {
+export function renderGame(context, state, { tickProgress = 1 } = {}) {
   const scale = GAME_CONFIG.tileSize * 3;
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
@@ -62,6 +78,6 @@ export function renderGame(context, state) {
     if (object.type === "tree") drawTree(context, object, scale);
   }
 
-  drawActor(context, state.world.entities.player, scale);
-  drawActor(context, state.world.entities.robot, scale);
+  drawActor(context, state.world.entities.player, scale, state.tick, tickProgress);
+  drawActor(context, state.world.entities.robot, scale, state.tick, tickProgress);
 }

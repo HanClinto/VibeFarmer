@@ -24,8 +24,14 @@ function createFarmState() {
 }
 
 const controller = createController(createFarmState());
-const runtime = createRuntime(controller, { onTick: () => refresh() });
 let statusMessage = "Ready";
+let tickProgress = 1;
+const runtime = createRuntime(controller, {
+  onFrame: (_state, nextTickProgress) => {
+    tickProgress = nextTickProgress;
+    refresh();
+  },
+});
 
 function updateHotbar(state) {
   const player = state.world.entities.player;
@@ -50,7 +56,7 @@ function updateHotbar(state) {
 function refresh(message) {
   if (message) statusMessage = message;
   const state = controller.getSnapshot();
-  renderGame(context, state);
+  renderGame(context, state, { tickProgress });
   updateHotbar(state);
   staminaValue.textContent = `${state.world.entities.player.stamina}/${GAME_CONFIG.maxStamina}`;
   intentStatus.textContent = statusMessage;

@@ -1,4 +1,4 @@
-import { CARDINAL_DIRECTIONS } from "../../../config.js";
+import { CARDINAL_DIRECTIONS, GAME_CONFIG } from "../../../config.js";
 import {
   getActor,
   isWalkable,
