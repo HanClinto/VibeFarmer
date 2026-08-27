@@ -28,6 +28,7 @@ test("object inspection view presents crop state and terrain without parsing raw
   ]);
   assert.equal(view.sections.at(-1).title, "Terrain");
   assert.equal(view.storageEntityId, null);
+  assert.equal(view.marketEntityId, null);
 });
 
 test("adjacent inspectable containers expose their exact storage identity", () => {
@@ -46,4 +47,22 @@ test("adjacent inspectable containers expose their exact storage identity", () =
   });
 
   assert.equal(view.storageEntityId, "chest-1");
+});
+
+test("adjacent produce displays expose contextual market access", () => {
+  const view = objectInspectionView({
+    success: true,
+    target: { x: 18, y: 11 },
+    terrain: { type: "grass", watered: false, passable: true },
+    entities: [{
+      id: "market-corn-crate",
+      type: "market",
+      name: "Corn crate",
+      canTrade: true,
+    }],
+  });
+
+  assert.equal(view.title, "Corn crate");
+  assert.equal(view.marketEntityId, "market-corn-crate");
+  assert.deepEqual(view.sections[0].fields, [["Trade", "Available"]]);
 });

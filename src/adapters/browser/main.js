@@ -74,11 +74,17 @@ const objectInspector = createObjectInspector({
     marketDialog.close();
     storageDialog.open();
   },
+  openMarket() {
+    objectInspectorDialog.close();
+    storageDialog.close();
+    marketDialog.open();
+  },
 });
 const marketDialog = windowManager.register({
   windowElement: marketWindow,
-  launcher: document.querySelector("#market-button"),
+  launcher: document.querySelector("#object-inspector-market-button"),
   closeButton: document.querySelector("#market-close-button"),
+  onOpen: () => updateMarketWindow(controller.getSnapshot()),
 });
 const storageDialog = windowManager.register({
   windowElement: storageWindow,
@@ -498,12 +504,6 @@ document.querySelector("#sleep-button").addEventListener("click", () => {
 
 document.querySelector("#day-summary-continue-button").addEventListener("click", () => {
   daySummaryDialog.close();
-});
-
-document.querySelector("#market-button").addEventListener("click", () => {
-  storageDialog.close();
-  marketDialog.open();
-  updateMarketWindow(controller.getSnapshot());
 });
 
 marketWindow.addEventListener("click", (event) => {

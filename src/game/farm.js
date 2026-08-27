@@ -3,12 +3,12 @@ import { createGameState } from "./state.js";
 import { createChest } from "./world/entities/containers/chests.js";
 import { addWorldEntity, addWorldMap, createWorld } from "./world/world.js";
 
-export const FARM_DEFINITION_VERSION = 7;
+export const FARM_DEFINITION_VERSION = 8;
 
-function decoration(id, spriteId, x, y, { blocking = true, name } = {}) {
+function decoration(id, spriteId, x, y, { blocking = true, name, type = "decoration" } = {}) {
   return {
     id,
-    type: "decoration",
+    type,
     spriteId,
     name: name ?? id,
     blocking,
@@ -62,12 +62,17 @@ function canonicalDecorations() {
     }));
   }
   entities.push(
-    decoration("market-corn-crate", "entity.produce_corn", 18, 11, { name: "Corn crate" }),
+    decoration("market-corn-crate", "entity.produce_corn", 18, 11, {
+      name: "Corn crate",
+      type: "market",
+    }),
     decoration("market-tomato-crate", "entity.produce_tomato", 19, 11, {
       name: "Tomato crate",
+      type: "market",
     }),
     decoration("market-leafy-crate", "entity.produce_leafy", 20, 11, {
       name: "Leafy produce crate",
+      type: "market",
     }),
   );
   return entities;

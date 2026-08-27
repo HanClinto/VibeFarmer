@@ -35,6 +35,7 @@ test("canonical farm construction is headless and uses stable entity ids", () =>
     ),
     ["entity.produce_corn", "entity.produce_tomato", "entity.produce_leafy"],
   );
+  assert.equal(first.world.entities["market-corn-crate"].type, "market");
   assert.ok(first.world.entities["market-corn-crate"]);
   assert.ok(first.world.entities["tree-8"]);
   assert.equal(first.world.terrain[3][16], "water");

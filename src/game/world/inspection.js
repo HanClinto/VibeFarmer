@@ -73,7 +73,14 @@ function inspectEntity(viewer, entity, terrainType) {
         : {}),
     };
   }
-  return { ...base, name: entity.type };
+  if (entity.type === "market") {
+    return {
+      ...base,
+      name: entity.name ?? "Farm Market",
+      canTrade: isAdjacent(getEntityLocation(viewer), getEntityLocation(entity)),
+    };
+  }
+  return { ...base, name: entity.name ?? entity.type };
 }
 
 export function inspectLocation(state, viewerId, target) {

@@ -21,6 +21,8 @@ export function objectInspectionView(inspection) {
       fields.push(["Stamina", `${entity.stamina}/${entity.maxStamina}`]);
       fields.push(["State", entity.activeIntent ? "Working" : entity.sleeping ? "Sleeping" : "Idle"]);
       fields.push(["Facing", titleCase(entity.facing)]);
+    } else if (entity.type === "market") {
+      fields.push(["Trade", entity.canTrade ? "Available" : "Move closer"]);
     }
     return { title: entity.name, fields, entity };
   });
@@ -40,6 +42,7 @@ export function objectInspectionView(inspection) {
     storageEntityId: inspection.entities.find(
       (entity) => entity.inventory && (entity.type === "chest" || entity.role === "robot"),
     )?.id ?? null,
+    marketEntityId: inspection.entities.find((entity) => entity.canTrade)?.id ?? null,
   };
 }
 
@@ -49,6 +52,7 @@ export function createObjectInspector({
   inspect,
   openRobotInspector,
   openStorage,
+  openMarket,
 }) {
   const title = root.querySelector("#object-inspector-title");
   const location = root.querySelector("#object-inspector-location");
@@ -56,14 +60,17 @@ export function createObjectInspector({
   const raw = root.querySelector("#object-inspector-raw");
   const robotButton = root.querySelector("#object-inspector-robot-button");
   const storageButton = root.querySelector("#object-inspector-storage-button");
+  const marketButton = root.querySelector("#object-inspector-market-button");
   let target = null;
   let storageEntityId = null;
+  let marketEntityId = null;
 
   function refresh() {
     if (root.hidden || !target) return;
     const inspection = inspect(controller.getSnapshot(), "player", target);
     const view = objectInspectionView(inspection);
     storageEntityId = view.storageEntityId;
+    marketEntityId = view.marketEntityId;
     title.textContent = view.title;
     location.textContent = view.location ?? "";
     content.replaceChildren(...view.sections.map((section) => {
@@ -84,12 +91,16 @@ export function createObjectInspector({
     }));
     robotButton.hidden = !inspection.entities?.some((entity) => entity.role === "robot");
     storageButton.hidden = storageEntityId === null;
+    marketButton.hidden = marketEntityId === null;
     raw.textContent = JSON.stringify(inspection, null, 2);
   }
 
   robotButton.addEventListener("click", openRobotInspector);
   storageButton.addEventListener("click", () => {
     if (storageEntityId) openStorage(storageEntityId);
+  });
+  marketButton.addEventListener("click", () => {
+    if (marketEntityId) openMarket(marketEntityId);
   });
   return {
     select(nextTarget) {
