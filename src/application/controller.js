@@ -1,4 +1,10 @@
-import { buyItem, selectSlot, sellItem, sleepActor } from "../game/actions/actions.js";
+import {
+  buyItem,
+  selectSlot,
+  sellItem,
+  sleepActor,
+  transferItem,
+} from "../game/actions/actions.js";
 import { isOperationTerminal, tick as tickGame } from "../game/simulation.js";
 import { submitInteractAt, submitMoveTo } from "../game/world/entities/actors/intents.js";
 
@@ -35,6 +41,9 @@ export function createController(initialState) {
           break;
         case "sell_item":
           result = sellItem(state, command.actorId, command.itemId, command.quantity);
+          break;
+        case "transfer_item":
+          result = transferItem(state, command.actorId, command);
           break;
         default:
           result = outcome(false, "UNKNOWN_COMMAND", { commandType: command.type });

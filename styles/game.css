@@ -153,3 +153,23 @@ canvas {
 .market-body button {
   width: 100%;
 }
+
+.storage-window {
+  position: fixed;
+  top: 84px;
+  left: 50%;
+  z-index: 10;
+  width: 260px;
+  margin-left: 165px;
+}
+
+.storage-body,
+.storage-items {
+  display: grid;
+  gap: 6px;
+}
+
+.storage-body select,
+.storage-items button {
+  width: 100%;
+}

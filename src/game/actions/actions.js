@@ -1,7 +1,12 @@
 import { CARDINAL_DIRECTIONS, GAME_CONFIG } from "../config.js";
 import { dispatchLifecycleEvent } from "../events.js";
-import { addItem, canAddItem } from "../world/entities/containers/inventory.js";
-import { removeItem } from "../world/entities/containers/inventory.js";
+import {
+  addItem,
+  canAddItem,
+  getAddableQuantity,
+  getItemQuantity,
+  removeItem,
+} from "../world/entities/containers/inventory.js";
 import { getItemType } from "../world/entities/items/item-types.js";
 import { createPlant } from "../world/entities/plants/plants.js";
 import { getTerrainAt, setTerrainAt } from "../world/terrain/terrain.js";
@@ -271,4 +276,55 @@ export function sellItem(state, actorId, itemId, quantity = 1) {
   state.money += totalPrice;
   addHistory(state, { type: "item_sold", actorId, itemId, quantity, totalPrice });
   return outcome(true, "ITEM_SOLD", { itemId, quantity, totalPrice, money: state.money });
+}
+
+function validateTransferPermission(requester, source, destination) {
+  if (!source?.inventory || !destination?.inventory) return "NOT_A_CONTAINER";
+  if (!isAdjacent(requester.position, source.position ?? requester.position)
+    && requester.id !== source.id) return "SOURCE_NOT_ADJACENT";
+  if (!isAdjacent(requester.position, destination.position ?? requester.position)
+    && requester.id !== destination.id) return "DESTINATION_NOT_ADJACENT";
+
+  if (requester.role === "robot" && source.role === "human") {
+    return "PLAYER_INVENTORY_PRIVATE";
+  }
+  const requesterIsParty = requester.id === source.id || requester.id === destination.id;
+  if (!requesterIsParty) return "TRANSFER_NOT_PERMITTED";
+  return null;
+}
+
+export function transferItem(
+  state,
+  requesterId,
+  { fromEntityId, toEntityId, itemId, quantity = 1 },
+) {
+  const requester = getActor(state, requesterId);
+  if (!requester) return outcome(false, "ACTOR_NOT_FOUND");
+  if (!Number.isInteger(quantity) || quantity < 1) return outcome(false, "INVALID_QUANTITY");
+  const source = getWorldEntity(state.world, fromEntityId);
+  const destination = getWorldEntity(state.world, toEntityId);
+  const permissionError = validateTransferPermission(requester, source, destination);
+  if (permissionError) return outcome(false, permissionError);
+
+  const available = getItemQuantity(source.inventory, itemId);
+  if (available === 0) return outcome(false, "ITEM_NOT_FOUND");
+  const moved = Math.min(quantity, available, getAddableQuantity(destination.inventory, itemId));
+  if (moved === 0) return outcome(false, "INVENTORY_FULL", { moved: 0, remainder: quantity });
+
+  removeItem(source.inventory, itemId, moved);
+  addItem(destination.inventory, itemId, moved);
+  addHistory(state, {
+    type: "item_transferred",
+    requesterId,
+    fromEntityId,
+    toEntityId,
+    itemId,
+    quantity: moved,
+  });
+  return outcome(true, "ITEM_TRANSFERRED", {
+    itemId,
+    requested: quantity,
+    moved,
+    remainder: quantity - moved,
+  });
 }

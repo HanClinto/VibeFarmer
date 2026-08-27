@@ -2,6 +2,7 @@ import { createController } from "../../application/controller.js";
 import {
   GAME_CONFIG,
   ITEM_TYPES,
+  createChest,
   createGameState,
   createWorld,
 } from "../../game/index.js";
@@ -18,10 +19,16 @@ const dayValue = document.querySelector("#day-value");
 const moneyValue = document.querySelector("#money-value");
 const marketWindow = document.querySelector("#market-window");
 const marketStatus = document.querySelector("#market-status");
+const storageWindow = document.querySelector("#storage-window");
+const storageTarget = document.querySelector("#storage-target");
+const storagePlayerItems = document.querySelector("#storage-player-items");
+const storageTargetItems = document.querySelector("#storage-target-items");
+const storageStatus = document.querySelector("#storage-status");
 
 function createFarmState() {
   return createGameState({
     world: createWorld({
+      entities: [createChest({ id: "chest-1", position: { x: 0, y: 1 } })],
       objects: [
         { type: "tree", x: 8, y: 2, hitPoints: GAME_CONFIG.treeHitPoints },
         { type: "tree", x: 9, y: 3, hitPoints: GAME_CONFIG.treeHitPoints },
@@ -36,6 +43,7 @@ const controller = createController(createFarmState());
 let statusMessage = "Ready";
 let tickProgress = 1;
 let hotbarSignature = null;
+let storageSignature = null;
 const runtime = createRuntime(controller, {
   onFrame: (_state, nextTickProgress) => {
     tickProgress = nextTickProgress;
@@ -70,6 +78,57 @@ function updateHotbar(state) {
   }));
 }
 
+function adjacentContainers(state) {
+  const player = state.world.entities.player;
+  return Object.values(state.world.entities)
+    .filter((entity) => entity.id !== player.id && entity.inventory)
+    .filter((entity) => Math.abs(entity.position.x - player.position.x)
+      + Math.abs(entity.position.y - player.position.y) === 1)
+    .sort((first, second) => first.id.localeCompare(second.id));
+}
+
+function itemButton(stack, direction) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.dataset.storageDirection = direction;
+  button.dataset.itemId = stack.itemId;
+  button.textContent = `${direction === "deposit" ? "Deposit" : "Withdraw"} ${ITEM_TYPES[stack.itemId]?.name ?? stack.itemId} ×${stack.quantity}`;
+  return button;
+}
+
+function updateStorageWindow(state) {
+  if (storageWindow.hidden) return;
+  const containers = adjacentContainers(state);
+  const currentTargetId = storageTarget.value;
+  const selectedTarget = containers.find((entity) => entity.id === currentTargetId)
+    ?? containers[0]
+    ?? null;
+  const nextSignature = JSON.stringify({
+    player: state.world.entities.player.inventory,
+    containers: containers.map((entity) => ({ id: entity.id, inventory: entity.inventory })),
+    selectedTargetId: selectedTarget?.id ?? null,
+  });
+  if (nextSignature === storageSignature) return;
+  storageSignature = nextSignature;
+
+  storageTarget.replaceChildren(...containers.map((entity) => {
+    const option = document.createElement("option");
+    option.value = entity.id;
+    option.textContent = entity.type === "chest" ? "Farm Chest" : "Robot";
+    option.selected = entity.id === selectedTarget?.id;
+    return option;
+  }));
+  storagePlayerItems.replaceChildren(
+    ...state.world.entities.player.inventory.filter(Boolean)
+      .map((stack) => itemButton(stack, "deposit")),
+  );
+  storageTargetItems.replaceChildren(
+    ...(selectedTarget?.inventory.filter(Boolean) ?? [])
+      .map((stack) => itemButton(stack, "withdraw")),
+  );
+  if (!selectedTarget) storageStatus.textContent = "No adjacent storage";
+}
+
 function refresh(message) {
   if (message) statusMessage = message;
   const state = controller.getSnapshot();
@@ -80,6 +139,7 @@ function refresh(message) {
   moneyValue.textContent = `${state.money}g`;
   intentStatus.textContent = statusMessage;
   tickValue.textContent = String(state.tick);
+  updateStorageWindow(state);
 }
 
 function runImmediate(command) {
@@ -136,6 +196,7 @@ window.addEventListener("keydown", (event) => {
 
 document.querySelector("#new-game-button").addEventListener("click", () => {
   hotbarSignature = null;
+  storageSignature = null;
   controller.replaceState(createFarmState());
   refresh("New game started");
 });
@@ -162,6 +223,7 @@ for (const button of document.querySelectorAll("button[data-market-action]")) {
 }
 
 document.querySelector("#market-button").addEventListener("click", () => {
+  storageWindow.hidden = true;
   marketWindow.hidden = false;
 });
 
@@ -180,6 +242,39 @@ marketWindow.addEventListener("click", (event) => {
   });
   marketStatus.textContent = result.code;
   refresh(result.success ? result.code : `Cannot trade: ${result.code}`);
+});
+
+document.querySelector("#storage-button").addEventListener("click", () => {
+  marketWindow.hidden = true;
+  storageWindow.hidden = false;
+  storageSignature = null;
+  updateStorageWindow(controller.getSnapshot());
+});
+
+document.querySelector("#storage-close-button").addEventListener("click", () => {
+  storageWindow.hidden = true;
+});
+
+storageTarget.addEventListener("change", () => {
+  storageSignature = null;
+  updateStorageWindow(controller.getSnapshot());
+});
+
+storageWindow.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-storage-direction]");
+  if (!button || !storageTarget.value) return;
+  const deposit = button.dataset.storageDirection === "deposit";
+  const result = controller.execute({
+    type: "transfer_item",
+    actorId: "player",
+    fromEntityId: deposit ? "player" : storageTarget.value,
+    toEntityId: deposit ? storageTarget.value : "player",
+    itemId: button.dataset.itemId,
+    quantity: 1,
+  });
+  storageStatus.textContent = result.code;
+  storageSignature = null;
+  refresh(result.success ? result.code : `Cannot transfer: ${result.code}`);
 });
 
 document.querySelector(".speed-controls").addEventListener("click", (event) => {

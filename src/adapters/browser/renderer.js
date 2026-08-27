@@ -17,6 +17,8 @@ const COLORS = Object.freeze({
   cropStem: "#244f2c",
   cropLeaf: "#53a447",
   cropRoot: "#ddd071",
+  chestWood: "#a56a34",
+  chestBand: "#4e3b2f",
 });
 
 function terrainColor(terrainType, alternate) {
@@ -88,6 +90,16 @@ function drawPlant(context, plant, scale) {
   }
 }
 
+function drawChest(context, chest, scale) {
+  const left = chest.position.x * scale;
+  const top = chest.position.y * scale;
+  context.fillStyle = COLORS.chestWood;
+  context.fillRect(left + scale * 0.16, top + scale * 0.3, scale * 0.72, scale * 0.54);
+  context.fillStyle = COLORS.chestBand;
+  context.fillRect(left + scale * 0.16, top + scale * 0.44, scale * 0.72, scale * 0.12);
+  context.fillRect(left + scale * 0.45, top + scale * 0.5, scale * 0.12, scale * 0.18);
+}
+
 export function renderGame(context, state, { tickProgress = 1 } = {}) {
   const scale = GAME_CONFIG.tileSize * 3;
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
@@ -104,6 +116,7 @@ export function renderGame(context, state, { tickProgress = 1 } = {}) {
   for (const object of Object.values(state.world.entities)) {
     if (object.type === "tree") drawTree(context, object, scale);
     else if (object.type === "plant") drawPlant(context, object, scale);
+    else if (object.type === "chest") drawChest(context, object, scale);
   }
 
   drawActor(context, state.world.entities.player, scale, state.tick, tickProgress);
