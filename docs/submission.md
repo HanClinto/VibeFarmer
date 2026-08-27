@@ -8,7 +8,7 @@ Vibe Farmer is a cozy browser farming game where a human and an AI-controlled ro
 
 Vibe Farmer explores assistive AI through visible, shared work rather than invisible automation. The player and robot clear land, till soil, plant and water turnips, sleep through crop growth, harvest, and trade using the same simulation rules. Actions take simulated time, consume the same stamina, obey the same pathfinding and inventory limits, and remain visible on the farm while they execute.
 
-The game core is deterministic and headless. Browser controls and WebMCP are adapters over one protocol-neutral controller, so a mouse click, keyboard command, manual Inspector invocation, and model tool call all converge on the same serialized intents and atomic game actions. One actor can have only one active intent, and cancellation settles at a safe tick boundary.
+The game core is deterministic and headless. Browser controls and WebMCP are adapters over one protocol-neutral controller, so movement and item interaction converge on the same serialized intents and atomic game actions. One actor can have only one active intent, and cancellation settles at a safe tick boundary. Selection, trade, transfer, and sleep are currently immediate controller commands rather than timed intents.
 
 Transparency is part of the play surface. Robot Inspector derives its tool list and schemas from the registered WebMCP definitions, supports raw JSON invocation, and exposes operation state and invocation timing. A separate Action Log places player and robot commands and resulting domain events in parallel columns. When the simulation is paused, pending tool calls remain unresolved and their operations visibly enter `waiting_for_ticks`; resuming continues the same operation.
 
@@ -18,7 +18,7 @@ The complete loop runs as a static site with no production framework or server. 
 
 - **Equal capability:** Human and robot actions use the same controller, intents, pathfinding, stamina, inventory, economy, and lifecycle rules.
 - **Primitive tools:** WebMCP exposes single actions, not plans, queues, `plant_all`, remote storage, speed controls, or direct ticks.
-- **Visible latency:** A successful mutating tool response means the simulated action visibly completed, not merely that it entered a queue.
+- **Visible latency:** Successful movement and item-interaction responses mean simulated work visibly completed, not merely that it entered a queue. Immediate selection, trade, transfer, and sleep commands are reported synchronously.
 - **Inspectable state:** Operations are serializable records with stable IDs, phases, statuses, ticks, results, and cancellation state.
 - **Privacy by role:** The robot may inspect its own inventory and nearby shared storage, but not the player's inventory. It may deliver its own item into available player capacity.
 - **Replaceable adapters:** The game core has no DOM, Canvas, Promise, timer, localStorage, or WebMCP dependency.

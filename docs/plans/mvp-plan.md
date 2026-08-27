@@ -1,5 +1,7 @@
 # Vibe Farmer Challenge Vertical Slice
 
+> **Implementation status:** This is the original canonical MVP plan, not a completion report. The 2026-08-26 audit found partial and missed requirements, including the handcrafted farm and original sprite set. See [mvp-audit.md](mvp-audit.md) and [refinement-plan.md](refinement-plan.md).
+
 Build a submission-ready, no-build browser game centered on equal human and robot farmhands. The first release delivers a complete 3-4 in-game-day loop: clear, till, plant, water, sleep, harvest, buy, and sell. WebMCP exposes the robot through the same protocol-neutral controller used by human input. A deterministic headless simulation owns gameplay and time; browser UI, WebMCP, inspector controls, tests, and future protocols are replaceable adapters around it.
 
 ## Design Review
