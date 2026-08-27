@@ -4,6 +4,8 @@ A cozy pixel-art farming game where a human and a WebMCP-controlled robot work a
 
 Vibe Farmer is an entry for the [OpenAI WebMCP Challenge](https://openai.com/webmcp-challenge/). Its central experiment is whether different models can collaborate at different levels of autonomy: a capable model may plan a full workday, while a smaller model can perform one carefully instructed action at a time.
 
+<img width="3680" height="2382" alt="image" src="https://github.com/user-attachments/assets/62422c49-d096-4449-8b5c-9ff58b05822b" />
+
 ## Current Prototype
 
 The first executable slice demonstrates the shared control contract:
