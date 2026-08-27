@@ -25,7 +25,7 @@ import { renderDaySummary } from "./day-summary.js";
 import { createSceneTransition } from "./scene-transition.js";
 import { contextualActions } from "./contextual-actions.js";
 import { actionForCanvasClick } from "./pointer-controls.js";
-import { marketListings } from "./market.js";
+import { marketListings, marketStateSignature } from "./market.js";
 import { createGameAudio } from "./audio.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 
@@ -60,11 +60,18 @@ const sprites = await loadSpriteCatalog();
 const gameAudio = createGameAudio();
 
 function marketButton(item, action) {
+  const row = document.createElement("div");
+  row.className = "market-item-row";
+  row.dataset.itemId = item.id;
+  row.dataset.marketListing = action;
   const button = document.createElement("button");
   button.type = "button";
+  button.className = "market-command-button";
   button.dataset.marketAction = action;
   button.dataset.itemId = item.id;
-  return button;
+  button.textContent = action === "buy" ? "Buy" : "Sell";
+  row.append(button);
+  return row;
 }
 
 const listings = marketListings(ITEM_TYPES);
@@ -83,6 +90,7 @@ const restoredSave = persistence.load();
 const controller = createController(restoredSave.state ?? createFarmState());
 let activeStorageTargetId = null;
 let contextualActionsSignature = null;
+let marketSignature = null;
 const actionLog = createActionLog({ root: actionLogWindow, controller });
 
 function openStorage(entityId) {
@@ -118,7 +126,10 @@ const marketDialog = windowManager.register({
   windowElement: marketWindow,
   launcher: document.querySelector("#object-inspector-market-button"),
   closeButton: document.querySelector("#market-close-button"),
-  onOpen: () => updateMarketWindow(controller.getSnapshot()),
+  onOpen() {
+    marketSignature = null;
+    updateMarketWindow(controller.getSnapshot());
+  },
 });
 const storageDialog = windowManager.register({
   windowElement: storageWindow,
@@ -307,17 +318,20 @@ function itemQuantity(inventory, itemId) {
 function updateMarketWindow(state) {
   if (marketWindow.hidden) return;
   const inventory = state.world.entities.player.inventory;
+  const nextSignature = marketStateSignature(state);
+  if (nextSignature === marketSignature) return;
+  marketSignature = nextSignature;
   const coinFrame = sprites.frames["item.coin"];
   marketMoneyValue.textContent = `${state.money}g`;
   if (coinFrame) marketCoinIcon.src = coinFrame.url;
-  for (const button of document.querySelectorAll("button[data-market-action]")) {
-    const itemId = button.dataset.itemId;
+  for (const row of document.querySelectorAll("[data-market-listing]")) {
+    const itemId = row.dataset.itemId;
     const itemType = ITEM_TYPES[itemId];
-    const action = button.dataset.marketAction;
+    const action = row.dataset.marketListing;
+    const button = row.querySelector("button[data-market-action]");
     const price = action === "buy" ? itemType.buyPrice : itemType.sellPrice;
     const owned = itemQuantity(inventory, itemId);
     button.disabled = action === "buy" ? state.money < price : owned === 0;
-    button.classList.add("market-item-row");
     const iconFrame = sprites.frames[`item.${itemId}`];
     const children = [];
     if (iconFrame) {
@@ -359,13 +373,10 @@ function updateMarketWindow(state) {
     const priceText = document.createElement("strong");
     priceText.textContent = String(price);
     priceLine.append(priceText);
-    const actionText = document.createElement("span");
-    actionText.className = "market-action-label";
-    actionText.textContent = action === "buy" ? "Buy" : "Sell";
-    trade.append(priceLine, actionText);
-    children.push(copy, trade);
-    button.replaceChildren(...children);
-    button.title = `${itemType.name}: ${price}g; player owns ${owned}`;
+    trade.append(priceLine);
+    children.push(copy, trade, button);
+    row.replaceChildren(...children);
+    button.title = `${action === "buy" ? "Buy" : "Sell"} ${itemType.name} for ${price}g`;
   }
 }
 
@@ -565,6 +576,7 @@ document.querySelector("#new-game-button").addEventListener("click", () => {
   persistence.clear();
   hotbarSignature = null;
   storageSignature = null;
+  marketSignature = null;
   controller.replaceState(createFarmState());
   refresh("New game started");
 });

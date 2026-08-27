@@ -9,3 +9,10 @@ export function marketListings(itemTypes) {
     ),
   };
 }
+
+export function marketStateSignature(state, actorId = "player") {
+  return JSON.stringify({
+    money: state.money,
+    inventory: state.world.entities[actorId].inventory,
+  });
+}

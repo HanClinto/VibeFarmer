@@ -320,6 +320,23 @@ export function sleepActor(state, actorId) {
   addHistory(state, { type: "actor_slept", actorId, tick: state.tick, day: state.day });
 
   const actors = getWorldEntitiesByType(state.world, "actor");
+  const beds = getWorldEntitiesByType(state.world, "bed");
+  if (actor.role === "robot") {
+    for (const candidate of actors) {
+      if (candidate.role !== "human" || candidate.sleeping || candidate.activeIntent) continue;
+      const candidateBed = beds.find((bed) => bed.actorId === candidate.id);
+      if (!candidateBed
+        || !isAdjacent(getEntityLocation(candidate), getEntityLocation(candidateBed))) continue;
+      candidate.sleeping = true;
+      addHistory(state, {
+        type: "actor_slept",
+        actorId: candidate.id,
+        initiatedByActorId: actorId,
+        tick: state.tick,
+        day: state.day,
+      });
+    }
+  }
   if (!actors.every((candidate) => candidate.sleeping)) {
     return outcome(true, "WAITING_FOR_OTHER_ACTORS", { actorId });
   }

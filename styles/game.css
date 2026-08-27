@@ -330,18 +330,16 @@ canvas {
   gap: 6px;
 }
 
-.market-body button {
-  width: 100%;
-}
-
 .market-item-row {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 74px;
+  grid-template-columns: 42px minmax(0, 1fr) 54px 58px;
   min-height: 58px;
   width: 100%;
   align-items: center;
   gap: 8px;
   padding: 5px 7px;
+  border: 1px solid #a0a0a0;
+  background: #dfdfdf;
   text-align: left;
 }
 
@@ -373,15 +371,12 @@ canvas {
   image-rendering: pixelated;
 }
 
-.market-action-label {
-  padding: 2px 5px;
-  border: 1px solid;
-  border-color: #fff #808080 #808080 #fff;
-  text-align: center;
+.market-command-button {
+  width: 58px;
+  min-width: 58px;
 }
 
-.market-item-row:disabled .market-action-label,
-.market-item-row:disabled .market-item-copy small {
+.market-item-row:has(.market-command-button:disabled) .market-item-copy small {
   color: #808080;
 }
 

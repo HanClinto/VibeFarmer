@@ -121,6 +121,44 @@ test("canonical player bed and robot berth apply the same sleep rule", () => {
   assert.equal(state.day, 2);
 });
 
+test("robot sleep advances the day when the idle player is already beside their bed", () => {
+  const state = createFarmState();
+  const player = state.world.entities.player;
+  const robot = state.world.entities.robot;
+  player.mapId = "farmhouse";
+  player.position = { x: 1, y: 3 };
+  player.sleeping = false;
+  robot.mapId = "farmhouse";
+  robot.position = { x: 5, y: 3 };
+  robot.sleeping = false;
+
+  const result = sleepActor(state, "robot");
+
+  assert.equal(result.code, "DAY_ADVANCED");
+  assert.equal(state.day, 2);
+  assert.ok(state.history.some(
+    (event) => event.type === "actor_slept"
+      && event.actorId === "player"
+      && event.initiatedByActorId === "robot",
+  ));
+});
+
+test("sleep does not auto-ready a busy farmhand beside their bed", () => {
+  const state = createFarmState();
+  const player = state.world.entities.player;
+  const robot = state.world.entities.robot;
+  player.mapId = "farmhouse";
+  player.position = { x: 1, y: 3 };
+  player.sleeping = false;
+  player.activeIntent = "operation-player";
+  robot.mapId = "farmhouse";
+  robot.position = { x: 5, y: 3 };
+  robot.sleeping = false;
+
+  assert.equal(sleepActor(state, "robot").code, "WAITING_FOR_OTHER_ACTORS");
+  assert.equal(player.sleeping, false);
+});
+
 test("restored farm terrain dries when actors sleep inside the farmhouse", () => {
   const saved = createFarmState();
   saved.world.maps.farm.terrain[8][8] = "wet_tilled";

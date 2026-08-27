@@ -466,7 +466,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     {
       name: "sleep",
       title: "Put robot to sleep",
-      description: "Put the robot to sleep while adjacent to its charging berth on the same map. The next day begins only when every farmhand is sleeping.",
+      description: "Put the robot to sleep while adjacent to its charging berth. If the idle player is already beside their bed, they are treated as ready and the day advances; otherwise the robot waits.",
       inputSchema: { type: "object", additionalProperties: false },
       execute() {
         return Promise.resolve(controller.execute({

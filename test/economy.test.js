@@ -5,7 +5,7 @@ import { buyItem, sellItem } from "../src/game/actions/actions.js";
 import { createFarmState } from "../src/game/farm.js";
 import { CROP_TYPES } from "../src/game/world/entities/plants/crop-types.js";
 import { ITEM_TYPES } from "../src/game/world/entities/items/item-types.js";
-import { marketListings } from "../src/adapters/browser/market.js";
+import { marketListings, marketStateSignature } from "../src/adapters/browser/market.js";
 
 function createMarketState() {
   const state = createFarmState();
@@ -65,4 +65,15 @@ test("market listings include every configured crop seed and produce item", () =
   assert.ok(Object.values(CROP_TYPES).every(
     (crop) => listings.sell.some((item) => item.id === crop.produceItemId),
   ));
+});
+
+test("Market rendering stays stable until money or inventory changes", () => {
+  const state = createMarketState();
+  const initial = marketStateSignature(state);
+  assert.equal(marketStateSignature(state), initial);
+
+  state.tick += 1;
+  assert.equal(marketStateSignature(state), initial);
+  state.money -= 5;
+  assert.notEqual(marketStateSignature(state), initial);
 });
