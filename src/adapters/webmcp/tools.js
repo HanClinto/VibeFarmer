@@ -3,11 +3,32 @@ function result(success, code, details = {}) {
 }
 
 import { CROP_TYPES, getCropType } from "../../game/world/entities/plants/crop-types.js";
+import { ITEM_TYPES } from "../../game/world/entities/items/item-types.js";
 
-const SEED_ITEM_IDS = Object.freeze(Object.values(CROP_TYPES).map((crop) => crop.seedItemId));
+const BUY_ITEM_IDS = Object.freeze(Object.values(ITEM_TYPES)
+  .filter((item) => item.buyPrice)
+  .map((item) => item.id));
 const PRODUCE_ITEM_IDS = Object.freeze(Object.values(CROP_TYPES).map(
   (crop) => crop.produceItemId,
 ));
+
+function marketInventory() {
+  const items = Object.values(ITEM_TYPES);
+  return {
+    buy: items.filter((item) => item.buyPrice).map((item) => ({
+      itemId: item.id,
+      name: item.name,
+      category: item.category,
+      price: item.buyPrice,
+    })),
+    sell: items.filter((item) => item.sellPrice).map((item) => ({
+      itemId: item.id,
+      name: item.name,
+      category: item.category,
+      price: item.sellPrice,
+    })),
+  };
+}
 
 const DEFAULT_INSPECTION_TYPES = Object.freeze([
   "actor",
@@ -248,6 +269,7 @@ export function inspectGame(controller, {
     tick: state.tick,
     day: state.day,
     money: state.money,
+    market: marketInventory(),
     robot: robotState(state),
     map: { id: selectedMapId, width: map.width, height: map.height },
     entityCounts,
@@ -304,7 +326,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     {
       name: "inspect_game",
       title: "Inspect game",
-      description: "Inspect a compact ASCII area around the robot by default. Optionally choose a map, center, radius, entity types, bounded history, or detailed mode with the full terrain matrix. Player inventory is private.",
+      description: "Inspect the robot, current market inventory and prices, and a compact ASCII area around the robot by default. Optionally choose a map, center, radius, entity types, bounded history, or detailed mode with the full terrain matrix. Player inventory is private.",
       inputSchema: {
         type: "object",
         properties: {
@@ -399,11 +421,11 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     },
     {
       name: "buy_item",
-      title: "Buy one seed packet",
-      description: "Buy exactly one seed packet for the robot while it is adjacent to the shared-money farm market.",
+      title: "Buy one item",
+      description: "Buy exactly one currently stocked market item for the robot while it is adjacent to the shared-money farm market. Call inspect_game to list item IDs and current prices.",
       inputSchema: {
         type: "object",
-        properties: { itemId: { type: "string", enum: SEED_ITEM_IDS } },
+        properties: { itemId: { type: "string", enum: BUY_ITEM_IDS } },
         required: ["itemId"],
         additionalProperties: false,
       },

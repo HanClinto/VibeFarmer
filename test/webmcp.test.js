@@ -8,6 +8,7 @@ import { createGameState } from "../src/game/state.js";
 import { createFarmState } from "../src/game/farm.js";
 import { createChest } from "../src/game/world/entities/containers/chests.js";
 import { createPlant } from "../src/game/world/entities/plants/plants.js";
+import { ITEM_TYPES } from "../src/game/world/entities/items/item-types.js";
 import { addWorldEntity } from "../src/game/world/world.js";
 
 function toolByName(tools, name) {
@@ -52,13 +53,13 @@ test("registerWebMcp registers the compact primitive surface", async () => {
   ]);
   assert.equal(names.some((name) => /plan|all|batch/.test(name)), false);
   assert.ok(registered.every(({ options }) => options.signal instanceof AbortSignal));
-  const buySchema = registered.find(({ tool }) => tool.name === "buy_item").tool.inputSchema;
-  assert.deepEqual(buySchema.properties.itemId.enum, [
-    "turnip_seeds",
-    "potato_seeds",
-    "corn_seeds",
-    "pumpkin_seeds",
-  ]);
+  const buyTool = registered.find(({ tool }) => tool.name === "buy_item").tool;
+  assert.equal(buyTool.title, "Buy one item");
+  assert.match(buyTool.description, /inspect_game/);
+  assert.deepEqual(
+    buyTool.inputSchema.properties.itemId.enum,
+    Object.values(ITEM_TYPES).filter((item) => item.buyPrice).map((item) => item.id),
+  );
 });
 
 test("unsupported browsers retain locally invokable tool definitions", async () => {
@@ -74,6 +75,14 @@ test("inspection exposes robot inventory but not player inventory", () => {
 
   assert.equal("inventory" in player, false);
   assert.ok(Array.isArray(robot.inventory));
+  assert.deepEqual(inspected.market.buy, Object.values(ITEM_TYPES)
+    .filter((item) => item.buyPrice)
+    .map((item) => ({
+      itemId: item.id,
+      name: item.name,
+      category: item.category,
+      price: item.buyPrice,
+    })));
   assert.equal("terrain" in inspected, false);
   assert.match(inspected.view.ascii, /R/);
   assert.match(inspected.view.legend.terrain, /W watered/);

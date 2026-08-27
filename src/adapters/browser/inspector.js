@@ -1,4 +1,5 @@
 import { renderCollapsibleLog } from "./collapsible-log.js";
+import { renderJson } from "./json-view.js";
 
 function formatted(value) {
   return JSON.stringify(value, null, 2);
@@ -7,7 +8,7 @@ function formatted(value) {
 function sampleInput(tool) {
   const samples = {
     inspect_game: { mode: "compact", radius: 6, includeHistory: false },
-    move_to: { x: 3, y: 3 },
+    move_to: { x: 12, y: 12 },
     interact_at: { x: 8, y: 2, itemId: "axe" },
     select_slot: { slot: 1 },
     buy_item: { itemId: "turnip_seeds" },
@@ -99,7 +100,7 @@ export function createInspector({
     const tool = selectedTool();
     if (!tool) return;
     toolDescription.textContent = tool.description;
-    toolSchema.textContent = formatted(tool.inputSchema ?? {});
+    renderJson(toolSchema, tool.inputSchema ?? {});
     toolInput.value = formatted(sampleInput(tool));
   }
 
@@ -165,7 +166,7 @@ export function createInspector({
         item.append(key, label);
         return item;
       }));
-      overview.textContent = formatted({
+      renderJson(overview, {
         webMcp: webMcpSupported ? "registered" : "unsupported (local controls available)",
         tick: state.tick,
         day: state.day,
@@ -220,12 +221,12 @@ export function createInspector({
     invokeButton.disabled = true;
     toolResult.textContent = "Running...";
     try {
-      toolResult.textContent = formatted(await tool.execute(
+      renderJson(toolResult, await tool.execute(
         input,
         { signal: activeAbortController.signal },
       ));
     } catch (error) {
-      toolResult.textContent = formatted({ success: false, error: error.message });
+      renderJson(toolResult, { success: false, error: error.message });
     } finally {
       activeAbortController = null;
       cancelButton.disabled = true;

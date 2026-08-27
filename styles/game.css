@@ -527,6 +527,32 @@ canvas {
   overflow: auto;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  line-height: 1.45;
+}
+
+.json-view {
+  color: #24292f;
+  background: #f6f8fa;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  line-height: 1.45;
+}
+
+.json-key {
+  color: #0550ae;
+}
+
+.json-string {
+  color: #0a3069;
+}
+
+.json-number {
+  color: #953800;
+}
+
+.json-boolean,
+.json-null {
+  color: #8250df;
 }
 
 .inspector-body select {
@@ -640,7 +666,7 @@ canvas {
 .log-entry summary {
   padding: 4px;
   cursor: pointer;
-  font-family: "Courier New", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
   overflow-wrap: anywhere;
 }
 

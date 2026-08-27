@@ -1,3 +1,5 @@
+import { renderJson } from "./json-view.js";
+
 function createDetails(summaryText, value, open) {
   const details = document.createElement("details");
   details.className = "log-entry";
@@ -5,7 +7,7 @@ function createDetails(summaryText, value, open) {
   const summary = document.createElement("summary");
   summary.textContent = summaryText;
   const content = document.createElement("pre");
-  content.textContent = JSON.stringify(value, null, 2);
+  renderJson(content, value);
   details.append(summary, content);
   return details;
 }

@@ -1,3 +1,5 @@
+import { renderJson } from "./json-view.js";
+
 function titleCase(value) {
   return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
@@ -108,7 +110,7 @@ export function createObjectInspector({
     storageButton.hidden = storageEntityId === null;
     marketButton.hidden = marketEntityId === null;
     sleepButton.hidden = sleepEntityId === null;
-    raw.textContent = JSON.stringify(inspection, null, 2);
+    renderJson(raw, inspection);
   }
 
   robotButton.addEventListener("click", openRobotInspector);
