@@ -80,6 +80,15 @@ function inspectEntity(viewer, entity, terrainType) {
       canTrade: isAdjacent(getEntityLocation(viewer), getEntityLocation(entity)),
     };
   }
+  if (entity.type === "bed") {
+    return {
+      ...base,
+      name: entity.name ?? "Bed",
+      actorId: entity.actorId,
+      canSleep: entity.actorId === viewer.id
+        && isAdjacent(getEntityLocation(viewer), getEntityLocation(entity)),
+    };
+  }
   return { ...base, name: entity.name ?? entity.type };
 }
 

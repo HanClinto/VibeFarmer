@@ -79,6 +79,10 @@ const objectInspector = createObjectInspector({
     storageDialog.close();
     marketDialog.open();
   },
+  sleepAtBed() {
+    objectInspectorDialog.close();
+    runImmediate({ type: "sleep_actor", actorId: "player" });
+  },
 });
 const marketDialog = windowManager.register({
   windowElement: marketWindow,
@@ -117,7 +121,7 @@ const objectInspectorDialog = windowManager.register({
 });
 const daySummaryDialog = windowManager.register({
   windowElement: daySummaryWindow,
-  launcher: document.querySelector("#sleep-button"),
+  launcher: document.querySelector("#object-inspector-sleep-button"),
   closeButton: document.querySelector("#day-summary-close-button"),
   onClose: () => {
     sceneTransition.wake().then(() => canvas.focus({ preventScroll: true }));
@@ -496,10 +500,6 @@ document.querySelector("#robot-demo-button").addEventListener("click", () => {
     target: { mapId: target.mapId, ...target.position },
     item: { itemId: "axe" },
   });
-});
-
-document.querySelector("#sleep-button").addEventListener("click", () => {
-  runImmediate({ type: "sleep_actor", actorId: "player" });
 });
 
 document.querySelector("#day-summary-continue-button").addEventListener("click", () => {

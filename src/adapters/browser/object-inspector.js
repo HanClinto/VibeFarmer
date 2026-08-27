@@ -23,6 +23,9 @@ export function objectInspectionView(inspection) {
       fields.push(["Facing", titleCase(entity.facing)]);
     } else if (entity.type === "market") {
       fields.push(["Trade", entity.canTrade ? "Available" : "Move closer"]);
+    } else if (entity.type === "bed") {
+      fields.push(["For", entity.actorId === "player" ? "You" : "Robot"]);
+      fields.push(["Sleep", entity.canSleep ? "Available" : "Unavailable"]);
     }
     return { title: entity.name, fields, entity };
   });
@@ -43,6 +46,7 @@ export function objectInspectionView(inspection) {
       (entity) => entity.inventory && (entity.type === "chest" || entity.role === "robot"),
     )?.id ?? null,
     marketEntityId: inspection.entities.find((entity) => entity.canTrade)?.id ?? null,
+    sleepEntityId: inspection.entities.find((entity) => entity.canSleep)?.id ?? null,
   };
 }
 
@@ -53,6 +57,7 @@ export function createObjectInspector({
   openRobotInspector,
   openStorage,
   openMarket,
+  sleepAtBed,
 }) {
   const title = root.querySelector("#object-inspector-title");
   const location = root.querySelector("#object-inspector-location");
@@ -61,9 +66,11 @@ export function createObjectInspector({
   const robotButton = root.querySelector("#object-inspector-robot-button");
   const storageButton = root.querySelector("#object-inspector-storage-button");
   const marketButton = root.querySelector("#object-inspector-market-button");
+  const sleepButton = root.querySelector("#object-inspector-sleep-button");
   let target = null;
   let storageEntityId = null;
   let marketEntityId = null;
+  let sleepEntityId = null;
 
   function refresh() {
     if (root.hidden || !target) return;
@@ -71,6 +78,7 @@ export function createObjectInspector({
     const view = objectInspectionView(inspection);
     storageEntityId = view.storageEntityId;
     marketEntityId = view.marketEntityId;
+    sleepEntityId = view.sleepEntityId;
     title.textContent = view.title;
     location.textContent = view.location ?? "";
     content.replaceChildren(...view.sections.map((section) => {
@@ -92,6 +100,7 @@ export function createObjectInspector({
     robotButton.hidden = !inspection.entities?.some((entity) => entity.role === "robot");
     storageButton.hidden = storageEntityId === null;
     marketButton.hidden = marketEntityId === null;
+    sleepButton.hidden = sleepEntityId === null;
     raw.textContent = JSON.stringify(inspection, null, 2);
   }
 
@@ -101,6 +110,9 @@ export function createObjectInspector({
   });
   marketButton.addEventListener("click", () => {
     if (marketEntityId) openMarket(marketEntityId);
+  });
+  sleepButton.addEventListener("click", () => {
+    if (sleepEntityId) sleepAtBed(sleepEntityId);
   });
   return {
     select(nextTarget) {

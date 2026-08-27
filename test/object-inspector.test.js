@@ -29,6 +29,7 @@ test("object inspection view presents crop state and terrain without parsing raw
   assert.equal(view.sections.at(-1).title, "Terrain");
   assert.equal(view.storageEntityId, null);
   assert.equal(view.marketEntityId, null);
+  assert.equal(view.sleepEntityId, null);
 });
 
 test("adjacent inspectable containers expose their exact storage identity", () => {
@@ -65,4 +66,22 @@ test("adjacent produce displays expose contextual market access", () => {
   assert.equal(view.title, "Corn crate");
   assert.equal(view.marketEntityId, "market-corn-crate");
   assert.deepEqual(view.sections[0].fields, [["Trade", "Available"]]);
+});
+
+test("only the adjacent player bed exposes human sleep", () => {
+  const view = objectInspectionView({
+    success: true,
+    target: { x: 1, y: 2 },
+    terrain: { type: "floor", watered: false, passable: true },
+    entities: [{
+      id: "bed-player",
+      type: "bed",
+      name: "Player bed",
+      actorId: "player",
+      canSleep: true,
+    }],
+  });
+
+  assert.equal(view.sleepEntityId, "bed-player");
+  assert.deepEqual(view.sections[0].fields, [["For", "You"], ["Sleep", "Available"]]);
 });
