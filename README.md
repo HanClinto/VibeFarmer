@@ -58,6 +58,8 @@ Beside a chest or the robot, choose Open Chest or Open Robot Storage. Click move
 Beside the player bed, choose Sleep. When both farmhands are ready, the game fades to night and shows separate human, robot, and farm statistics for the completed day. The same actions also remain available through Object Inspector.
 Modeless windows may remain open while playing; click the canvas to restore movement controls. Market, Storage, Inspector, Action Log, and summary windows can be dragged by their title bars.
 
+Sound is opt-in from the game menu. Short synthesized cues cover farming actions, harvests, transfers, market transactions, portal travel, and morning; no external audio files or autoplay are used.
+
 The browser keeps a versioned local autosave. New Game requires confirmation; reloading during an active current-version operation preserves completed world changes and cancels only the unfinished operation. Outdated pre-1.0 development saves reset instead of being migrated.
 
 Robot Inspector derives its MCP view from the registered WebMCP definitions and explains that these protocol tools are available to a local agent controlling the robot. It shows schemas, manual test invocation, operation records, game events, and WebMCP timing. Its collapsed Testing section contains simulation speed/tick controls and the chop-tree demo shortcut.

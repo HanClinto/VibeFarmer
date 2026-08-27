@@ -65,6 +65,15 @@ canvas {
   font-weight: 700;
 }
 
+.sound-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 2px 5px;
+  white-space: nowrap;
+}
+
 .speed-controls {
   display: flex;
   gap: 1px;

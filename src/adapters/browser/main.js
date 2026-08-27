@@ -26,6 +26,7 @@ import { createSceneTransition } from "./scene-transition.js";
 import { contextualActions } from "./contextual-actions.js";
 import { actionForCanvasClick } from "./pointer-controls.js";
 import { marketListings } from "./market.js";
+import { createGameAudio } from "./audio.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 
 const canvas = document.querySelector("#game-canvas");
@@ -56,6 +57,7 @@ const daySummaryWindow = document.querySelector("#day-summary-window");
 const sceneTransition = createSceneTransition(document.querySelector("#scene-transition"));
 const windowManager = createWindowManager();
 const sprites = await loadSpriteCatalog();
+const gameAudio = createGameAudio();
 
 function marketButton(item, action) {
   const button = document.createElement("button");
@@ -171,6 +173,7 @@ let storageSignature = null;
 let inspector = null;
 let observedPlayerMapId = controller.getSnapshot().world.entities.player.mapId;
 let hoverTarget = null;
+let observedHistoryEvent = controller.getSnapshot().history.at(-1) ?? null;
 const invocationLog = [];
 const runtime = createRuntime(controller, {
   onFrame: (_state, nextTickProgress) => {
@@ -181,6 +184,10 @@ const runtime = createRuntime(controller, {
 
 controller.subscribe(async ({ state, result }) => {
   persistence.scheduleSave(state);
+  const previousEventIndex = observedHistoryEvent ? state.history.indexOf(observedHistoryEvent) : -1;
+  const newEvents = state.history.slice(previousEventIndex + 1);
+  for (const event of newEvents) gameAudio.playEvent(event);
+  observedHistoryEvent = state.history.at(-1) ?? null;
   const nextMapId = state.world.entities.player.mapId;
   if (nextMapId !== observedPlayerMapId) {
     observedPlayerMapId = nextMapId;
@@ -603,6 +610,11 @@ document.querySelector("#inspector-button").addEventListener("click", () => {
 
 document.querySelector("#action-log-button").addEventListener("click", () => {
   actionLogDialog.open();
+});
+
+document.querySelector("#sound-toggle").addEventListener("change", (event) => {
+  gameAudio.setEnabled(event.target.checked);
+  refresh(event.target.checked ? "Sound on" : "Sound off");
 });
 
 storageWindow.addEventListener("click", (event) => {
