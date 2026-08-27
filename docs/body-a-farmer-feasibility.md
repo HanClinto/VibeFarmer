@@ -6,7 +6,7 @@ Investigation date: 2026-08-27
 
 Creating a farmer version of the complete `Body_A` animation set is feasible with a hybrid Pixen and Aseprite batch workflow. It does not require hand-authoring clothing templates or 42 independent animation generations.
 
-Use cheap single-frame Pixen edits to establish the farmer design for each viewing direction. Place the approved reference and related Body_A poses into a bounded contact sheet, then use one Pixen edit to propagate the outfit across the sheet. Aseprite supplies ordered frame exports and timing metadata; deterministic post-processing splits the result, restores anchors, and recompiles sheets. PixelLab Pro reference batches remain a supported fallback for sheets Pixen mishandles.
+Use cheap single-frame Pixen edits to establish the farmer design for each viewing direction. Submit original Body_A poses as individual images through PixelLab Pro's reference-edit API, with the approved farmer supplied through its separate reference-image field. Aseprite supplies ordered frame exports and timing metadata; deterministic post-processing restores anchors and recompiles sheets. Near-maximum montage images containing only the base or generated frames support organization and review; they are not model inputs.
 
 Do not promote the result into tracked runtime assets until redistribution of Pixel Crawler derivatives in the public repository is explicitly approved. Keep generated outputs experimental until their output rights are also confirmed.
 
@@ -27,24 +27,24 @@ The source `.aseprite` documents are layered, but layer names and anatomy separa
 
 ## Vertical Slice
 
-The focused slice converts `Walk_Side.aseprite` into a farmer side-walk cycle:
+The focused slice converted `Walk_Side.aseprite` into a farmer side-walk cycle:
 
-- `scripts/generate-body-a-farmer-slice.zsh` exports six compact 64x64 inputs from Aseprite.
+- The archived artifacts now live under `assets/game/experiments/farmer_animated/archive/vertical-slice/`.
 - A one-generation Pixen edit creates the side-facing farmer appearance reference.
 - One Pixen contact-sheet edit applies that appearance to all six source poses in a single generation.
-- A six-frame PixelLab Pro reference edit was also tested as the higher-cost fallback.
+- A six-frame PixelLab Pro reference edit applies the same appearance through the supported multi-image API.
 - The script aligns each result to its original foot row and compiles the normalized horizontal sheet.
-- Outputs remain ignored under `assets/game/experiments/body-a-farmer-slice/`.
+- Outputs remain ignored under `assets/game/experiments/farmer_animated/`.
 - All six frames retain their original 100 ms duration and 64x64 cells.
 - The generated hat is approximately 28 pixels wide and reads clearly as a farmer hat.
 - The Pixen sheet output requires zero- or one-pixel vertical corrections; automatic normalization restores every source foot row.
 
-An earlier procedural Aseprite recolor was rejected because its tiny hat and rough clothing segmentation were not usable. Both PixelLab batches are substantially better, but the one-generation Pixen contact sheet is the strongest cost/quality result: it keeps the six distinct walk poses, produces a coherent outfit, and requires no hand-drawn clothing mask. Native-scale review is still required for occasional limb or occlusion defects.
+An earlier procedural Aseprite recolor was rejected because its tiny hat and rough clothing segmentation were not usable. Both PixelLab experiments were substantially better and require no hand-drawn clothing mask. PixelLab's documentation does not support contact-sheet pseudo-batching, however, so production should use Pro's individual-frame array with a separately supplied reference image. Native-scale review remains required for occasional limb or occlusion defects.
 
-Run the slice with:
+Build the organized action packages with:
 
 ```sh
-zsh scripts/generate-body-a-farmer-slice.zsh
+node assets/game/experiments/farmer_animated/build-action-packages.mjs
 ```
 
 Set `ASEPRITE_BIN` to override the default Steam installation path.
@@ -58,7 +58,7 @@ PixelLab provides two complementary edit paths:
 - `edit_image_pixen` edits one frame for one generation. It is suitable for creating the side, down, and up farmer design references.
 - Pro `edit_image` accepts up to 16 text-edited 64x64 frames, or 15 frames when using an appearance reference. It applies one edit consistently across the batch while retaining the supplied poses. A complete four-, six-, or eight-frame directional sheet fits in one call.
 
-Pixen officially accepts one image rather than a frame array. A 192x128 contact sheet containing six 64x64 cells was nevertheless successful when its prompt explicitly named the grid and used the approved farmer as its top-left cell. It preserved all cell boundaries, produced six consistent farmers, required only zero- or one-pixel anchor corrections, and cost one generation. A 4x4 sheet of 16 frames fits Pixen's 256x256 limits but has not yet been validated.
+Pixen officially accepts one image rather than a frame array. A 192x128 contact-sheet experiment happened to preserve six cells and produced a coherent farmer cycle, but PixelLab explicitly warns that grid inputs can cause cell bleeding, identity drift, and inconsistent shading. Treat it as an interesting experiment rather than the production contract.
 
 The same side-walk was also processed through a supported six-frame Pro reference batch for approximately 20 generations. Its animation is coherent, but its frames require three- to five-pixel anchor corrections. Use Pro when a Pixen sheet fails, not as the default.
 
@@ -89,28 +89,28 @@ Use this output as motion reference or as a candidate alternate walk cycle. Do n
 
 ## Batching Strategy
 
-Use compact, cell-aligned contact sheets for Pixen's low-cost first pass. Keep each logical frame in a 64x64 cell, include an approved direction reference in the first cell, state the exact grid in the prompt, and split the returned image on the same boundaries. Use separate frame arrays with Pro when the contact-sheet edit merges cells, changes poses, or drifts visually.
+Use PixelLab Pro's supported multi-image reference edit for production. Each call receives individual 64x64 target frames and one separately supplied direction reference. API request boundaries are internal metadata and must not determine the visual review layout.
 
 1. Create one approved Pixen farmer reference for side, down, and up.
 2. Export original Body_A frames as separate 64x64 PNGs while retaining Aseprite timing metadata.
-3. Pack related frames into a contact sheet, with the approved reference as its first cell, and submit one Pixen edit.
+3. Submit related frames through Pro `edit_image` as individual images, with the direction reference in the separate reference-image field.
 4. Normalize returned frames to their source foot anchors and verify that no opaque pixels wrapped or touched a canvas edge.
-5. Compile one review sheet per family with down, up, and side as three rows and up to eight frame columns.
-6. Rerun failed groups through Pro as separate frame arrays, then pack approved sheets into one runtime atlas with Aseprite JSON metadata.
+5. Compile action-oriented 4x4 review pages: rows are down, left, right, up; columns are four consecutive frames. Six- and eight-frame actions use a second page.
+6. Rerun failed Pro batches selectively, then pack approved sheets into one runtime atlas with Aseprite JSON metadata.
 
-Family-aware packing requires approximately 25 Pixen sheet calls: three calls for the three four-frame families, eight calls for the four six-frame families, and fourteen calls for the seven eight-frame families. With three direction references, a clean first pass is approximately 28 PixelLab generations. Packing 16 cells per sheet could theoretically reduce this to 18 sheet calls plus references, but the 16-cell layout must be validated before relying on that estimate. Pro retries cost approximately 20 generations per batch.
+The external-generator package contains 25 review pages across 14 actions. Every page is a 256x256 PNG with sixteen 64x64 cells, plus a matching prompt and one separate 256x64 farmer direction reference. These montages can be tested with Grok, ChatGPT, or other image editors, but PixelLab Pro should receive the underlying individual frames rather than the montage.
 
 ## Production Estimate
 
 A generator-assisted production pass no longer requires an experienced pixel artist, but it still requires review and selective reruns:
 
 - Three Pixen calls establish side, down, and up references.
-- Approximately 25 one-generation Pixen sheet calls cover all 276 frames in family-aware batches.
+- Pro reference-edit calls process the 276 source frames in consistency-aware arrays.
 - Aseprite and ImageMagick automate export, anchor normalization, review sheets, and final packing.
-- Human work is selection and quality control: reject malformed hands, missing limbs, hat drift, tool occlusion, and palette changes, then rerun only affected batches through Pixen or Pro.
+- Human work is selection and quality control: reject malformed hands, missing limbs, hat drift, tool occlusion, and palette changes, then rerun only affected Pro batches.
 
 The estimate assumes the farmer stays close to the successful broad-hat, shirt, overalls, and boots reference. A long coat, large backpack, complex hair, or asymmetric equipment would increase pose drift and rerun frequency.
 
 ## Recommended Next Slice
 
-Before scaling to all 42 sheets, create down/up Pixen references and process the three-direction idle family as one 12-cell sheet. Then process watering to test an eight-frame tool interaction. If both pass native-scale review and anchor checks, the remaining families are primarily production volume rather than an unresolved technical risk.
+Test the generated Idle and Watering packages with at least two external image editors. Compare their grid fidelity and consistency against PixelLab Pro before committing the full generation budget. Idle tests a complete one-page loop; Watering tests two full pages and tool occlusion.
