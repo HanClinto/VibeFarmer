@@ -115,6 +115,7 @@ export function moveStep(state, actorId, target) {
     from: previousPosition,
     to: { ...target },
     startedTick: state.tick,
+    durationTicks: GAME_CONFIG.movementCooldownTicks + 1,
   };
   actor.sleeping = false;
   addHistory(state, { type: "move", actorId, target: { ...target } });

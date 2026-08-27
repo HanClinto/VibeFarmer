@@ -31,9 +31,10 @@ function clamp(value, minimum, maximum) {
 
 export function getActorRenderPosition(actor, simulationTick, tickProgress) {
   const motion = actor.motion;
-  if (!motion || simulationTick !== motion.startedTick) return actor.position;
+  if (!motion) return actor.position;
 
-  const progress = clamp(tickProgress, 0, 1);
+  const elapsedTicks = (simulationTick - motion.startedTick) + tickProgress;
+  const progress = clamp(elapsedTicks / motion.durationTicks, 0, 1);
   return {
     x: motion.from.x + ((motion.to.x - motion.from.x) * progress),
     y: motion.from.y + ((motion.to.y - motion.from.y) * progress),
