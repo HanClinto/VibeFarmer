@@ -14,8 +14,13 @@ Initial authorized exploration budget: **$5.05**
 | 006A | PixelLab Pixen solar charging station, 32x32 | 1 | 1 generation | $0.887 | Clean battery-cabinet silhouette; solar panel reads, but form is more appliance than farm pump. |
 | 006B | RD Fast low-resolution solar charging station, 32x32 | 4 | $0.067 | $0.954 | Candidates 00/01 read clearly as solar charging pumps; 00 is the strongest composition reference. |
 | 007 | RD Advanced Animation six-frame farmer side walk from an Aseprite-authored 64x64 keyframe | 1 sheet, 6 frames | $0.14 | $1.094 | Preserves farmer identity and approximate anchor, but redraws the Body_A gait and proportions. Use as reference, not bulk conversion. |
+| 008A | PixelLab Pixen side-facing Body_A farmer appearance reference | 1 | 1 generation | $1.094 | Strong result: broad readable straw hat, teal shirt, brown overalls, and boots. Selected as the Pro edit reference. |
+| 008B | PixelLab Pro reference edit of all six Body_A side-walk poses | 6 | approximately 20 generations | $1.094 | Successful batch workflow. Outfit is coherent across poses; automated 3-5 pixel vertical normalization restores source foot rows. |
+| 008C | PixelLab Pixen 3x2 contact-sheet edit using the approved farmer in cell one | 1 sheet, 6 frames | 1 generation | $1.094 | Best workflow so far. All cells and poses remain distinct, outfit consistency is strong, and only 0-1 pixel anchor normalization is needed. |
 
 **Remaining RetroDiffusion API balance: $3.956.**
+
+**Remaining PixelLab trial balance: 17 of 40 generations.**
 
 Requests, responses, outputs, comparison sheets, and notes are stored under `assets/game/experiments/`.
 
