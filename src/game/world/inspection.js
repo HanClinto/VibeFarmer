@@ -1,9 +1,10 @@
 import { GAME_CONFIG } from "../config.js";
 import { getTerrainAt, TERRAIN_TYPES } from "./terrain/terrain.js";
-import { getWorldEntity, isInBounds } from "./world.js";
+import { getEntityLocation, getWorldEntity, isInBounds, normalizeLocation } from "./world.js";
 
 function isAdjacent(first, second) {
-  return Math.abs(first.x - second.x) + Math.abs(first.y - second.y) === 1;
+  return first.mapId === second.mapId
+    && Math.abs(first.x - second.x) + Math.abs(first.y - second.y) === 1;
 }
 
 function copyInventory(inventory) {
@@ -13,7 +14,7 @@ function copyInventory(inventory) {
 function canInspectInventory(viewer, entity) {
   if (!entity.inventory) return false;
   if (viewer.id === entity.id) return true;
-  if (!isAdjacent(viewer.position, entity.position)) return false;
+  if (!isAdjacent(getEntityLocation(viewer), getEntityLocation(entity))) return false;
   if (entity.type === "chest") return true;
   return viewer.role === "human" && entity.role === "robot";
 }
@@ -22,6 +23,7 @@ function inspectEntity(viewer, entity, terrainType) {
   const base = {
     id: entity.id,
     type: entity.type,
+    mapId: entity.mapId,
     position: { ...entity.position },
   };
   if (entity.type === "tree") {
@@ -79,13 +81,16 @@ export function inspectLocation(state, viewerId, target) {
   if (viewer?.type !== "actor") {
     return { success: false, code: "VIEWER_NOT_FOUND" };
   }
+  target = normalizeLocation(state.world, target, viewer.mapId);
   if (!isInBounds(state.world, target)) {
     return { success: false, code: "TARGET_OUT_OF_BOUNDS" };
   }
 
   const terrainType = getTerrainAt(state.world, target);
   const entities = Object.values(state.world.entities)
-    .filter((entity) => entity.position?.x === target.x && entity.position?.y === target.y)
+    .filter((entity) => entity.mapId === target.mapId
+      && entity.position?.x === target.x
+      && entity.position?.y === target.y)
     .sort((first, second) => first.id.localeCompare(second.id))
     .map((entity) => inspectEntity(viewer, entity, terrainType));
   return {

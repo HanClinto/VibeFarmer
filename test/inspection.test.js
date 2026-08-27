@@ -61,3 +61,24 @@ test("inventory inspection respects adjacency and player privacy", () => {
   const distantChest = inspectLocation(state, "player", { x: 0, y: 1 }).entities[0];
   assert.equal("inventory" in distantChest, false);
 });
+
+test("matching coordinates on different maps are not adjacent for inspection", () => {
+  const state = createGameState();
+  state.world.maps.farmhouse = {
+    id: "farmhouse",
+    width: 4,
+    height: 4,
+    terrain: Array.from({ length: 4 }, () => Array(4).fill("floor")),
+  };
+  state.world.entities.robot.mapId = "farmhouse";
+  state.world.entities.robot.position = { x: 2, y: 1 };
+
+  const result = inspectLocation(state, "player", {
+    mapId: "farmhouse",
+    x: 2,
+    y: 1,
+  });
+
+  assert.equal(result.entities[0].id, "robot");
+  assert.equal("inventory" in result.entities[0], false);
+});

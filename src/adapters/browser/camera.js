@@ -2,6 +2,16 @@ function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
+function cameraAxis(focus, worldTiles, viewportPixels, tileSize) {
+  const worldPixels = worldTiles * tileSize;
+  if (worldPixels < viewportPixels) return -Math.round((viewportPixels - worldPixels) / 2);
+  return Math.round(clamp(
+    ((focus + 0.5) * tileSize) - (viewportPixels / 2),
+    0,
+    worldPixels - viewportPixels,
+  ));
+}
+
 export function computeCamera({
   focus,
   worldWidth,
@@ -10,19 +20,9 @@ export function computeCamera({
   viewportHeight,
   tileSize,
 }) {
-  const maximumX = Math.max(0, (worldWidth * tileSize) - viewportWidth);
-  const maximumY = Math.max(0, (worldHeight * tileSize) - viewportHeight);
   return {
-    x: Math.round(clamp(
-      ((focus.x + 0.5) * tileSize) - (viewportWidth / 2),
-      0,
-      maximumX,
-    )),
-    y: Math.round(clamp(
-      ((focus.y + 0.5) * tileSize) - (viewportHeight / 2),
-      0,
-      maximumY,
-    )),
+    x: cameraAxis(focus.x, worldWidth, viewportWidth, tileSize),
+    y: cameraAxis(focus.y, worldHeight, viewportHeight, tileSize),
   };
 }
 

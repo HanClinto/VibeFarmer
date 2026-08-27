@@ -23,13 +23,22 @@ test("camera centers on the player and clamps at map edges", () => {
   });
 });
 
-test("maps no larger than the viewport retain a zero camera", () => {
+test("maps matching the viewport retain a zero camera", () => {
   assert.deepEqual(computeCamera({
     ...baseCamera,
     focus: { x: 6, y: 5 },
     worldWidth: 12,
     worldHeight: 10,
   }), { x: 0, y: 0 });
+});
+
+test("maps smaller than the viewport use centered fixed-scope framing", () => {
+  assert.deepEqual(computeCamera({
+    ...baseCamera,
+    focus: { x: 4, y: 4 },
+    worldWidth: 8,
+    worldHeight: 6,
+  }), { x: -96, y: -96 });
 });
 
 test("pointer coordinates convert through display scale and camera offset", () => {

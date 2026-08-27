@@ -9,6 +9,7 @@ import {
   serializeState,
 } from "../src/adapters/browser/persistence.js";
 import { createGameState } from "../src/game/state.js";
+import { createFarmState } from "../src/game/farm.js";
 
 function createMemoryStorage() {
   const values = new Map();
@@ -140,6 +141,36 @@ test("future game-state versions are also preserved", () => {
 
   assert.equal(createPersistence(storage).load().code, "SAVE_UNSUPPORTED");
   assert.equal(storage.getItem(STORAGE_KEY), serialized);
+});
+
+test("pre-interior canonical farms gain portals and beds without losing progress", () => {
+  const state = createFarmState();
+  state.money = 321;
+  state.world.definitionVersion = 1;
+  delete state.world.definitionId;
+  delete state.world.maps.farmhouse;
+  for (const [entityId, entity] of Object.entries(state.world.entities)) {
+    if (entity.mapId === "farmhouse" || entityId === "portal-farmhouse-door") {
+      delete state.world.entities[entityId];
+    }
+  }
+  state.world.entities["house-3-1"] = {
+    id: "house-3-1",
+    type: "decoration",
+    mapId: "farm",
+    blocking: true,
+    position: { x: 3, y: 4 },
+  };
+
+  const restored = restoreState(serializeState(state));
+
+  assert.equal(restored.migrated, true);
+  assert.equal(restored.state.money, 321);
+  assert.equal(restored.state.world.definitionVersion, 3);
+  assert.equal(restored.state.world.entities["house-3-1"], undefined);
+  assert.equal(restored.state.world.entities["portal-farmhouse-door"].type, "portal");
+  assert.equal(restored.state.world.entities["bed-player"].mapId, "farmhouse");
+  assert.equal(restored.state.world.maps.farmhouse.width, 8);
 });
 
 test("coalesced autosave writes the latest state without postponing indefinitely", () => {

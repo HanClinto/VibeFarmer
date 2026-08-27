@@ -179,7 +179,9 @@ function updateHotbar(state) {
 function adjacentContainers(state) {
   const player = state.world.entities.player;
   return Object.values(state.world.entities)
-    .filter((entity) => entity.id !== player.id && entity.inventory)
+    .filter((entity) => entity.id !== player.id
+      && entity.mapId === player.mapId
+      && entity.inventory)
     .filter((entity) => Math.abs(entity.position.x - player.position.x)
       + Math.abs(entity.position.y - player.position.y) === 1)
     .sort((first, second) => first.id.localeCompare(second.id));
@@ -341,7 +343,9 @@ function submit(command) {
 
 function canvasPosition(event) {
   const bounds = canvas.getBoundingClientRect();
-  return screenToWorld({
+  return {
+    mapId: controller.getSnapshot().world.entities.player.mapId,
+    ...screenToWorld({
     screenX: event.clientX - bounds.left,
     screenY: event.clientY - bounds.top,
     displayWidth: bounds.width,
@@ -350,13 +354,16 @@ function canvasPosition(event) {
     canvasHeight: canvas.height,
     camera,
     tileSize: RENDER_TILE_SIZE,
-  });
+    }),
+  };
 }
 
 canvas.addEventListener("click", (event) => {
   const target = canvasPosition(event);
   const occupied = Object.values(controller.getSnapshot().world.entities).some(
-    (entity) => entity.position?.x === target.x && entity.position?.y === target.y,
+    (entity) => entity.mapId === target.mapId
+      && entity.position?.x === target.x
+      && entity.position?.y === target.y,
   );
   if (!event.shiftKey && occupied) {
     objectInspector.select(target);
@@ -413,8 +420,10 @@ document.querySelector("#new-game-button").addEventListener("click", () => {
 });
 
 document.querySelector("#robot-demo-button").addEventListener("click", () => {
-  const target = Object.values(controller.getSnapshot().world.entities)
-    .find((object) => object.type === "tree");
+  const state = controller.getSnapshot();
+  const robot = state.world.entities.robot;
+  const target = Object.values(state.world.entities)
+    .find((object) => object.type === "tree" && object.mapId === robot.mapId);
   if (!target) {
     refresh("No trees remain");
     return;
@@ -422,7 +431,7 @@ document.querySelector("#robot-demo-button").addEventListener("click", () => {
   submit({
     type: "interact_at",
     actorId: "robot",
-    target: { ...target.position },
+    target: { mapId: target.mapId, ...target.position },
     item: { itemId: "axe" },
   });
 });

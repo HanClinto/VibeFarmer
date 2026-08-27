@@ -15,6 +15,7 @@ import {
   generateWorldEntityId,
   getBlockingWorldObject,
   getEntityLocation,
+  getWorldEntitiesAt,
   getWorldEntitiesByType,
   getWorldEntity,
   getWorldObject,
@@ -189,9 +190,26 @@ export function moveStep(state, actorId, target) {
     startedTick: state.tick,
     durationTicks: GAME_CONFIG.movementCooldownTicks + 1,
   };
+  const portal = getWorldEntitiesAt(state.world, target)
+    .find((entity) => entity.type === "portal");
+  if (portal) {
+    actor.mapId = portal.destination.mapId;
+    actor.position = { x: portal.destination.x, y: portal.destination.y };
+    actor.facing = portal.destination.facing ?? actor.facing;
+    actor.motion = null;
+    addHistory(state, {
+      type: "portal_travel",
+      actorId,
+      portalId: portal.id,
+      destination: getEntityLocation(actor),
+    });
+  }
   actor.sleeping = false;
   addHistory(state, { type: "move", actorId, target: { ...target } });
-  return outcome(true, "MOVED", { position: { ...actor.position } });
+  return outcome(true, portal ? "PORTAL_TRAVELLED" : "MOVED", {
+    location: getEntityLocation(actor),
+    position: { ...actor.position },
+  });
 }
 
 export function useItem(state, actorId, target, selector = {}) {
@@ -269,6 +287,12 @@ export function sleepActor(state, actorId) {
   const actor = getActor(state, actorId);
   if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
   if (actor.activeIntent) return outcome(false, "ACTOR_BUSY", { operationId: actor.activeIntent });
+  const eligibleBeds = getWorldEntitiesByType(state.world, "bed")
+    .filter((bed) => bed.actorId === actorId);
+  if (eligibleBeds.length === 0) return outcome(false, "BED_REQUIRED");
+  if (!eligibleBeds.some((bed) => isAdjacent(getEntityLocation(actor), getEntityLocation(bed)))) {
+    return outcome(false, "BED_NOT_ADJACENT");
+  }
   actor.sleeping = true;
   addHistory(state, { type: "actor_slept", actorId, tick: state.tick, day: state.day });
 

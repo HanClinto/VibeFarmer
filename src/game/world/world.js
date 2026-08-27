@@ -46,6 +46,13 @@ export function getWorldMap(world, mapId = world.defaultMapId) {
   return world.maps?.[mapId] ?? null;
 }
 
+export function addWorldMap(world, map) {
+  if (!map?.id) throw new TypeError("World maps require an id");
+  if (world.maps[map.id]) throw new Error(`Duplicate map id: ${map.id}`);
+  world.maps[map.id] = map;
+  return map;
+}
+
 export function getEntityLocation(entity) {
   return entity?.position ? { mapId: entity.mapId, ...entity.position } : null;
 }
@@ -71,6 +78,15 @@ export function getWorldObject(world, position) {
       && entity.position?.x === position.x
       && entity.position?.y === position.y,
   ) ?? null;
+}
+
+export function getWorldEntitiesAt(world, position) {
+  const mapId = position.mapId ?? world.defaultMapId;
+  return Object.values(world.entities).filter(
+    (entity) => entity.mapId === mapId
+      && entity.position?.x === position.x
+      && entity.position?.y === position.y,
+  );
 }
 
 export function getBlockingWorldObject(world, position) {

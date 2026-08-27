@@ -1,7 +1,13 @@
 import { GAME_CONFIG } from "./config.js";
 import { createGameState } from "./state.js";
 import { createChest } from "./world/entities/containers/chests.js";
-import { createWorld } from "./world/world.js";
+import { addWorldEntity, addWorldMap, createWorld } from "./world/world.js";
+
+const FARM_DEFINITION_VERSION = 3;
+
+function copy(value) {
+  return JSON.parse(JSON.stringify(value));
+}
 
 function decoration(id, spriteId, x, y, { blocking = true, name } = {}) {
   return {
@@ -12,6 +18,10 @@ function decoration(id, spriteId, x, y, { blocking = true, name } = {}) {
     blocking,
     position: { x, y },
   };
+}
+
+function interiorDecoration(id, spriteId, x, y, options) {
+  return { ...decoration(id, spriteId, x, y, options), mapId: "farmhouse" };
 }
 
 function paintRectangle(world, terrainType, left, top, width, height) {
@@ -33,12 +43,19 @@ function canonicalDecorations() {
   for (let row = 0; row < houseRows.length; row += 1) {
     for (let column = 0; column < houseRows[row].length; column += 1) {
       const isDoor = row === 3 && column === 1;
-      entities.push(decoration(
+      entities.push(isDoor ? {
+        id: "portal-farmhouse-door",
+        type: "portal",
+        spriteId: houseRows[row][column],
+        name: "Farmhouse door",
+        blocking: false,
+        position: { x: column + 2, y: row + 1 },
+        destination: { mapId: "farmhouse", x: 4, y: 4, facing: "north" },
+      } : decoration(
         `house-${row}-${column}`,
         houseRows[row][column],
         column + 2,
         row + 1,
-        { name: isDoor ? "Farmhouse door" : "Farmhouse" },
       ));
     }
   }
@@ -54,6 +71,92 @@ function canonicalDecorations() {
     decoration("market-crate-b", "entity.crate_b", 20, 11, { name: "Produce crate" }),
   );
   return entities;
+}
+
+function addFarmhouseInterior(world) {
+  const width = 8;
+  const height = 6;
+  addWorldMap(world, {
+    id: "farmhouse",
+    width,
+    height,
+    terrain: Array.from({ length: height }, () => Array(width).fill("floor")),
+  });
+
+  for (let x = 0; x < width; x += 1) {
+    addWorldEntity(world, interiorDecoration(
+      `inside-wall-top-${x}`,
+      "interior.wall_light",
+      x,
+      0,
+    ));
+  }
+  for (let y = 1; y < height; y += 1) {
+    addWorldEntity(world, interiorDecoration(
+      `inside-wall-left-${y}`,
+      "interior.wall_light",
+      0,
+      y,
+    ));
+    addWorldEntity(world, interiorDecoration(
+      `inside-wall-right-${y}`,
+      "interior.wall_light",
+      width - 1,
+      y,
+    ));
+  }
+  for (let x = 1; x < width - 1; x += 1) {
+    if (x === 4) continue;
+    addWorldEntity(world, interiorDecoration(
+      `inside-wall-bottom-${x}`,
+      "interior.wall_light",
+      x,
+      height - 1,
+    ));
+  }
+
+  const interiorEntities = [
+    {
+      id: "portal-farmhouse-exit",
+      type: "portal",
+      mapId: "farmhouse",
+      spriteId: "interior.door_wood_a",
+      name: "Farmhouse exit",
+      blocking: false,
+      position: { x: 4, y: 5 },
+      destination: { mapId: "farm", x: 3, y: 5, facing: "south" },
+    },
+    {
+      id: "bed-player",
+      type: "bed",
+      mapId: "farmhouse",
+      actorId: "player",
+      spriteId: "furniture.bed_blue.left",
+      name: "Player bed",
+      blocking: true,
+      position: { x: 1, y: 2 },
+    },
+    interiorDecoration("bed-player-foot", "furniture.bed_blue.right", 2, 2, {
+      name: "Player bed",
+    }),
+    {
+      id: "bed-robot",
+      type: "bed",
+      mapId: "farmhouse",
+      actorId: "robot",
+      spriteId: "furniture.bed_yellow.left",
+      name: "Robot charging berth",
+      blocking: true,
+      position: { x: 5, y: 2 },
+    },
+    interiorDecoration("bed-robot-foot", "furniture.bed_yellow.right", 6, 2, {
+      name: "Robot charging berth",
+    }),
+  ];
+  for (const entity of interiorEntities) {
+    entity.mapId ??= "farmhouse";
+    addWorldEntity(world, entity);
+  }
 }
 
 export function createFarmState() {
@@ -83,10 +186,32 @@ export function createFarmState() {
   paintRectangle(world, "path", 4, 4, 1, 11);
   paintRectangle(world, "path", 4, 6, 12, 1);
   paintRectangle(world, "path", 4, 12, 15, 1);
+  addFarmhouseInterior(world);
+  world.definitionId = "farm";
+  world.definitionVersion = FARM_DEFINITION_VERSION;
 
   return createGameState({
     world,
     playerPosition: { x: 5, y: 5 },
     robotPosition: { x: 6, y: 5 },
   });
+}
+
+export function upgradeFarmWorldDefinition(world) {
+  const isCanonicalFarm = world.definitionId === "farm"
+    || world.entities?.["market-sign"]
+    || world.entities?.["house-3-1"];
+  if (!isCanonicalFarm || world.definitionVersion >= FARM_DEFINITION_VERSION) return false;
+
+  const canonical = createFarmState().world;
+  delete world.entities["house-3-1"];
+  world.maps.farmhouse = copy(canonical.maps.farmhouse);
+  for (const entity of Object.values(canonical.entities)) {
+    if (entity.id === "portal-farmhouse-door" || entity.mapId === "farmhouse") {
+      world.entities[entity.id] = copy(entity);
+    }
+  }
+  world.definitionId = "farm";
+  world.definitionVersion = FARM_DEFINITION_VERSION;
+  return true;
 }

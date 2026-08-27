@@ -5,8 +5,18 @@ import { harvest, sleepActor, useItem } from "../src/game/actions/actions.js";
 import { createGameState } from "../src/game/state.js";
 import { addWorldEntity, getWorldEntitiesByType } from "../src/game/world/world.js";
 
+function addPlayerBed(state) {
+  addWorldEntity(state.world, {
+    id: "bed-player",
+    type: "bed",
+    actorId: "player",
+    position: { x: 0, y: 1 },
+  });
+}
+
 test("hoe, water, and seeds create a watered crop that grows overnight", () => {
   const state = createGameState();
+  addPlayerBed(state);
   const target = { x: 1, y: 2 };
 
   assert.equal(useItem(state, "player", target, { itemId: "hoe" }).code, "ITEM_USED");
@@ -27,6 +37,7 @@ test("hoe, water, and seeds create a watered crop that grows overnight", () => {
 
 test("a mature crop can be harvested into the actor inventory", () => {
   const state = createGameState();
+  addPlayerBed(state);
   const target = { x: 1, y: 2 };
   useItem(state, "player", target, { itemId: "hoe" });
   useItem(state, "player", target, { itemId: "watering_can" });
@@ -78,6 +89,7 @@ test("hoeing a newly planted crop refunds one seed", () => {
 
 test("hoeing a growing crop destroys it without refund", () => {
   const state = createGameState();
+  addPlayerBed(state);
   const target = { x: 1, y: 2 };
   useItem(state, "player", target, { itemId: "hoe" });
   useItem(state, "player", target, { itemId: "watering_can" });

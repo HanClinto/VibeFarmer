@@ -9,9 +9,16 @@ import {
   useItem,
 } from "../src/game/actions/actions.js";
 import { createGameState } from "../src/game/state.js";
+import { addWorldEntity } from "../src/game/world/world.js";
 
 test("default resources sustain a complete profitable crop cycle", () => {
   const state = createGameState();
+  addWorldEntity(state.world, {
+    id: "bed-player",
+    type: "bed",
+    actorId: "player",
+    position: { x: 0, y: 1 },
+  });
   const target = { x: 1, y: 2 };
   const startingMoney = state.money;
   const startingSeeds = state.world.entities.player.inventory[3].quantity;

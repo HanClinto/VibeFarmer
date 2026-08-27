@@ -17,7 +17,10 @@ test("canonical farm construction is headless and uses stable entity ids", () =>
   assert.equal(first.world.height, 18);
   assert.deepEqual(first.world.entities.player.position, { x: 5, y: 5 });
   assert.deepEqual(first.world.entities.robot.position, { x: 6, y: 5 });
-  assert.equal(first.world.entities["house-3-1"].name, "Farmhouse door");
+  assert.equal(first.world.entities["portal-farmhouse-door"].name, "Farmhouse door");
+  assert.equal(first.world.maps.farmhouse.width, 8);
+  assert.equal(first.world.entities["bed-player"].mapId, "farmhouse");
+  assert.equal(first.world.entities["inside-wall-top-0"].mapId, "farmhouse");
   assert.ok(first.world.entities["market-sign"]);
   assert.ok(first.world.entities["tree-8"]);
   assert.equal(first.world.terrain[3][16], "water");
@@ -31,24 +34,17 @@ test("canonical farm construction is headless and uses stable entity ids", () =>
 
 test("world queries isolate entities on different maps", () => {
   const state = createFarmState();
-  const chest = state.world.entities["chest-1"];
-  state.world.maps.farmhouse = {
-    id: "farmhouse",
-    width: 8,
-    height: 6,
-    terrain: Array.from({ length: 6 }, () => Array(8).fill("floor")),
-  };
+  const position = { x: 3, y: 3 };
   state.world.entities["inside-table"] = {
     id: "inside-table",
     type: "decoration",
     mapId: "farmhouse",
-    position: { ...chest.position },
+    position,
   };
 
-  assert.equal(chest.mapId, "farm");
-  assert.equal(getWorldObject(state.world, { mapId: "farm", ...chest.position }), chest);
+  assert.equal(getWorldObject(state.world, { mapId: "farm", ...position }).id, "house-2-1");
   assert.equal(
-    getWorldObject(state.world, { mapId: "farmhouse", ...chest.position }).id,
+    getWorldObject(state.world, { mapId: "farmhouse", ...position }).id,
     "inside-table",
   );
 });

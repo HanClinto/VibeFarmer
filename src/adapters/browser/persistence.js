@@ -1,3 +1,5 @@
+import { upgradeFarmWorldDefinition } from "../../game/farm.js";
+
 const STORAGE_KEY = "vibe-farmer.save";
 const SAVE_VERSION = 2;
 const GAME_STATE_VERSION = 3;
@@ -63,12 +65,17 @@ function parseEnvelope(serialized) {
   if (Number.isInteger(envelope.state?.version)
     && envelope.state.version > GAME_STATE_VERSION) throw new UnsupportedSaveError();
   if (envelope.saveVersion === 1) {
-    return { state: migrateLegacyState(envelope.state), migrated: true };
+    const state = migrateLegacyState(envelope.state);
+    upgradeFarmWorldDefinition(state.world);
+    return { state, migrated: true };
   }
   if (envelope.saveVersion !== SAVE_VERSION || !validateState(envelope.state)) {
     throw new Error("Invalid save data");
   }
-  return { state: envelope.state, migrated: false };
+  return {
+    state: envelope.state,
+    migrated: upgradeFarmWorldDefinition(envelope.state.world),
+  };
 }
 
 export function restoreState(serialized) {

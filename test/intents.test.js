@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createController } from "../src/application/controller.js";
+import { moveStep } from "../src/game/actions/actions.js";
 import { GAME_CONFIG } from "../src/game/config.js";
+import { createFarmState } from "../src/game/farm.js";
 import { createGameState } from "../src/game/state.js";
 import { submitMoveTo } from "../src/game/world/entities/actors/intents.js";
 import { createPlant } from "../src/game/world/entities/plants/plants.js";
@@ -210,4 +212,29 @@ test("actors can path through crop tiles without damaging crops", () => {
     (event) => event.type === "move" && event.target.x === 2 && event.target.y === 4,
   ));
   assert.equal(state.world.entities["plant-path"].growthStage, 0);
+});
+
+test("walking onto a portal moves an actor through the ordinary movement path", () => {
+  const state = createFarmState();
+  const actor = state.world.entities.player;
+  actor.position = { x: 3, y: 5 };
+
+  const result = moveStep(state, "player", { mapId: "farm", x: 3, y: 4 });
+
+  assert.equal(result.code, "PORTAL_TRAVELLED");
+  assert.equal(actor.mapId, "farmhouse");
+  assert.deepEqual(actor.position, { x: 4, y: 4 });
+  assert.equal(actor.facing, "north");
+  assert.ok(state.history.some(
+    (event) => event.type === "portal_travel" && event.portalId === "portal-farmhouse-door",
+  ));
+
+  const returnResult = moveStep(state, "player", {
+    mapId: "farmhouse",
+    x: 4,
+    y: 5,
+  });
+  assert.equal(returnResult.code, "PORTAL_TRAVELLED");
+  assert.equal(actor.mapId, "farm");
+  assert.deepEqual(actor.position, { x: 3, y: 5 });
 });

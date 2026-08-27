@@ -1,4 +1,5 @@
 import { GAME_CONFIG } from "../../game/config.js";
+import { getWorldMap } from "../../game/world/world.js";
 import { computeCamera } from "./camera.js";
 
 export const RENDER_TILE_SIZE = GAME_CONFIG.tileSize * 3;
@@ -17,6 +18,7 @@ const COLORS = Object.freeze({
   robot: "#c8d0d8",
   robotPanel: "#4f718c",
   shadow: "rgba(24, 45, 29, 0.35)",
+  mapBackdrop: "#2b252d",
   cropStem: "#244f2c",
   cropLeaf: "#53a447",
   cropRoot: "#ddd071",
@@ -121,6 +123,7 @@ export function chestFrameId(isOpen) {
 
 export function terrainFrameId(world, x, y) {
   const terrainType = world.terrain[y][x];
+  if (terrainType === "floor") return "interior.floor_light";
   if (terrainType === "path") return "terrain.path";
   if (terrainType !== "water") {
     if (terrainType === "grass") return (x + y) % 5 === 0
@@ -165,15 +168,19 @@ export function renderGame(
   const scale = RENDER_TILE_SIZE;
   context.imageSmoothingEnabled = false;
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+  context.fillStyle = COLORS.mapBackdrop;
+  context.fillRect(0, 0, context.canvas.width, context.canvas.height);
   const playerPosition = getActorRenderPosition(
     state.world.entities.player,
     state.tick,
     tickProgress,
   );
+  const currentMapId = state.world.entities.player.mapId;
+  const currentMap = getWorldMap(state.world, currentMapId);
   const camera = computeCamera({
     focus: playerPosition,
-    worldWidth: state.world.width,
-    worldHeight: state.world.height,
+    worldWidth: currentMap.width,
+    worldHeight: currentMap.height,
     viewportWidth: context.canvas.width,
     viewportHeight: context.canvas.height,
     tileSize: scale,
@@ -181,10 +188,10 @@ export function renderGame(
   context.save();
   context.translate(-camera.x, -camera.y);
 
-  for (let y = 0; y < state.world.height; y += 1) {
-    for (let x = 0; x < state.world.width; x += 1) {
-      const terrainType = state.world.terrain[y][x];
-      const frameId = terrainFrameId(state.world, x, y);
+  for (let y = 0; y < currentMap.height; y += 1) {
+    for (let x = 0; x < currentMap.width; x += 1) {
+      const terrainType = currentMap.terrain[y][x];
+      const frameId = terrainFrameId(currentMap, x, y);
       if (!drawSprite(context, sprites, frameId, x * scale, y * scale, scale)) {
         context.fillStyle = terrainColor(terrainType, (x + y) % 2 !== 0);
         context.fillRect(x * scale, y * scale, scale, scale);
@@ -195,6 +202,7 @@ export function renderGame(
   }
 
   for (const object of Object.values(state.world.entities)) {
+    if (object.mapId !== currentMapId) continue;
     if (object.type === "tree") drawTree(context, object, scale, sprites);
     else if (object.type === "plant") drawPlant(context, object, scale, sprites);
     else if (object.type === "chest") {
@@ -213,7 +221,9 @@ export function renderGame(
   }
 
   drawActor(context, state.world.entities.player, scale, state.tick, tickProgress, sprites);
-  drawActor(context, state.world.entities.robot, scale, state.tick, tickProgress, sprites);
+  if (state.world.entities.robot.mapId === currentMapId) {
+    drawActor(context, state.world.entities.robot, scale, state.tick, tickProgress, sprites);
+  }
   context.restore();
   return camera;
 }

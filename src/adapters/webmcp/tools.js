@@ -5,6 +5,7 @@ function result(success, code, details = {}) {
 function robotState(state) {
   const robot = state.world.entities.robot;
   return {
+    mapId: robot.mapId,
     position: { ...robot.position },
     facing: robot.facing,
     stamina: robot.stamina,
@@ -65,6 +66,7 @@ function publicEntity(entity, robotPosition) {
   const base = {
     id: entity.id,
     type: entity.type,
+    mapId: entity.mapId,
     position: entity.position ? { ...entity.position } : undefined,
   };
   if (entity.type === "tree") base.hitPoints = entity.hitPoints;
@@ -289,7 +291,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     {
       name: "sleep",
       title: "Put robot to sleep",
-      description: "Put the robot to sleep. The next day begins only when every farmhand is sleeping.",
+      description: "Put the robot to sleep while adjacent to its charging berth on the same map. The next day begins only when every farmhand is sleeping.",
       inputSchema: { type: "object", additionalProperties: false },
       execute() {
         return Promise.resolve(controller.execute({
