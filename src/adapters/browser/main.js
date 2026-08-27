@@ -12,6 +12,7 @@ import { createActionLog } from "./action-log.js";
 import { makeWindowDraggable } from "./draggable-windows.js";
 import { createWindowManager, isEditingText } from "./window-manager.js";
 import { createInspector } from "./inspector.js";
+import { commandForGameplayKey } from "./keyboard-controls.js";
 import { createPersistence } from "./persistence.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 
@@ -264,12 +265,21 @@ hotbar.addEventListener("click", (event) => {
 });
 
 window.addEventListener("keydown", (event) => {
-  if (isEditingText(event.target) || !/^[0-9]$/.test(event.key)) return;
-  runImmediate({
-    type: "select_slot",
-    actorId: "player",
-    slot: event.key === "0" ? 10 : Number(event.key),
-  });
+  if (isEditingText(event.target) || document.querySelector('[role="dialog"]:not([hidden])')) return;
+  if (/^[0-9]$/.test(event.key)) {
+    runImmediate({
+      type: "select_slot",
+      actorId: "player",
+      slot: event.key === "0" ? 10 : Number(event.key),
+    });
+    return;
+  }
+
+  const player = controller.getSnapshot().world.entities.player;
+  const command = commandForGameplayKey(event.key, player);
+  if (!command) return;
+  event.preventDefault();
+  submit(command);
 });
 
 document.querySelector("#new-game-button").addEventListener("click", () => {
@@ -374,7 +384,7 @@ document.querySelector(".speed-controls").addEventListener("click", (event) => {
 });
 
 document.querySelector("#help-button").addEventListener("click", () => {
-  window.alert("Left-click to walk. Shift-click with the selected axe, hoe, watering can, or seeds to path adjacent and use it once. Keys 1-0 select inventory slots.");
+  window.alert("Left-click to walk. Use Arrow keys or WASD to step. Shift-click a target, or press Space/E to use the selected item on the faced tile. Keys 1-0 select inventory slots.");
 });
 
 refresh();
