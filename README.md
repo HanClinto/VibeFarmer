@@ -48,6 +48,7 @@ npm test
 | Sleep | End the day once both farmhands are sleeping |
 
 Select an empty hotbar slot and Shift-click a mature crop to harvest it.
+The farm-side Market buys seeds and sells turnips or logs one item at a time using shared money.
 
 Movement and work now advance through fixed simulation ticks. Pausing stops tick progression without cancelling active player or robot work; resuming continues the same operation.
 

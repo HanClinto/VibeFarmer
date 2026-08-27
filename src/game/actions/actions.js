@@ -1,6 +1,8 @@
 import { CARDINAL_DIRECTIONS, GAME_CONFIG } from "../config.js";
 import { dispatchLifecycleEvent } from "../events.js";
 import { addItem, canAddItem } from "../world/entities/containers/inventory.js";
+import { removeItem } from "../world/entities/containers/inventory.js";
+import { getItemType } from "../world/entities/items/item-types.js";
 import { createPlant } from "../world/entities/plants/plants.js";
 import { getTerrainAt, setTerrainAt } from "../world/terrain/terrain.js";
 import {
@@ -239,4 +241,34 @@ export function sleepActor(state, actorId) {
   state.day += 1;
   dispatchLifecycleEvent(state, "day_begin");
   return outcome(true, "DAY_ADVANCED", { day: state.day });
+}
+
+export function buyItem(state, actorId, itemId, quantity = 1) {
+  const actor = getActor(state, actorId);
+  if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
+  const itemType = getItemType(itemId);
+  if (!itemType?.buyPrice) return outcome(false, "ITEM_NOT_FOR_SALE");
+  if (!Number.isInteger(quantity) || quantity < 1) return outcome(false, "INVALID_QUANTITY");
+  const totalPrice = itemType.buyPrice * quantity;
+  if (state.money < totalPrice) return outcome(false, "NOT_ENOUGH_MONEY");
+  if (!canAddItem(actor.inventory, itemId, quantity)) return outcome(false, "INVENTORY_FULL");
+
+  addItem(actor.inventory, itemId, quantity);
+  state.money -= totalPrice;
+  addHistory(state, { type: "item_bought", actorId, itemId, quantity, totalPrice });
+  return outcome(true, "ITEM_BOUGHT", { itemId, quantity, totalPrice, money: state.money });
+}
+
+export function sellItem(state, actorId, itemId, quantity = 1) {
+  const actor = getActor(state, actorId);
+  if (!actor) return outcome(false, "ACTOR_NOT_FOUND");
+  const itemType = getItemType(itemId);
+  if (!itemType?.sellPrice) return outcome(false, "ITEM_NOT_SELLABLE");
+  if (!Number.isInteger(quantity) || quantity < 1) return outcome(false, "INVALID_QUANTITY");
+  if (!removeItem(actor.inventory, itemId, quantity)) return outcome(false, "ITEM_NOT_FOUND");
+
+  const totalPrice = itemType.sellPrice * quantity;
+  state.money += totalPrice;
+  addHistory(state, { type: "item_sold", actorId, itemId, quantity, totalPrice });
+  return outcome(true, "ITEM_SOLD", { itemId, quantity, totalPrice, money: state.money });
 }

@@ -130,3 +130,26 @@ canvas {
 .status-bar {
   margin: 0;
 }
+
+.market-window {
+  position: fixed;
+  top: 84px;
+  left: 50%;
+  z-index: 10;
+  width: 220px;
+  margin-left: 185px;
+}
+
+.market-body {
+  display: grid;
+  gap: 8px;
+}
+
+.market-body fieldset {
+  display: grid;
+  gap: 6px;
+}
+
+.market-body button {
+  width: 100%;
+}

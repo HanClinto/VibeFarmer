@@ -1,5 +1,10 @@
 import { createController } from "../../application/controller.js";
-import { GAME_CONFIG, createGameState, createWorld } from "../../game/index.js";
+import {
+  GAME_CONFIG,
+  ITEM_TYPES,
+  createGameState,
+  createWorld,
+} from "../../game/index.js";
 import { renderGame } from "./renderer.js";
 import { createRuntime } from "./runtime.js";
 
@@ -10,6 +15,9 @@ const staminaValue = document.querySelector("#stamina-value");
 const intentStatus = document.querySelector("#intent-status");
 const tickValue = document.querySelector("#tick-value");
 const dayValue = document.querySelector("#day-value");
+const moneyValue = document.querySelector("#money-value");
+const marketWindow = document.querySelector("#market-window");
+const marketStatus = document.querySelector("#market-status");
 
 function createFarmState() {
   return createGameState({
@@ -69,6 +77,7 @@ function refresh(message) {
   updateHotbar(state);
   staminaValue.textContent = `${state.world.entities.player.stamina}/${GAME_CONFIG.maxStamina}`;
   dayValue.textContent = String(state.day);
+  moneyValue.textContent = `${state.money}g`;
   intentStatus.textContent = statusMessage;
   tickValue.textContent = String(state.tick);
 }
@@ -143,6 +152,34 @@ document.querySelector("#robot-demo-button").addEventListener("click", () => {
 
 document.querySelector("#sleep-button").addEventListener("click", () => {
   runImmediate({ type: "sleep_actor", actorId: "player" });
+});
+
+for (const button of document.querySelectorAll("button[data-market-action]")) {
+  const itemType = ITEM_TYPES[button.dataset.itemId];
+  const action = button.dataset.marketAction;
+  const price = action === "buy" ? itemType.buyPrice : itemType.sellPrice;
+  button.textContent = `${action === "buy" ? "Buy" : "Sell"} ${itemType.name} · ${price}g`;
+}
+
+document.querySelector("#market-button").addEventListener("click", () => {
+  marketWindow.hidden = false;
+});
+
+document.querySelector("#market-close-button").addEventListener("click", () => {
+  marketWindow.hidden = true;
+});
+
+marketWindow.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-market-action]");
+  if (!button) return;
+  const result = controller.execute({
+    type: `${button.dataset.marketAction}_item`,
+    actorId: "player",
+    itemId: button.dataset.itemId,
+    quantity: 1,
+  });
+  marketStatus.textContent = result.code;
+  refresh(result.success ? result.code : `Cannot trade: ${result.code}`);
 });
 
 document.querySelector(".speed-controls").addEventListener("click", (event) => {

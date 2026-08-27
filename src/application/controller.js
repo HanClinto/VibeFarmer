@@ -1,4 +1,4 @@
-import { selectSlot, sleepActor } from "../game/actions/actions.js";
+import { buyItem, selectSlot, sellItem, sleepActor } from "../game/actions/actions.js";
 import { isOperationTerminal, tick as tickGame } from "../game/simulation.js";
 import { submitInteractAt, submitMoveTo } from "../game/world/entities/actors/intents.js";
 
@@ -29,6 +29,12 @@ export function createController(initialState) {
           break;
         case "sleep_actor":
           result = sleepActor(state, command.actorId);
+          break;
+        case "buy_item":
+          result = buyItem(state, command.actorId, command.itemId, command.quantity);
+          break;
+        case "sell_item":
+          result = sellItem(state, command.actorId, command.itemId, command.quantity);
           break;
         default:
           result = outcome(false, "UNKNOWN_COMMAND", { commandType: command.type });
