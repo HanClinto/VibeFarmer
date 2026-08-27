@@ -71,6 +71,6 @@ The challenge release targets one fixed farm, a 3-4 day crop cycle, lumber, a si
 
 ## Assets and License
 
-Application code is licensed under the MIT License. Runtime artwork created for the game will live under `assets/game/`.
+Application code is licensed under the MIT License. Current game-world visuals are rendered procedurally with Canvas; the 98.css interface dependency is documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 Downloaded packs under `assets/sprites/` are local design references and are excluded from version control because their licenses do not permit redistribution. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

@@ -8,6 +8,7 @@ async function copyDirectory(source, destination) {
   await fileSystem.mkdir(destination, { recursive: true });
   const entries = await fileSystem.readdir(source, { withFileTypes: true });
   for (const entry of entries) {
+    if (entry.name === ".DS_Store") continue;
     const sourcePath = path.join(source, entry.name);
     const destinationPath = path.join(destination, entry.name);
     if (entry.isDirectory()) await copyDirectory(sourcePath, destinationPath);

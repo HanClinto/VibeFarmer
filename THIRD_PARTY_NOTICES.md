@@ -2,10 +2,10 @@
 
 ## 98.css
 
-The planned window and control styling uses [98.css](https://jdan.github.io/98.css/), which is distributed under the MIT License.
+Window and control styling loads [98.css](https://jdan.github.io/98.css/) version 0.1.20 from unpkg. 98.css is distributed under the MIT License.
 
 ## Downloaded Sprite References
 
 The files under `assets/sprites/` and `assets/farm assets/` are local references from third-party asset packs. Several source licenses prohibit redistribution. These directories are not runtime dependencies and are excluded from version control.
 
-Only original or explicitly redistributable artwork may be added to `assets/game/` and included in a public release.
+The current runtime renders its game world procedurally with Canvas and does not use these reference files. Only original or explicitly redistributable artwork may be added to `assets/game/` and included in a public release.

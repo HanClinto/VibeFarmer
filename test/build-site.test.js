@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -33,6 +33,9 @@ test("deployment artifact versions the entry point and transitive module imports
       "utf8",
     );
     assert.match(controller, /\.\.\/game\/simulation\.js\?v=abc1234/);
+    assert.equal(existsSync(path.join(outputDirectory, "src/.DS_Store")), false);
+    assert.equal(existsSync(path.join(outputDirectory, "assets/sprites")), false);
+    assert.equal(existsSync(path.join(outputDirectory, "assets/farm assets")), false);
   } finally {
     rmSync(temporaryDirectory, { recursive: true, force: true });
   }
