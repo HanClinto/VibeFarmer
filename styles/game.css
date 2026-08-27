@@ -177,7 +177,8 @@ canvas {
 .market-window > .title-bar,
 .storage-window > .title-bar,
 .inspector-window > .title-bar,
-.action-log-window > .title-bar {
+.action-log-window > .title-bar,
+.object-inspector-window > .title-bar {
   cursor: move;
   touch-action: none;
   user-select: none;
@@ -347,6 +348,59 @@ canvas {
   padding: 6px;
   overflow: auto;
   border-top: 1px solid #c0c0c0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.object-inspector-window {
+  position: fixed;
+  top: 132px;
+  left: 50%;
+  z-index: 10;
+  width: 300px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 148px);
+  margin-left: 145px;
+}
+
+.object-inspector-body {
+  max-height: calc(100vh - 184px);
+  overflow: auto;
+}
+
+.object-location {
+  margin: 0 0 6px;
+  color: #404040;
+}
+
+#object-inspector-content {
+  display: grid;
+  gap: 6px;
+}
+
+.object-fields {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 3px 8px;
+  margin: 0;
+}
+
+.object-fields dt {
+  font-weight: 700;
+}
+
+.object-fields dd {
+  margin: 0;
+}
+
+#object-inspector-robot-button {
+  width: 100%;
+  margin-top: 8px;
+}
+
+#object-inspector-raw {
+  max-height: 180px;
+  overflow: auto;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }

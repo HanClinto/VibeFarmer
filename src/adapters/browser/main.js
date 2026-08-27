@@ -3,6 +3,7 @@ import {
   GAME_CONFIG,
   ITEM_TYPES,
   createFarmState,
+  inspectLocation,
 } from "../../game/index.js";
 import { renderGame } from "./renderer.js";
 import { createRuntime } from "./runtime.js";
@@ -11,6 +12,7 @@ import { makeWindowDraggable } from "./draggable-windows.js";
 import { createWindowManager, isEditingText } from "./window-manager.js";
 import { createInspector } from "./inspector.js";
 import { commandForGameplayKey } from "./keyboard-controls.js";
+import { createObjectInspector } from "./object-inspector.js";
 import { createPersistence } from "./persistence.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 
@@ -31,17 +33,27 @@ const storageTargetItems = document.querySelector("#storage-target-items");
 const storageStatus = document.querySelector("#storage-status");
 const inspectorWindow = document.querySelector("#inspector-window");
 const actionLogWindow = document.querySelector("#action-log-window");
+const objectInspectorWindow = document.querySelector("#object-inspector-window");
 const windowManager = createWindowManager();
 
 makeWindowDraggable(marketWindow);
 makeWindowDraggable(storageWindow);
 makeWindowDraggable(inspectorWindow);
 makeWindowDraggable(actionLogWindow);
+makeWindowDraggable(objectInspectorWindow);
 
 const persistence = createPersistence(window.localStorage);
 const restoredSave = persistence.load();
 const controller = createController(restoredSave.state ?? createFarmState());
 const actionLog = createActionLog({ root: actionLogWindow, controller });
+const objectInspector = createObjectInspector({
+  root: objectInspectorWindow,
+  controller,
+  inspect: inspectLocation,
+  openRobotInspector() {
+    inspectorDialog.open();
+  },
+});
 const marketDialog = windowManager.register({
   windowElement: marketWindow,
   launcher: document.querySelector("#market-button"),
@@ -67,6 +79,12 @@ const actionLogDialog = windowManager.register({
   launcher: document.querySelector("#action-log-button"),
   closeButton: document.querySelector("#action-log-close-button"),
   onOpen: () => actionLog.open(),
+});
+const objectInspectorDialog = windowManager.register({
+  windowElement: objectInspectorWindow,
+  launcher: canvas,
+  closeButton: document.querySelector("#object-inspector-close-button"),
+  onOpen: () => objectInspector.refresh(),
 });
 const initialStatusMessages = {
   NO_SAVE: "Ready",
@@ -203,6 +221,7 @@ function refresh(message) {
   updateStorageWindow(state);
   inspector?.refresh();
   actionLog.refresh();
+  objectInspector.refresh();
 }
 
 function runImmediate(command) {
@@ -232,14 +251,29 @@ function canvasPosition(event) {
 }
 
 canvas.addEventListener("click", (event) => {
+  const target = canvasPosition(event);
+  const occupied = Object.values(controller.getSnapshot().world.entities).some(
+    (entity) => entity.position?.x === target.x && entity.position?.y === target.y,
+  );
+  if (!event.shiftKey && occupied) {
+    objectInspector.select(target);
+    objectInspectorDialog.open();
+    return;
+  }
   const player = controller.getSnapshot().world.entities.player;
   const selectedItem = player.inventory[player.selectedSlot - 1];
   submit({
     type: event.shiftKey ? "interact_at" : "move_to",
     actorId: "player",
-    target: canvasPosition(event),
+    target,
     item: event.shiftKey && selectedItem === null ? { action: "harvest" } : undefined,
   });
+});
+
+canvas.addEventListener("contextmenu", (event) => {
+  event.preventDefault();
+  objectInspector.select(canvasPosition(event));
+  objectInspectorDialog.open();
 });
 
 hotbar.addEventListener("click", (event) => {
