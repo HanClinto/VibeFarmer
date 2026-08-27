@@ -13,8 +13,9 @@ Initial authorized exploration budget: **$5.05**
 | 005 | RD Plus focused turnip lifecycle shotgun sheet | 12 extracted candidates plus original-background return | $0.058 | $0.887 | Successful source for seed bag, stages 0-3, and harvested turnip; normalized 16x16 candidates await output-rights confirmation. |
 | 006A | PixelLab Pixen solar charging station, 32x32 | 1 | 1 generation | $0.887 | Clean battery-cabinet silhouette; solar panel reads, but form is more appliance than farm pump. |
 | 006B | RD Fast low-resolution solar charging station, 32x32 | 4 | $0.067 | $0.954 | Candidates 00/01 read clearly as solar charging pumps; 00 is the strongest composition reference. |
+| 007 | RD Advanced Animation six-frame farmer side walk from an Aseprite-authored 64x64 keyframe | 1 sheet, 6 frames | $0.14 | $1.094 | Preserves farmer identity and approximate anchor, but redraws the Body_A gait and proportions. Use as reference, not bulk conversion. |
 
-**Remaining RetroDiffusion API balance: $4.096.**
+**Remaining RetroDiffusion API balance: $3.956.**
 
 Requests, responses, outputs, comparison sheets, and notes are stored under `assets/game/experiments/`.
 

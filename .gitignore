@@ -6,3 +6,4 @@ _site/
 # Downloaded reference packs are not redistributable application assets.
 assets/sprites/
 assets/farm assets/
+assets/game/experiments/body-a-farmer-slice/
