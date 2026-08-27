@@ -2,9 +2,7 @@ import { createController } from "../../application/controller.js";
 import {
   GAME_CONFIG,
   ITEM_TYPES,
-  createChest,
-  createGameState,
-  createWorld,
+  createFarmState,
 } from "../../game/index.js";
 import { renderGame } from "./renderer.js";
 import { createRuntime } from "./runtime.js";
@@ -39,20 +37,6 @@ makeWindowDraggable(marketWindow);
 makeWindowDraggable(storageWindow);
 makeWindowDraggable(inspectorWindow);
 makeWindowDraggable(actionLogWindow);
-
-function createFarmState() {
-  return createGameState({
-    world: createWorld({
-      entities: [createChest({ id: "chest-1", position: { x: 0, y: 1 } })],
-      objects: [
-        { type: "tree", x: 8, y: 2, hitPoints: GAME_CONFIG.treeHitPoints },
-        { type: "tree", x: 9, y: 3, hitPoints: GAME_CONFIG.treeHitPoints },
-        { type: "tree", x: 8, y: 6, hitPoints: GAME_CONFIG.treeHitPoints },
-        { type: "tree", x: 10, y: 7, hitPoints: GAME_CONFIG.treeHitPoints },
-      ],
-    }),
-  });
-}
 
 const persistence = createPersistence(window.localStorage);
 const restoredSave = persistence.load();

@@ -1,4 +1,5 @@
 export { GAME_CONFIG } from "./config.js";
+export { createFarmState } from "./farm.js";
 export { dispatchLifecycleEvent } from "./events.js";
 export { ITEM_TYPES } from "./world/entities/items/item-types.js";
 export { createChest } from "./world/entities/containers/chests.js";
