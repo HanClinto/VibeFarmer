@@ -19,6 +19,7 @@
         </div>
         <div class="menu-bar" role="menubar" aria-label="Game menu">
           <button type="button" id="new-game-button">New Game</button>
+          <div id="contextual-actions" class="contextual-actions" aria-label="Nearby actions" hidden></div>
           <button type="button" id="inspector-button">Robot Inspector</button>
           <button type="button" id="action-log-button">Action Log</button>
         </div>
@@ -106,7 +107,7 @@
         <div class="window-body inspector-body">
           <menu role="tablist" aria-label="Inspector views">
             <button type="button" role="tab" id="inspector-tab-overview" aria-controls="inspector-panel-overview" data-inspector-tab="overview">Overview</button>
-            <button type="button" role="tab" id="inspector-tab-tools" aria-controls="inspector-panel-tools" data-inspector-tab="tools">Tools</button>
+            <button type="button" role="tab" id="inspector-tab-tools" aria-controls="inspector-panel-tools" data-inspector-tab="tools">MCP</button>
             <button type="button" role="tab" id="inspector-tab-operations" aria-controls="inspector-panel-operations" data-inspector-tab="operations">Operations</button>
             <button type="button" role="tab" id="inspector-tab-log" aria-controls="inspector-panel-log" data-inspector-tab="log">Log</button>
           </menu>
@@ -134,7 +135,8 @@
             </div>
           </section>
           <section role="tabpanel" id="inspector-panel-tools" aria-labelledby="inspector-tab-tools" data-inspector-panel="tools" hidden>
-            <label for="inspector-tool-select">Tool</label>
+            <p class="mcp-description">These WebMCP tools are available to a local agent controlling the robot. Manual invocation here is for inspection and testing.</p>
+            <label for="inspector-tool-select">Available WebMCP tool</label>
             <select id="inspector-tool-select"></select>
             <p id="inspector-tool-description"></p>
             <details>

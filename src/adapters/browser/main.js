@@ -22,11 +22,13 @@ import { createObjectInspector } from "./object-inspector.js";
 import { createPersistence } from "./persistence.js";
 import { renderDaySummary } from "./day-summary.js";
 import { createSceneTransition } from "./scene-transition.js";
+import { contextualActions } from "./contextual-actions.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 
 const canvas = document.querySelector("#game-canvas");
 const context = canvas.getContext("2d");
 const hotbar = document.querySelector("#hotbar");
+const contextualActionsRoot = document.querySelector("#contextual-actions");
 const staminaValue = document.querySelector("#stamina-value");
 const robotStatusValue = document.querySelector("#robot-status-value");
 const intentStatus = document.querySelector("#intent-status");
@@ -61,7 +63,27 @@ const persistence = createPersistence(window.localStorage);
 const restoredSave = persistence.load();
 const controller = createController(restoredSave.state ?? createFarmState());
 let activeStorageTargetId = null;
+let contextualActionsSignature = null;
 const actionLog = createActionLog({ root: actionLogWindow, controller });
+
+function openStorage(entityId) {
+  activeStorageTargetId = entityId;
+  objectInspectorDialog.close();
+  marketDialog.close();
+  storageDialog.open();
+}
+
+function openMarket() {
+  objectInspectorDialog.close();
+  storageDialog.close();
+  marketDialog.open();
+}
+
+function sleepPlayer() {
+  objectInspectorDialog.close();
+  runImmediate({ type: "sleep_actor", actorId: "player" });
+}
+
 const objectInspector = createObjectInspector({
   root: objectInspectorWindow,
   controller,
@@ -69,21 +91,9 @@ const objectInspector = createObjectInspector({
   openRobotInspector() {
     inspectorDialog.open();
   },
-  openStorage(entityId) {
-    activeStorageTargetId = entityId;
-    objectInspectorDialog.close();
-    marketDialog.close();
-    storageDialog.open();
-  },
-  openMarket() {
-    objectInspectorDialog.close();
-    storageDialog.close();
-    marketDialog.open();
-  },
-  sleepAtBed() {
-    objectInspectorDialog.close();
-    runImmediate({ type: "sleep_actor", actorId: "player" });
-  },
+  openStorage,
+  openMarket,
+  sleepAtBed: sleepPlayer,
 });
 const marketDialog = windowManager.register({
   windowElement: marketWindow,
@@ -349,6 +359,22 @@ function updateStorageWindow(state) {
   if (!selectedTarget) storageStatus.textContent = "No adjacent storage";
 }
 
+function updateContextualActions(state) {
+  const actions = contextualActions(state, inspectLocation);
+  const nextSignature = JSON.stringify(actions);
+  if (nextSignature === contextualActionsSignature) return;
+  contextualActionsSignature = nextSignature;
+  contextualActionsRoot.hidden = actions.length === 0;
+  contextualActionsRoot.replaceChildren(...actions.map((action) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.contextAction = action.type;
+    button.dataset.entityId = action.entityId;
+    button.textContent = action.label;
+    return button;
+  }));
+}
+
 function refresh(message) {
   if (message) statusMessage = message;
   const state = controller.getSnapshot();
@@ -372,6 +398,7 @@ function refresh(message) {
   tickValue.textContent = String(state.tick);
   updateStorageWindow(state);
   updateMarketWindow(state);
+  updateContextualActions(state);
   inspector?.refresh();
   actionLog.refresh();
   objectInspector.refresh();
@@ -463,6 +490,14 @@ hotbar.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-slot]");
   if (!button) return;
   runImmediate({ type: "select_slot", actorId: "player", slot: Number(button.dataset.slot) });
+});
+
+contextualActionsRoot.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-context-action]");
+  if (!button) return;
+  if (button.dataset.contextAction === "storage") openStorage(button.dataset.entityId);
+  else if (button.dataset.contextAction === "market") openMarket();
+  else if (button.dataset.contextAction === "sleep") sleepPlayer();
 });
 
 document.querySelector(".game-window").addEventListener("pointerdown", (event) => {

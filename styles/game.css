@@ -52,6 +52,19 @@ canvas {
   box-shadow: none;
 }
 
+.contextual-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.contextual-actions[hidden] {
+  display: none;
+}
+
+.contextual-actions button {
+  font-weight: 700;
+}
+
 .speed-controls {
   display: flex;
   gap: 1px;
@@ -213,6 +226,12 @@ canvas {
 
 .robot-testing p {
   margin: 6px 0 0;
+}
+
+.mcp-description {
+  margin: 4px 0 8px;
+  padding: 6px;
+  border: 1px inset #fff;
 }
 
 .storage-context {
