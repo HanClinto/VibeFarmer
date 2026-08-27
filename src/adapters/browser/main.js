@@ -5,8 +5,9 @@ import {
   createFarmState,
   inspectLocation,
 } from "../../game/index.js";
-import { renderGame } from "./renderer.js";
+import { RENDER_TILE_SIZE, renderGame } from "./renderer.js";
 import { createRuntime } from "./runtime.js";
+import { screenToWorld } from "./camera.js";
 import { loadSpriteCatalog } from "./sprite-catalog.js";
 import { createActionLog } from "./action-log.js";
 import { makeWindowDraggable } from "./draggable-windows.js";
@@ -98,6 +99,7 @@ const initialStatusMessages = {
 };
 let statusMessage = initialStatusMessages[restoredSave.code];
 let tickProgress = 1;
+let camera = { x: 0, y: 0 };
 let hotbarSignature = null;
 let storageSignature = null;
 let inspector = null;
@@ -281,7 +283,7 @@ function refresh(message) {
   const openEntityIds = new Set(
     storageWindow.hidden || !storageTarget.value ? [] : [storageTarget.value],
   );
-  renderGame(context, state, { tickProgress, sprites, openEntityIds });
+  camera = renderGame(context, state, { tickProgress, sprites, openEntityIds });
   updateHotbar(state);
   staminaValue.textContent = `${state.world.entities.player.stamina}/${GAME_CONFIG.maxStamina}`;
   dayValue.textContent = String(state.day);
@@ -314,11 +316,16 @@ function submit(command) {
 
 function canvasPosition(event) {
   const bounds = canvas.getBoundingClientRect();
-  const state = controller.getSnapshot();
-  return {
-    x: Math.floor((event.clientX - bounds.left) / (bounds.width / state.world.width)),
-    y: Math.floor((event.clientY - bounds.top) / (bounds.height / state.world.height)),
-  };
+  return screenToWorld({
+    screenX: event.clientX - bounds.left,
+    screenY: event.clientY - bounds.top,
+    displayWidth: bounds.width,
+    displayHeight: bounds.height,
+    canvasWidth: canvas.width,
+    canvasHeight: canvas.height,
+    camera,
+    tileSize: RENDER_TILE_SIZE,
+  });
 }
 
 canvas.addEventListener("click", (event) => {

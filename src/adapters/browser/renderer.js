@@ -1,4 +1,7 @@
 import { GAME_CONFIG } from "../../game/config.js";
+import { computeCamera } from "./camera.js";
+
+export const RENDER_TILE_SIZE = GAME_CONFIG.tileSize * 3;
 
 const COLORS = Object.freeze({
   grass: "#75aa4f",
@@ -133,9 +136,24 @@ export function renderGame(
   state,
   { tickProgress = 1, sprites = null, openEntityIds = new Set() } = {},
 ) {
-  const scale = GAME_CONFIG.tileSize * 3;
+  const scale = RENDER_TILE_SIZE;
   context.imageSmoothingEnabled = false;
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+  const playerPosition = getActorRenderPosition(
+    state.world.entities.player,
+    state.tick,
+    tickProgress,
+  );
+  const camera = computeCamera({
+    focus: playerPosition,
+    worldWidth: state.world.width,
+    worldHeight: state.world.height,
+    viewportWidth: context.canvas.width,
+    viewportHeight: context.canvas.height,
+    tileSize: scale,
+  });
+  context.save();
+  context.translate(-camera.x, -camera.y);
 
   for (let y = 0; y < state.world.height; y += 1) {
     for (let x = 0; x < state.world.width; x += 1) {
@@ -161,4 +179,6 @@ export function renderGame(
 
   drawActor(context, state.world.entities.player, scale, state.tick, tickProgress, sprites);
   drawActor(context, state.world.entities.robot, scale, state.tick, tickProgress, sprites);
+  context.restore();
+  return camera;
 }
