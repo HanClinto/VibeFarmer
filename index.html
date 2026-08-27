@@ -103,15 +103,15 @@
         </div>
         <div class="window-body inspector-body">
           <menu role="tablist" aria-label="Inspector views">
-            <button type="button" role="tab" data-inspector-tab="overview">Overview</button>
-            <button type="button" role="tab" data-inspector-tab="tools">Tools</button>
-            <button type="button" role="tab" data-inspector-tab="operations">Operations</button>
-            <button type="button" role="tab" data-inspector-tab="log">Log</button>
+            <button type="button" role="tab" id="inspector-tab-overview" aria-controls="inspector-panel-overview" data-inspector-tab="overview">Overview</button>
+            <button type="button" role="tab" id="inspector-tab-tools" aria-controls="inspector-panel-tools" data-inspector-tab="tools">Tools</button>
+            <button type="button" role="tab" id="inspector-tab-operations" aria-controls="inspector-panel-operations" data-inspector-tab="operations">Operations</button>
+            <button type="button" role="tab" id="inspector-tab-log" aria-controls="inspector-panel-log" data-inspector-tab="log">Log</button>
           </menu>
-          <section data-inspector-panel="overview">
+          <section role="tabpanel" id="inspector-panel-overview" aria-labelledby="inspector-tab-overview" data-inspector-panel="overview">
             <pre id="inspector-overview"></pre>
           </section>
-          <section data-inspector-panel="tools" hidden>
+          <section role="tabpanel" id="inspector-panel-tools" aria-labelledby="inspector-tab-tools" data-inspector-panel="tools" hidden>
             <label for="inspector-tool-select">Tool</label>
             <select id="inspector-tool-select"></select>
             <p id="inspector-tool-description"></p>
@@ -127,10 +127,10 @@
             </div>
             <pre id="inspector-tool-result">No result yet.</pre>
           </section>
-          <section data-inspector-panel="operations" hidden>
+          <section role="tabpanel" id="inspector-panel-operations" aria-labelledby="inspector-tab-operations" data-inspector-panel="operations" hidden>
             <pre id="inspector-operations"></pre>
           </section>
-          <section data-inspector-panel="log" hidden>
+          <section role="tabpanel" id="inspector-panel-log" aria-labelledby="inspector-tab-log" data-inspector-panel="log" hidden>
             <div id="inspector-log" class="collapsible-log"></div>
           </section>
         </div>

@@ -23,6 +23,14 @@ function sampleInput(tool) {
   return samples[tool.name] ?? {};
 }
 
+export function nextTabIndex(key, currentIndex, tabCount) {
+  if (key === "Home") return 0;
+  if (key === "End") return tabCount - 1;
+  if (key === "ArrowRight") return (currentIndex + 1) % tabCount;
+  if (key === "ArrowLeft") return (currentIndex - 1 + tabCount) % tabCount;
+  return currentIndex;
+}
+
 export function createInspector({
   root,
   controller,
@@ -68,7 +76,9 @@ export function createInspector({
   function selectTab(tabName) {
     activeTab = tabName;
     for (const button of tabButtons) {
-      button.setAttribute("aria-selected", String(button.dataset.inspectorTab === tabName));
+      const selected = button.dataset.inspectorTab === tabName;
+      button.setAttribute("aria-selected", String(selected));
+      button.tabIndex = selected ? 0 : -1;
     }
     for (const panel of panels) panel.hidden = panel.dataset.inspectorPanel !== tabName;
     refresh(true);
@@ -115,6 +125,15 @@ export function createInspector({
 
   for (const button of tabButtons) {
     button.addEventListener("click", () => selectTab(button.dataset.inspectorTab));
+    button.addEventListener("keydown", (event) => {
+      const currentIndex = tabButtons.indexOf(button);
+      const targetIndex = nextTabIndex(event.key, currentIndex, tabButtons.length);
+      if (targetIndex === currentIndex) return;
+      event.preventDefault();
+      const target = tabButtons[targetIndex];
+      selectTab(target.dataset.inspectorTab);
+      target.focus();
+    });
   }
   toolSelect.addEventListener("change", renderTool);
 
