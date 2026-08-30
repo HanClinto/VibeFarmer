@@ -43,6 +43,14 @@ test("deployment artifact versions the entry point and transitive module imports
       true,
     );
     assert.equal(existsSync(path.join(outputDirectory, "assets/game/experiments")), false);
+    assert.equal(
+      existsSync(path.join(outputDirectory, "node_modules/needle-rs/needle_wasm.js")),
+      true,
+    );
+    assert.equal(
+      existsSync(path.join(outputDirectory, "node_modules/needle-rs/needle_wasm_bg.wasm")),
+      true,
+    );
     assert.equal(existsSync(path.join(outputDirectory, "src/.DS_Store")), false);
     assert.equal(existsSync(path.join(outputDirectory, "assets/sprites")), false);
     assert.equal(existsSync(path.join(outputDirectory, "assets/farm assets")), false);

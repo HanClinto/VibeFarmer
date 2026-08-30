@@ -68,6 +68,15 @@ test("unsupported browsers retain locally invokable tool definitions", async () 
   assert.equal(registration.tools.length, 9);
 });
 
+test("shared tools attribute commands to their invoking adapter", async () => {
+  const controller = createController(createGameState());
+  const tools = createWebMcpTools(controller, { source: "needle" });
+
+  await toolByName(tools, "select_slot").execute({ slot: 2 });
+
+  assert.equal(controller.getSnapshot().history.at(-1).source, "needle");
+});
+
 test("inspection exposes robot inventory but not player inventory", () => {
   const inspected = inspectGame(createController(createGameState()));
   const player = inspected.entities.find((entity) => entity.id === "player");

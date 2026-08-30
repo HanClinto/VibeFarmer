@@ -338,7 +338,10 @@ async function executeIntent(controller, command, signal) {
   }
 }
 
-export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) {
+export function createWebMcpTools(controller, {
+  onInvocation = () => {},
+  source = "webmcp",
+} = {}) {
   let nextInvocationId = 1;
   const tools = [
     {
@@ -386,7 +389,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return executeIntent(controller, {
           type: "move_to",
           actorId: "robot",
-          source: "webmcp",
+          source,
           target: { x, y },
         }, signal);
       },
@@ -412,7 +415,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return executeIntent(controller, {
           type: "interact_at",
           actorId: "robot",
-          source: "webmcp",
+          source,
           target: { x, y },
           item,
         }, signal);
@@ -432,7 +435,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return Promise.resolve(controller.execute({
           type: "select_slot",
           actorId: "robot",
-          source: "webmcp",
+          source,
           slot,
         }));
       },
@@ -451,7 +454,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return Promise.resolve(controller.execute({
           type: "buy_item",
           actorId: "robot",
-          source: "webmcp",
+          source,
           itemId,
           quantity: 1,
         }));
@@ -471,7 +474,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return Promise.resolve(controller.execute({
           type: "sell_item",
           actorId: "robot",
-          source: "webmcp",
+          source,
           itemId,
           quantity: 1,
         }));
@@ -495,7 +498,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return Promise.resolve(controller.execute({
           type: "transfer_item",
           actorId: "robot",
-          source: "webmcp",
+          source,
           fromEntityId,
           toEntityId,
           itemId,
@@ -512,7 +515,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
         return Promise.resolve(controller.execute({
           type: "sleep_actor",
           actorId: "robot",
-          source: "webmcp",
+          source,
         }));
       },
     },
@@ -538,7 +541,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
       ...tool,
       async execute(input = {}, options = {}) {
         const invocation = {
-          invocationId: `tool-call-${nextInvocationId}`,
+          invocationId: `${source}-tool-call-${nextInvocationId}`,
           toolName: tool.name,
           input,
           status: "running",

@@ -28,9 +28,11 @@ import { actionForCanvasClick, actionTargetForPointer } from "./pointer-controls
 import { marketListings, marketStateSignature } from "./market.js";
 import { createGameAudio } from "./audio.js";
 import { createSleepWaitFlow } from "./sleep-wait.js";
+import { createLocalAgent } from "./local-agent.js";
 import { applyMoneyCheat } from "./development-cheats.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
-import { inspectGame } from "../webmcp/tools.js";
+import { createWebMcpTools, inspectGame } from "../webmcp/tools.js";
+import { needleGameTools } from "../needle/agent.js";
 
 const canvas = document.querySelector("#game-canvas");
 const context = canvas.getContext("2d");
@@ -53,6 +55,7 @@ const storageTargetName = document.querySelector("#storage-target-name");
 const storagePlayerItems = document.querySelector("#storage-player-items");
 const storageTargetItems = document.querySelector("#storage-target-items");
 const storageStatus = document.querySelector("#storage-status");
+const localAgentWindow = document.querySelector("#local-agent-window");
 const inspectorWindow = document.querySelector("#inspector-window");
 const actionLogWindow = document.querySelector("#action-log-window");
 const objectInspectorWindow = document.querySelector("#object-inspector-window");
@@ -87,6 +90,7 @@ marketSellItems.replaceChildren(...listings.sell.map((item) => marketButton(item
 
 makeWindowDraggable(marketWindow);
 makeWindowDraggable(storageWindow);
+makeWindowDraggable(localAgentWindow);
 makeWindowDraggable(inspectorWindow);
 makeWindowDraggable(actionLogWindow);
 makeWindowDraggable(objectInspectorWindow);
@@ -169,6 +173,12 @@ const actionLogDialog = windowManager.register({
   closeButton: document.querySelector("#action-log-close-button"),
   onOpen: () => actionLog.open(),
 });
+const localAgentDialog = windowManager.register({
+  windowElement: localAgentWindow,
+  launcher: document.querySelector("#local-agent-button"),
+  closeButton: document.querySelector("#local-agent-close-button"),
+  onOpen: () => localAgent?.open(),
+});
 const objectInspectorDialog = windowManager.register({
   windowElement: objectInspectorWindow,
   launcher: canvas,
@@ -204,10 +214,19 @@ let camera = { x: 0, y: 0 };
 let hotbarSignature = null;
 let storageSignature = null;
 let inspector = null;
+let localAgent = null;
 let observedPlayerMapId = controller.getSnapshot().world.entities.player.mapId;
 let hoverTarget = null;
 let observedHistoryEvent = controller.getSnapshot().history.at(-1) ?? null;
 const invocationLog = [];
+function recordInvocation(record) {
+  const index = invocationLog.findIndex(
+    (existing) => existing.invocationId === record.invocationId,
+  );
+  if (index === -1) invocationLog.push(record);
+  else invocationLog[index] = record;
+  inspector?.refresh(true);
+}
 const runtime = createRuntime(controller, {
   onFrame: (_state, nextTickProgress) => {
     tickProgress = nextTickProgress;
@@ -264,17 +283,13 @@ controller.subscribe(async ({ state, result }) => {
     daySummaryDialog.open();
   }
 });
-window.addEventListener("beforeunload", () => persistence.flush(controller.getSnapshot()));
+window.addEventListener("beforeunload", () => {
+  localAgent?.dispose();
+  persistence.flush(controller.getSnapshot());
+});
 persistence.scheduleSave(controller.getSnapshot());
 registerWebMcp(document.modelContext, controller, {
-  onInvocation(record) {
-    const index = invocationLog.findIndex(
-      (existing) => existing.invocationId === record.invocationId,
-    );
-    if (index === -1) invocationLog.push(record);
-    else invocationLog[index] = record;
-    inspector?.refresh(true);
-  },
+  onInvocation: recordInvocation,
 }).then(({ supported, tools }) => {
   document.querySelector("#robot-demo-button").title = supported
     ? "WebMCP tools registered"
@@ -288,6 +303,14 @@ registerWebMcp(document.modelContext, controller, {
     sprites,
     getTickProgress: () => tickProgress,
     inspectRobot: () => inspectGame(controller),
+  });
+  localAgent = createLocalAgent({
+    root: localAgentWindow,
+    tools: needleGameTools(createWebMcpTools(controller, {
+      source: "needle",
+      onInvocation: recordInvocation,
+    })),
+    webMcpSupported: supported,
   });
 });
 
@@ -697,6 +720,10 @@ marketWindow.addEventListener("click", (event) => {
 
 document.querySelector("#inspector-button").addEventListener("click", () => {
   inspectorDialog.open();
+});
+
+document.querySelector("#local-agent-button").addEventListener("click", () => {
+  localAgentDialog.open();
 });
 
 document.querySelector("#action-log-button").addEventListener("click", () => {

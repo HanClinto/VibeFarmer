@@ -1,6 +1,6 @@
 # Vibe Farmer
 
-A cozy pixel-art farming game where a human and a WebMCP-controlled robot work as equal farmhands in one shared world.
+A cozy pixel-art farming game where a human and a tool-controlled robot work as equal farmhands in one shared world.
 
 Vibe Farmer is an entry for the [OpenAI WebMCP Challenge](https://openai.com/webmcp-challenge/). Its central experiment is whether different models can collaborate at different levels of autonomy: a capable model may plan a full workday, while a smaller model can perform one carefully instructed action at a time.
 
@@ -41,6 +41,12 @@ npm test
 ```
 
 `npm run build:site` creates the same static `_site/` artifact used by GitHub Pages. Deployment builds append the current short commit hash to the HTML entry assets and all relative ES-module imports, preventing stale mixed-version module graphs.
+
+## Local Agent
+
+The Local Agent window offers an on-device fallback when WebMCP is unavailable. Click **Load Needle 2** to download the 13.7 MB model once through the browser cache, then send a concrete robot request such as `Move to 8, 12`. Inference runs in a Web Worker through WebAssembly; prompts and game tool results are not sent to an inference service.
+
+Needle 2 is a small tool-calling router, not a general conversational model. Its constrained decoder selects from five compact core tools drawn from the WebMCP surface: inspect, move, interact, select inventory slot, and sleep. Unknown calls are rejected, and unrelated requests return no action. The window therefore reports selected actions and structured game results rather than generating a conversational persona. This initial integration is best for one directly specified action at a time; market/storage tools and autonomous multi-step planning remain future work.
 
 ## Controls
 

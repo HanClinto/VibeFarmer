@@ -53,6 +53,10 @@ const html = await fileSystem.readFile("index.html", "utf8");
 await fileSystem.writeFile(path.join(outputDirectory, "index.html"), versionHtml(html));
 await copyDirectory("src", path.join(outputDirectory, "src"));
 await copyDirectory("styles", path.join(outputDirectory, "styles"));
+await copyDirectory(
+  "node_modules/needle-rs",
+  path.join(outputDirectory, "node_modules/needle-rs"),
+);
 
 try {
   await copyDirectory("assets/game", path.join(outputDirectory, "assets/game"), {

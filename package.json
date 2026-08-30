@@ -6,5 +6,8 @@
   "scripts": {
     "build:site": "node scripts/build-site.mjs _site dev",
     "test": "node --test"
+  },
+  "dependencies": {
+    "needle-rs": "0.2.1"
   }
 }

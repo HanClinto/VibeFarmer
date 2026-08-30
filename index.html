@@ -20,6 +20,7 @@
         <div class="menu-bar" role="menubar" aria-label="Game menu">
           <button type="button" id="new-game-button">New Game</button>
           <div id="contextual-actions" class="contextual-actions" aria-label="Nearby actions" hidden></div>
+          <button type="button" id="local-agent-button">Local Agent</button>
           <button type="button" id="inspector-button">Robot Inspector</button>
           <button type="button" id="action-log-button">Action Log</button>
           <label class="sound-control"><input type="checkbox" id="sound-toggle"> Sound</label>
@@ -44,6 +45,30 @@
             <span class="status-bar-field">Shift-click or Space/E to use item</span>
             <span class="status-bar-field">Keys 1-0 select slots</span>
           </p>
+        </div>
+      </section>
+      <section id="local-agent-window" class="window local-agent-window" role="dialog" aria-label="Local Agent" tabindex="-1" hidden>
+        <div class="title-bar">
+          <div class="title-bar-text">Local Agent · Needle 2</div>
+          <div class="title-bar-controls">
+            <button type="button" aria-label="Close" id="local-agent-close-button"></button>
+          </div>
+        </div>
+        <div class="window-body local-agent-body">
+          <div class="local-agent-model">
+            <button type="button" id="local-agent-load">Load Needle 2</button>
+            <progress id="local-agent-progress" max="13737807" value="0" hidden></progress>
+            <p id="local-agent-status" class="status-bar-field" aria-live="polite"></p>
+          </div>
+          <div id="local-agent-transcript" class="local-agent-transcript" aria-live="polite"></div>
+          <form id="local-agent-form" class="local-agent-form">
+            <label for="local-agent-input">Robot request</label>
+            <textarea id="local-agent-input" rows="3" placeholder="Move to 8, 12" disabled></textarea>
+            <div>
+              <button type="submit" id="local-agent-send" disabled>Send</button>
+              <button type="button" id="local-agent-cancel" disabled>Cancel</button>
+            </div>
+          </form>
         </div>
       </section>
       <section id="market-window" class="window market-window" role="dialog" aria-label="Farm market" tabindex="-1" hidden>

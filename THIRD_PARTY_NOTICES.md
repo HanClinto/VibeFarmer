@@ -4,6 +4,12 @@
 
 Window and control styling loads [98.css](https://jdan.github.io/98.css/) version 0.1.20 from unpkg. 98.css is distributed under the MIT License.
 
+## Needle 2 and needle-rs
+
+The optional Local Agent downloads the [Needle 2](https://huggingface.co/Cactus-Compute/needle2) model from Cactus Compute after explicit user action. Needle 2 is distributed under the Apache License 2.0. The model remains in the browser cache and is not bundled in this repository.
+
+Browser inference uses [needle-rs](https://github.com/Geekgineer/needle-rs) version 0.2.1. Its JavaScript and WebAssembly runtime are distributed under the MIT License and are copied from the pinned npm dependency into the deployment artifact.
+
 ## Downloaded Sprite References
 
 The files under `assets/sprites/` and `assets/farm assets/` are local references from third-party asset packs. Several source licenses prohibit redistribution. These directories are not runtime dependencies and are excluded from version control.
