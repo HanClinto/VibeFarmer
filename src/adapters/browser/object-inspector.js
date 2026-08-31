@@ -112,9 +112,11 @@ export function objectInspectionView(inspection, actor = null) {
     return { title: entity.name, fields, entity };
   });
   const actions = objectActionHints(inspection, actor);
-  if (actions.length > 0) {
-    sections.push({ title: "Actions", fields: actions, entity: null });
-  }
+  sections.push({
+    title: "Actions",
+    fields: actions.length > 0 ? actions : [["Available", "None"]],
+    entity: null,
+  });
   sections.push({
     title: "Terrain",
     fields: [

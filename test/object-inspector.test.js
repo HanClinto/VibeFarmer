@@ -164,3 +164,16 @@ test("action hints stay compact for crops and farmable terrain", () => {
     entities: [{ type: "plant", harvestReady: false }],
   }, actor), [["Harvest", "Not ready"]]);
 });
+
+test("inspection explicitly reports when no actions are available", () => {
+  const view = objectInspectionView({
+    success: true,
+    target: { x: 2, y: 2 },
+    terrain: { type: "water", watered: false, passable: false },
+    entities: [],
+  });
+
+  assert.deepEqual(view.sections.find((section) => section.title === "Actions")?.fields, [
+    ["Available", "None"],
+  ]);
+});
