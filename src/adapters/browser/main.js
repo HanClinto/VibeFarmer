@@ -31,6 +31,7 @@ import { createSleepWaitFlow } from "./sleep-wait.js";
 import { applyMoneyCheat } from "./development-cheats.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 import { inspectGame } from "../webmcp/tools.js";
+import { actionFailureMessage, TIRED_CUE_DURATION_MS } from "./action-feedback.js";
 
 const canvas = document.querySelector("#game-canvas");
 const context = canvas.getContext("2d");
@@ -207,6 +208,7 @@ let inspector = null;
 let observedPlayerMapId = controller.getSnapshot().world.entities.player.mapId;
 let hoverTarget = null;
 let observedHistoryEvent = controller.getSnapshot().history.at(-1) ?? null;
+const tiredActorUntil = new Map();
 const invocationLog = [];
 const runtime = createRuntime(controller, {
   onFrame: (_state, nextTickProgress) => {
@@ -492,6 +494,9 @@ function refresh(message) {
     openEntityIds,
     hoverTarget,
     actionTarget: pointerActionTarget,
+    tiredActorIds: new Set([...tiredActorUntil]
+      .filter(([, expiresAt]) => performance.now() < expiresAt)
+      .map(([actorId]) => actorId)),
   });
   updateHotbar(state);
   staminaValue.textContent = `${state.world.entities.player.stamina}/${GAME_CONFIG.maxStamina}`;
@@ -514,19 +519,27 @@ function refresh(message) {
 
 function runImmediate(command) {
   const result = controller.execute({ source: "human-ui", ...command });
-  refresh(result.success ? result.code : `Cannot act: ${result.code}`);
+  refresh(result.success ? result.code : actionFailureMessage(result.code, command.actorId));
   return result;
+}
+
+function showIntentFailure(result, actorId, prefix = "") {
+  if (result.code === "NOT_ENOUGH_STAMINA") {
+    tiredActorUntil.set(actorId, performance.now() + TIRED_CUE_DURATION_MS);
+  }
+  refresh(`${prefix}${actionFailureMessage(result.code, actorId)}`);
 }
 
 function submit(command) {
   const submission = controller.submit({ source: "human-ui", ...command });
   if (!submission.success) {
-    refresh(`Cannot act: ${submission.code}`);
+    showIntentFailure(submission, command.actorId);
     return submission;
   }
   refresh(`Running ${submission.operationId}`);
   submission.completion.then((result) => {
-    refresh(result.success ? result.code : `Stopped: ${result.code}`);
+    if (result.success) refresh(result.code);
+    else showIntentFailure(result, command.actorId, "Stopped: ");
   });
   return submission;
 }

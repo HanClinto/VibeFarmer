@@ -10,6 +10,8 @@ import {
   operationWorkView,
   recentActionEffects,
   rechargeStationFrameId,
+  tiredCueLayout,
+  treeHitAnimation,
   renderGame,
   terrainFrameId,
 } from "../src/adapters/browser/renderer.js";
@@ -88,6 +90,33 @@ test("completed transitions render at the authoritative tile", () => {
 test("storage presentation selects matching closed and open chest frames", () => {
   assert.equal(chestFrameId(false), "entity.chest.closed");
   assert.equal(chestFrameId(true), "entity.chest.open");
+});
+
+test("tree hit animation shakes without changing sprite scale", () => {
+  assert.deepEqual(treeHitAnimation(0), { offsetX: 0, leafProgress: 0 });
+  assert.equal(treeHitAnimation(0.25).leafProgress, 0.25);
+  assert.equal(treeHitAnimation(1).offsetX, 0);
+});
+
+test("fractional render progress never ages effects past completion", () => {
+  const state = {
+    tick: 3,
+    history: [{
+      type: "use_item",
+      tick: 0,
+      target: { mapId: "farm", x: 2, y: 2 },
+      itemId: "axe",
+    }],
+  };
+  assert.equal(recentActionEffects(state, "farm", 3, 0.8)[0].age, 1);
+});
+
+test("tired cues rise and fade above the actor", () => {
+  const actor = { position: { x: 2, y: 3 }, motion: null };
+  const cues = tiredCueLayout(actor, 5, 0.5, 48);
+  assert.deepEqual(cues.map((cue) => cue.text), ["Z", "z", "z"]);
+  assert.ok(cues.every((cue) => cue.alpha >= 0 && cue.alpha <= 1));
+  assert.ok(cues.every((cue) => cue.y < (actor.position.y + 1) * 48));
 });
 
 test("charging station presentation follows remaining energy", () => {

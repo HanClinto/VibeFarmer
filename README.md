@@ -79,6 +79,8 @@ Movement and work now advance through fixed simulation ticks. Pausing stops tick
 
 Clear land, till soil, plant and water seeds, sleep through several days, harvest crops, and sell crops or logs. The human and robot have separate ten-slot inventories and stamina but share money. Fixed farm chests provide shared storage, and the adjacent robot can also act as player-accessible storage.
 
+Trees remain full-sized as they take damage, shaking and shedding leaves after each axe hit. When a farmhand lacks stamina for an action, rising Zs appear above them and the status strip explains how to recover: the player sleeps at home, while the robot can use its charging berth or a Solar Charging Station.
+
 - Turnip: 3 nights, one crop, inexpensive baseline.
 - Potato: 4 nights, deterministic 2-4 crop yield.
 - Corn: 5 nights, two-crop harvest, then regrows every 2 watered nights.

@@ -40,13 +40,19 @@ function drawSprite(context, sprites, frameId, left, top, scale) {
   return true;
 }
 
-function drawTree(context, object, scale, sprites) {
-  const left = object.position.x * scale;
+export function treeHitAnimation(age) {
+  const boundedAge = clamp(age, 0, 1);
+  return {
+    offsetX: Math.round(Math.sin(boundedAge * Math.PI * 6) * (1 - boundedAge) * 4) || 0,
+    leafProgress: boundedAge,
+  };
+}
+
+function drawTree(context, object, scale, sprites, impact) {
+  const animation = impact ? treeHitAnimation(impact.age) : { offsetX: 0 };
+  const left = (object.position.x * scale) + animation.offsetX;
   const top = object.position.y * scale;
-  const frameId = object.hitPoints < GAME_CONFIG.treeHitPoints
-    ? "entity.tree_small"
-    : "entity.tree";
-  if (drawSprite(context, sprites, frameId, left, top, scale)) return;
+  if (drawSprite(context, sprites, "entity.tree", left, top, scale)) return;
   context.fillStyle = COLORS.treeTrunk;
   context.fillRect(left + scale * 0.42, top + scale * 0.52, scale * 0.2, scale * 0.42);
   context.fillStyle = COLORS.treeLeaves;
@@ -259,7 +265,7 @@ function drawWorkFeedback(context, actor, work, scale, sprites) {
   }
 }
 
-export function recentActionEffects(state, mapId, lifetimeTicks = 3) {
+export function recentActionEffects(state, mapId, lifetimeTicks = 3, tickProgress = 0) {
   return state.history.filter((event) => (
     ["crop_harvested", "use_item"].includes(event.type)
       && event.target?.mapId === mapId
@@ -267,8 +273,15 @@ export function recentActionEffects(state, mapId, lifetimeTicks = 3) {
       && state.tick - event.tick <= lifetimeTicks
   )).map((event) => ({
     ...event,
-    age: (state.tick - event.tick) / lifetimeTicks,
+    age: Math.min(1, ((state.tick - event.tick) + tickProgress) / lifetimeTicks),
   }));
+}
+
+function treeImpactAt(effects, object) {
+  return effects.find((effect) => effect.type === "use_item"
+    && effect.itemId === "axe"
+    && effect.target.x === object.position.x
+    && effect.target.y === object.position.y);
 }
 
 function drawSparkle(context, x, y, size) {
@@ -305,9 +318,47 @@ function drawActionEffects(context, effects, scale) {
       drawSparkle(context, left + (scale / 2), top + (scale / 2), 4);
       context.fillRect(left + 10, top + 31, 4, 4);
       context.fillRect(left + 34, top + 17, 3, 3);
+      if (effect.itemId === "axe") {
+        const drift = effect.age * scale * 0.35;
+        context.fillStyle = "#75aa4f";
+        context.fillRect(left + 10 - drift, top + 9 + drift, 5, 3);
+        context.fillStyle = "#9bc36b";
+        context.fillRect(left + 31 + drift, top + 6 + (drift * 0.7), 4, 3);
+        context.fillStyle = "#4f823f";
+        context.fillRect(left + 23 - (drift * 0.4), top + 18 + drift, 4, 2);
+      }
     }
     context.restore();
   }
+}
+
+export function tiredCueLayout(actor, simulationTick, tickProgress, scale) {
+  const position = getActorRenderPosition(actor, simulationTick, tickProgress);
+  const phase = ((simulationTick + tickProgress) * 0.22) % 1;
+  return [0, 1, 2].map((index) => {
+    const progress = (phase + (index * 0.28)) % 1;
+    return {
+      text: index === 0 ? "Z" : "z",
+      x: (position.x * scale) + (scale * 0.68) + (index * scale * 0.13),
+      y: (position.y * scale) + (scale * 0.25) - (progress * scale * 0.65),
+      alpha: 1 - progress,
+    };
+  });
+}
+
+function drawTiredCue(context, actor, scale, simulationTick, tickProgress) {
+  context.save();
+  context.font = `bold ${Math.round(scale * 0.3)}px Georgia`;
+  context.textAlign = "center";
+  for (const cue of tiredCueLayout(actor, simulationTick, tickProgress, scale)) {
+    context.globalAlpha = cue.alpha;
+    context.lineWidth = 3;
+    context.strokeStyle = "#3f2631";
+    context.fillStyle = "#fff4cf";
+    context.strokeText(cue.text, cue.x, cue.y);
+    context.fillText(cue.text, cue.x, cue.y);
+  }
+  context.restore();
 }
 
 function drawTileFeedback(context, scale, preview, hoverTarget, actionTarget, currentMapId) {
@@ -410,6 +461,7 @@ export function renderGame(
     hoverTarget = null,
     actionTarget = null,
     focusActorId = "player",
+    tiredActorIds = new Set(),
   } = {},
 ) {
   const scale = RENDER_TILE_SIZE;
@@ -435,6 +487,7 @@ export function renderGame(
   });
   context.save();
   context.translate(-camera.x, -camera.y);
+  const actionEffects = recentActionEffects(state, currentMapId, 3, tickProgress);
 
   for (let y = 0; y < currentMap.height; y += 1) {
     for (let x = 0; x < currentMap.width; x += 1) {
@@ -451,7 +504,9 @@ export function renderGame(
 
   for (const object of Object.values(state.world.entities)) {
     if (object.mapId !== currentMapId) continue;
-    if (object.type === "tree") drawTree(context, object, scale, sprites);
+    if (object.type === "tree") {
+      drawTree(context, object, scale, sprites, treeImpactAt(actionEffects, object));
+    }
     else if (object.type === "plant") drawPlant(context, object, scale, sprites);
     else if (object.type === "chest") {
       drawChest(context, object, scale, sprites, openEntityIds.has(object.id));
@@ -495,6 +550,11 @@ export function renderGame(
       scale,
       sprites,
     );
+    if (tiredActorIds.has("player")
+      && !state.world.entities.player.sleeping
+      && state.world.entities.player.stamina < GAME_CONFIG.maxStamina) {
+      drawTiredCue(context, state.world.entities.player, scale, state.tick, tickProgress);
+    }
   }
   if (state.world.entities.robot.mapId === currentMapId) {
     drawActorWithHeldItem(
@@ -513,6 +573,11 @@ export function renderGame(
       scale,
       sprites,
     );
+    if (tiredActorIds.has("robot")
+      && !state.world.entities.robot.sleeping
+      && state.world.entities.robot.stamina < GAME_CONFIG.maxStamina) {
+      drawTiredCue(context, state.world.entities.robot, scale, state.tick, tickProgress);
+    }
   }
   drawTileFeedback(
     context,
@@ -522,7 +587,7 @@ export function renderGame(
     actionTarget,
     currentMapId,
   );
-  drawActionEffects(context, recentActionEffects(state, currentMapId), scale);
+  drawActionEffects(context, actionEffects, scale);
   context.restore();
   return camera;
 }
