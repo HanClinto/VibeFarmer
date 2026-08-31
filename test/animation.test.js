@@ -266,7 +266,7 @@ test("work feedback exposes shared cooldown progress and selected item", () => {
   assert.equal(operationWorkView(state, "player"), null);
 });
 
-test("active items descend and rotate a quarter-turn without shrinking", () => {
+test("active items descend and rotate with their mirrored orientation", () => {
   const actor = { position: { x: 4, y: 3 } };
   assert.deepEqual(activeItemRenderLayout(actor, {
     progress: 0,
@@ -278,16 +278,18 @@ test("active items descend and rotate a quarter-turn without shrinking", () => {
     rotation: 0,
     flipX: true,
   });
-  assert.deepEqual(activeItemRenderLayout(actor, {
-    progress: 1,
-    facing: "south",
-  }, 48), {
-    centerX: 216,
-    centerY: 168.8,
-    size: 48,
-    rotation: Math.PI / 2,
-    flipX: false,
-  });
+  const expected = {
+    north: { centerX: 216, centerY: 158.8, rotation: Math.PI / 2, flipX: true },
+    east: { centerX: 222, centerY: 163.8, rotation: Math.PI / 2, flipX: true },
+    south: { centerX: 216, centerY: 168.8, rotation: -Math.PI / 2, flipX: false },
+    west: { centerX: 210, centerY: 163.8, rotation: -Math.PI / 2, flipX: false },
+  };
+  for (const [facing, layout] of Object.entries(expected)) {
+    assert.deepEqual(activeItemRenderLayout(actor, { progress: 1, facing }, 48), {
+      ...layout,
+      size: 48,
+    });
+  }
 });
 
 test("recent action effects project map-local harvest yield and item impacts", () => {

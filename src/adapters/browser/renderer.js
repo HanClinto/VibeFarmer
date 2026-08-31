@@ -270,11 +270,12 @@ export function operationWorkView(state, actorId, tickProgress = 0) {
 export function activeItemRenderLayout(actor, work, scale) {
   const start = heldItemRenderLayout(actor.position, work.facing, scale);
   const progress = clamp(work.progress, 0, 1);
+  const rotationDirection = start.flipX ? 1 : -1;
   return {
     centerX: start.left + (scale / 2),
     centerY: start.top + (scale / 2) + (progress * scale * 0.6),
     size: scale,
-    rotation: progress * (Math.PI / 2),
+    rotation: progress * (Math.PI / 2) * rotationDirection,
     flipX: start.flipX,
   };
 }
