@@ -55,6 +55,8 @@ npm test
 
 Plain clicks prioritize portals, mature crops, and valid selected-item uses before ordinary movement. Occupied or blocked tiles with no meaningful selected-item action open Object Inspector instead. Moving the pointer across the farm highlights one adjacent action tile in that direction. While the pointer remains over the farm, Space or E uses that tile; leaving the farm returns keyboard actions to the actor's saved facing direction. Idle farmhands raise their full-size selected item above their head, with a subtle directional offset matching the action tile. During use, the item remains full-sized as it descends through a quarter-turn matching its mirrored orientation.
 
+Object Inspector includes a compact Actions section. It treats an owned item in any slot as available and mentions its slot; current selection is shown only as a convenience. These human-facing hints do not add action metadata to the default WebMCP inspection payload.
+
 Interact with a mature crop to harvest it regardless of the selected hotbar item.
 Crop tiles are walkable. Hoeing a stage-0 crop refunds its seed; hoeing a later crop destroys it.
 Nearby contextual actions appear automatically in the game menu. Beside a produce display, choose Open Market to trade using shared money; both farmhands must be beside the market to buy or sell.

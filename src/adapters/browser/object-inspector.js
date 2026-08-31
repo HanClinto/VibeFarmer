@@ -1,10 +1,79 @@
 import { renderJson } from "./json-view.js";
+import { ITEM_TYPES } from "../../game/world/entities/items/item-types.js";
 
 function titleCase(value) {
   return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-export function objectInspectionView(inspection) {
+function itemCapability(actor, itemId) {
+  const item = ITEM_TYPES[itemId];
+  const slotIndex = actor?.inventory?.findIndex((stack) => stack?.itemId === itemId) ?? -1;
+  if (slotIndex < 0) return `Requires ${item.name}`;
+  return actor.selectedSlot === slotIndex + 1
+    ? `${item.name} selected`
+    : `${item.name} · slot ${slotIndex + 1}`;
+}
+
+function seedCapability(actor) {
+  const slotIndex = actor?.inventory?.findIndex(
+    (stack) => stack && ITEM_TYPES[stack.itemId]?.category === "seed",
+  ) ?? -1;
+  if (slotIndex < 0) return "Requires Seeds";
+  const item = ITEM_TYPES[actor.inventory[slotIndex].itemId];
+  return actor.selectedSlot === slotIndex + 1
+    ? `${item.name} selected`
+    : `${item.name} · slot ${slotIndex + 1}`;
+}
+
+export function objectActionHints(inspection, actor) {
+  if (!inspection.success) return [];
+  const entity = inspection.entities[0] ?? null;
+  if (entity?.type === "tree") return [["Chop", itemCapability(actor, "axe")]];
+  if (entity?.type === "plant") {
+    return [["Harvest", entity.harvestReady ? "Ready" : "Not ready"]];
+  }
+  if (entity?.type === "chest") {
+    return [["Open storage", entity.inventory ? "Ready" : "Move closer"]];
+  }
+  if (entity?.type === "market") {
+    return [["Trade", entity.canTrade ? "Ready" : "Move closer"]];
+  }
+  if (entity?.type === "bed") {
+    return [["Sleep", entity.actorId === actor?.id
+      ? entity.canSleep ? "Ready" : "Move closer"
+      : "Robot only"]];
+  }
+  if (entity?.type === "actor" && entity.role === "robot") {
+    return [["Open storage", entity.inventory ? "Ready" : "Move closer"]];
+  }
+  if (entity?.type === "recharge_station") {
+    return [["Recharge robot", entity.charge > 0 ? "Robot only" : "Empty until morning"]];
+  }
+  if (entity) return [];
+  if (inspection.terrain.type === "grass") {
+    const hints = [["Till", itemCapability(actor, "hoe")]];
+    if (actor?.inventory?.some((stack) => stack?.itemId === "recharge_station")) {
+      hints.push(["Place station", itemCapability(actor, "recharge_station")]);
+    }
+    return hints;
+  }
+  if (inspection.terrain.type === "tilled") {
+    return [
+      ["Water", itemCapability(actor, "watering_can")],
+      ["Plant", seedCapability(actor)],
+    ];
+  }
+  if (inspection.terrain.type === "wet_tilled") {
+    return [["Plant", seedCapability(actor)]];
+  }
+  if (inspection.terrain.type === "path"
+    && actor?.inventory?.some((stack) => stack?.itemId === "recharge_station")) {
+    return [["Place station", itemCapability(actor, "recharge_station")]];
+  }
+  return [];
+}
+
+export function objectInspectionView(inspection, actor = null) {
   if (!inspection.success) return { title: "Inspection failed", sections: [] };
   const sections = inspection.entities.map((entity) => {
     const fields = [];
@@ -42,6 +111,10 @@ export function objectInspectionView(inspection) {
     }
     return { title: entity.name, fields, entity };
   });
+  const actions = objectActionHints(inspection, actor);
+  if (actions.length > 0) {
+    sections.push({ title: "Actions", fields: actions, entity: null });
+  }
   sections.push({
     title: "Terrain",
     fields: [
@@ -87,8 +160,9 @@ export function createObjectInspector({
 
   function refresh() {
     if (root.hidden || !target) return;
-    const inspection = inspect(controller.getSnapshot(), "player", target);
-    const view = objectInspectionView(inspection);
+    const state = controller.getSnapshot();
+    const inspection = inspect(state, "player", target);
+    const view = objectInspectionView(inspection, state.world.entities.player);
     storageEntityId = view.storageEntityId;
     marketEntityId = view.marketEntityId;
     sleepEntityId = view.sleepEntityId;

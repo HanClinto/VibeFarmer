@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { objectInspectionView } from "../src/adapters/browser/object-inspector.js";
+import {
+  objectActionHints,
+  objectInspectionView,
+} from "../src/adapters/browser/object-inspector.js";
 
 test("object inspection view presents crop state and terrain without parsing raw JSON", () => {
   const view = objectInspectionView({
@@ -111,4 +114,53 @@ test("charging station inspection presents energy and robot access", () => {
     ["Blocks movement", "Yes"],
     ["Robot recharge", "Move robot closer"],
   ]);
+});
+
+test("action hints distinguish owned items from current selection", () => {
+  const actor = {
+    id: "player",
+    selectedSlot: 2,
+    inventory: [
+      { itemId: "axe", quantity: 1 },
+      { itemId: "hoe", quantity: 1 },
+      null,
+      { itemId: "turnip_seeds", quantity: 3 },
+    ],
+  };
+  const inspection = {
+    success: true,
+    terrain: { type: "grass" },
+    entities: [{ type: "tree" }],
+  };
+
+  assert.deepEqual(objectActionHints(inspection, actor), [["Chop", "Axe · slot 1"]]);
+  actor.selectedSlot = 1;
+  assert.deepEqual(objectActionHints(inspection, actor), [["Chop", "Axe selected"]]);
+});
+
+test("action hints stay compact for crops and farmable terrain", () => {
+  const actor = {
+    id: "player",
+    selectedSlot: 1,
+    inventory: [{ itemId: "axe", quantity: 1 }, null, null, null],
+  };
+
+  assert.deepEqual(objectActionHints({
+    success: true,
+    terrain: { type: "grass" },
+    entities: [],
+  }, actor), [["Till", "Requires Hoe"]]);
+  assert.deepEqual(objectActionHints({
+    success: true,
+    terrain: { type: "tilled" },
+    entities: [],
+  }, actor), [
+    ["Water", "Requires Watering Can"],
+    ["Plant", "Requires Seeds"],
+  ]);
+  assert.deepEqual(objectActionHints({
+    success: true,
+    terrain: { type: "tilled" },
+    entities: [{ type: "plant", harvestReady: false }],
+  }, actor), [["Harvest", "Not ready"]]);
 });
