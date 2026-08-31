@@ -53,7 +53,7 @@ npm test
 | Space / E | Use the selected item on the faced tile |
 | Escape | Close the frontmost open window |
 
-Moving the pointer across the farm highlights one adjacent action tile in that direction. While the pointer remains over the farm, Space or E uses that tile; leaving the farm returns keyboard actions to the actor's saved facing direction. Idle farmhands raise their selected item above their head, with a subtle directional offset matching the action tile.
+Moving the pointer across the farm highlights one adjacent action tile in that direction. While the pointer remains over the farm, Space or E uses that tile; leaving the farm returns keyboard actions to the actor's saved facing direction. Idle farmhands raise their full-size selected item above their head, with a subtle directional offset matching the action tile. During use, the item remains full-sized as it descends and rotates 90 degrees.
 
 Interact with a mature crop to harvest it regardless of the selected hotbar item.
 Crop tiles are walkable. Hoeing a stage-0 crop refunds its seed; hoeing a later crop destroys it.

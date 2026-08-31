@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  activeItemRenderLayout,
   actorHeldItemView,
   chestFrameId,
   getActorRenderPosition,
@@ -235,6 +236,8 @@ test("work feedback exposes shared cooldown progress and selected item", () => {
       entities: {
         player: {
           activeIntent: "operation-1",
+          position: { x: 3, y: 3 },
+          facing: "south",
           selectedSlot: 1,
           inventory: [{ itemId: "axe", quantity: 1 }],
         },
@@ -244,7 +247,10 @@ test("work feedback exposes shared cooldown progress and selected item", () => {
       "operation-1": {
         phase: "working",
         cooldown: 1,
-        command: { item: { itemId: "watering_can" } },
+        command: {
+          target: { x: 4, y: 3 },
+          item: { itemId: "watering_can" },
+        },
       },
     },
   };
@@ -253,9 +259,35 @@ test("work feedback exposes shared cooldown progress and selected item", () => {
     progress: 0.5,
     itemId: "watering_can",
     action: "use_item",
+    facing: "east",
   });
+  assert.equal(operationWorkView(state, "player", 0.5).progress, 0.75);
   state.operations["operation-1"].phase = "moving";
   assert.equal(operationWorkView(state, "player"), null);
+});
+
+test("active items descend and rotate a quarter-turn without shrinking", () => {
+  const actor = { position: { x: 4, y: 3 } };
+  assert.deepEqual(activeItemRenderLayout(actor, {
+    progress: 0,
+    facing: "east",
+  }, 48), {
+    centerX: 222,
+    centerY: 135,
+    size: 48,
+    rotation: 0,
+    flipX: true,
+  });
+  assert.deepEqual(activeItemRenderLayout(actor, {
+    progress: 1,
+    facing: "south",
+  }, 48), {
+    centerX: 216,
+    centerY: 168.8,
+    size: 48,
+    rotation: Math.PI / 2,
+    flipX: false,
+  });
 });
 
 test("recent action effects project map-local harvest yield and item impacts", () => {

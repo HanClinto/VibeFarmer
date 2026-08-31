@@ -243,20 +243,58 @@ export function operationPreview(state, actorId) {
   };
 }
 
-export function operationWorkView(state, actorId) {
+export function operationWorkView(state, actorId, tickProgress = 0) {
   const actor = state.world.entities[actorId];
   const operation = actor?.activeIntent ? state.operations[actor.activeIntent] : null;
   if (!operation || operation.phase !== "working") return null;
   const selected = actor.inventory[actor.selectedSlot - 1];
+  const target = operation.command.target;
+  const deltaX = target?.x - actor.position.x;
+  const deltaY = target?.y - actor.position.y;
+  const facing = Math.abs(deltaX) + Math.abs(deltaY) === 1
+    ? deltaX < 0 ? "west" : deltaX > 0 ? "east" : deltaY < 0 ? "north" : "south"
+    : actor.facing;
   return {
     progress: clamp(
-      (GAME_CONFIG.workCooldownTicks - operation.cooldown) / GAME_CONFIG.workCooldownTicks,
+      (GAME_CONFIG.workCooldownTicks - operation.cooldown + tickProgress)
+        / GAME_CONFIG.workCooldownTicks,
       0,
       1,
     ),
     itemId: operation.command.item?.itemId ?? selected?.itemId ?? null,
     action: operation.command.item?.action ?? "use_item",
+    facing,
   };
+}
+
+export function activeItemRenderLayout(actor, work, scale) {
+  const start = heldItemRenderLayout(actor.position, work.facing, scale);
+  const progress = clamp(work.progress, 0, 1);
+  return {
+    centerX: start.left + (scale / 2),
+    centerY: start.top + (scale / 2) + (progress * scale * 0.6),
+    size: scale,
+    rotation: progress * (Math.PI / 2),
+    flipX: start.flipX,
+  };
+}
+
+function drawActiveItem(context, sprites, frameId, layout) {
+  const frame = sprites?.frames[frameId];
+  if (!frame) return false;
+  context.save();
+  context.translate(layout.centerX, layout.centerY);
+  context.rotate(layout.rotation);
+  if (layout.flipX) context.scale(-1, 1);
+  context.drawImage(
+    frame.image,
+    -(layout.size / 2),
+    -(layout.size / 2),
+    layout.size,
+    layout.size,
+  );
+  context.restore();
+  return true;
 }
 
 function drawWorkFeedback(context, actor, work, scale, sprites) {
@@ -268,13 +306,11 @@ function drawWorkFeedback(context, actor, work, scale, sprites) {
   context.fillStyle = actor.role === "robot" ? "#67d4d0" : "#f4d35e";
   context.fillRect(left + 7, top + scale - 7, (scale - 14) * work.progress, 3);
   if (work.itemId) {
-    drawSprite(
+    drawActiveItem(
       context,
       sprites,
       `item.${work.itemId}`,
-      left + scale - 20,
-      top + 2,
-      18,
+      activeItemRenderLayout(actor, work, scale),
     );
   }
 }
@@ -560,7 +596,7 @@ export function renderGame(
     drawWorkFeedback(
       context,
       state.world.entities.player,
-      operationWorkView(state, "player"),
+      operationWorkView(state, "player", tickProgress),
       scale,
       sprites,
     );
@@ -583,7 +619,7 @@ export function renderGame(
     drawWorkFeedback(
       context,
       state.world.entities.robot,
-      operationWorkView(state, "robot"),
+      operationWorkView(state, "robot", tickProgress),
       scale,
       sprites,
     );
