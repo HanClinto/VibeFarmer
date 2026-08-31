@@ -22,6 +22,10 @@ The promoted frame is copied from stage 2. `android-farmhand-raised.png` applies
 
 `battery_charger_full.png`, `battery_charger_med.png`, `battery_charger_almost_empty.png`, and `battery_charger_empty.png` are Vibe Farmer project art. The four native 16x16 frames share one silhouette and show the station's remaining 40-unit solar charge.
 
+## Wood Axe
+
+`item-wood-axe.png` is Vibe Farmer project art. Its single-bit transparency, wood handle, and one-sided steel head replace the double-sided battle axe previously used for the farm tool.
+
 ## Watered Soil
 
 `soil-wet.png` is a directionless dark recolor of Kenney Tiny Town `tile_0025`, replacing the directional furrows from Tiny Farm. The dry source color `#EAA56C` maps to `#9A6B57`; silhouette and dimensions remain unchanged. This lets players till free-form plots without every tile implying a horizontal or vertical planting row.

@@ -99,7 +99,7 @@
     "crop.pumpkin.3": { "file": "original/crop-pumpkin-mature.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0056", "modification": "Vibe Farmer orange/yellow recolor of the CC0 mature leafy crop" },
     "item.pumpkin": { "file": "original/item-pumpkin.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0056", "modification": "Vibe Farmer orange/yellow recolor of the CC0 mature leafy crop" },
     "item.pumpkin_seeds": { "file": "kenney/tiny-farm/items/pumpkin-seeds.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0010" },
-    "item.axe": { "file": "kenney/tiny-dungeon/axe.png", "source": "kenney-tiny-dungeon", "sourceFrame": "tile_0118" },
+    "item.axe": { "file": "original/item-wood-axe.png", "source": "vibe-farmer", "sourceFrame": "original:item_wood_axe" },
     "item.logs": { "file": "kenney/tiny-town/log.png", "source": "kenney-tiny-town", "sourceFrame": "tile_0106" },
     "item.coin": { "file": "kenney/tiny-town/coin.png", "source": "kenney-tiny-town", "sourceFrame": "tile_0093" },
     "item.watering_can": { "file": "kenney/tiny-farm/watering-can.png", "source": "kenney-tiny-farm", "sourceFrame": "tile_0084" },

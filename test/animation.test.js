@@ -64,11 +64,25 @@ test("held items render at one full tile above the raised actor", () => {
     left: 192,
     top: 106,
     size: 48,
+    flipX: true,
   });
   assert.deepEqual(heldItemRenderLayout({ x: 4, y: 3 }, "east", 48), {
     left: 198,
     top: 111,
     size: 48,
+    flipX: true,
+  });
+  assert.deepEqual(heldItemRenderLayout({ x: 4, y: 3 }, "south", 48), {
+    left: 192,
+    top: 116,
+    size: 48,
+    flipX: false,
+  });
+  assert.deepEqual(heldItemRenderLayout({ x: 4, y: 3 }, "west", 48), {
+    left: 186,
+    top: 111,
+    size: 48,
+    flipX: false,
   });
 });
 

@@ -40,6 +40,18 @@ function drawSprite(context, sprites, frameId, left, top, scale) {
   return true;
 }
 
+function drawSpriteFlipped(context, sprites, frameId, left, top, scale, flipX) {
+  if (!flipX) return drawSprite(context, sprites, frameId, left, top, scale);
+  const frame = sprites?.frames[frameId];
+  if (!frame) return false;
+  context.save();
+  context.translate((left * 2) + scale, 0);
+  context.scale(-1, 1);
+  context.drawImage(frame.image, left, top, scale, scale);
+  context.restore();
+  return true;
+}
+
 export function treeHitAnimation(age) {
   const boundedAge = clamp(age, 0, 1);
   return {
@@ -146,6 +158,7 @@ export function heldItemRenderLayout(position, facing, scale) {
     left: (position.x * scale) + offset.x,
     top: (position.y * scale) - Math.round(scale * 0.68) + offset.y,
     size: scale,
+    flipX: facing === "north" || facing === "east",
   };
 }
 
@@ -153,13 +166,14 @@ function drawHeldItem(context, actor, heldItemView, scale, simulationTick, tickP
   if (!heldItemView) return;
   const position = getActorRenderPosition(actor, simulationTick, tickProgress);
   const layout = heldItemRenderLayout(position, heldItemView.facing, scale);
-  drawSprite(
+  drawSpriteFlipped(
     context,
     sprites,
     `item.${heldItemView.itemId}`,
     layout.left,
     layout.top,
     layout.size,
+    layout.flipX,
   );
 }
 
