@@ -177,6 +177,10 @@ function drawHeldItem(context, actor, heldItemView, scale, simulationTick, tickP
   );
 }
 
+export function itemLayerForFacing(facing) {
+  return facing === "north" ? "behind" : "front";
+}
+
 function drawActorWithHeldItem(
   context,
   actor,
@@ -187,8 +191,13 @@ function drawActorWithHeldItem(
   actionTarget,
 ) {
   const heldItemView = actorHeldItemView(actor, actionTarget);
+  if (heldItemView && itemLayerForFacing(heldItemView.facing) === "behind") {
+    drawHeldItem(context, actor, heldItemView, scale, simulationTick, tickProgress, sprites);
+  }
   drawActor(context, actor, scale, simulationTick, tickProgress, sprites, heldItemView);
-  drawHeldItem(context, actor, heldItemView, scale, simulationTick, tickProgress, sprites);
+  if (heldItemView && itemLayerForFacing(heldItemView.facing) === "front") {
+    drawHeldItem(context, actor, heldItemView, scale, simulationTick, tickProgress, sprites);
+  }
 }
 
 function drawPlant(context, plant, scale, sprites) {
@@ -298,7 +307,17 @@ function drawActiveItem(context, sprites, frameId, layout) {
   return true;
 }
 
-function drawWorkFeedback(context, actor, work, scale, sprites) {
+function drawActiveWorkItem(context, actor, work, scale, sprites, layer) {
+  if (!work?.itemId || itemLayerForFacing(work.facing) !== layer) return;
+  drawActiveItem(
+    context,
+    sprites,
+    `item.${work.itemId}`,
+    activeItemRenderLayout(actor, work, scale),
+  );
+}
+
+function drawWorkProgress(context, actor, work, scale) {
   if (!work) return;
   const left = actor.position.x * scale;
   const top = actor.position.y * scale;
@@ -306,14 +325,6 @@ function drawWorkFeedback(context, actor, work, scale, sprites) {
   context.fillRect(left + 6, top + scale - 8, scale - 12, 5);
   context.fillStyle = actor.role === "robot" ? "#67d4d0" : "#f4d35e";
   context.fillRect(left + 7, top + scale - 7, (scale - 14) * work.progress, 3);
-  if (work.itemId) {
-    drawActiveItem(
-      context,
-      sprites,
-      `item.${work.itemId}`,
-      activeItemRenderLayout(actor, work, scale),
-    );
-  }
 }
 
 export function recentActionEffects(state, mapId, lifetimeTicks = 3, tickProgress = 0) {
@@ -585,6 +596,15 @@ export function renderGame(
   }
 
   if (state.world.entities.player.mapId === currentMapId) {
+    const playerWork = operationWorkView(state, "player", tickProgress);
+    drawActiveWorkItem(
+      context,
+      state.world.entities.player,
+      playerWork,
+      scale,
+      sprites,
+      "behind",
+    );
     drawActorWithHeldItem(
       context,
       state.world.entities.player,
@@ -594,13 +614,15 @@ export function renderGame(
       sprites,
       focusActorId === "player" ? actionTarget : null,
     );
-    drawWorkFeedback(
+    drawActiveWorkItem(
       context,
       state.world.entities.player,
-      operationWorkView(state, "player", tickProgress),
+      playerWork,
       scale,
       sprites,
+      "front",
     );
+    drawWorkProgress(context, state.world.entities.player, playerWork, scale);
     if (tiredActorIds.has("player")
       && !state.world.entities.player.sleeping
       && state.world.entities.player.stamina < GAME_CONFIG.maxStamina) {
@@ -608,6 +630,15 @@ export function renderGame(
     }
   }
   if (state.world.entities.robot.mapId === currentMapId) {
+    const robotWork = operationWorkView(state, "robot", tickProgress);
+    drawActiveWorkItem(
+      context,
+      state.world.entities.robot,
+      robotWork,
+      scale,
+      sprites,
+      "behind",
+    );
     drawActorWithHeldItem(
       context,
       state.world.entities.robot,
@@ -617,13 +648,15 @@ export function renderGame(
       sprites,
       null,
     );
-    drawWorkFeedback(
+    drawActiveWorkItem(
       context,
       state.world.entities.robot,
-      operationWorkView(state, "robot", tickProgress),
+      robotWork,
       scale,
       sprites,
+      "front",
     );
+    drawWorkProgress(context, state.world.entities.robot, robotWork, scale);
     if (tiredActorIds.has("robot")
       && !state.world.entities.robot.sleeping
       && state.world.entities.robot.stamina < GAME_CONFIG.maxStamina) {

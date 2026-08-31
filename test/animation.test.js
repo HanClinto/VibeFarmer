@@ -7,6 +7,7 @@ import {
   chestFrameId,
   getActorRenderPosition,
   heldItemRenderLayout,
+  itemLayerForFacing,
   operationPreview,
   operationWorkView,
   recentActionEffects,
@@ -85,6 +86,91 @@ test("held items render at one full tile above the raised actor", () => {
     size: 48,
     flipX: false,
   });
+});
+
+test("north-facing items render behind the actor", () => {
+  assert.equal(itemLayerForFacing("north"), "behind");
+  assert.equal(itemLayerForFacing("east"), "front");
+  assert.equal(itemLayerForFacing("south"), "front");
+  assert.equal(itemLayerForFacing("west"), "front");
+});
+
+test("held item draw order changes when facing north", () => {
+  function drawOrder(facing, working = false) {
+    const images = [];
+    const state = {
+      tick: 0,
+      history: [],
+      operations: working ? {
+        "operation-1": {
+          phase: "working",
+          cooldown: 1,
+          path: [],
+          command: {
+            target: facing === "north" ? { x: 0, y: -1 } : { x: 0, y: 1 },
+            item: { itemId: "axe" },
+          },
+        },
+      } : {},
+      world: {
+        maps: {
+          farm: { id: "farm", width: 1, height: 1, terrain: [["grass"]] },
+          away: { id: "away", width: 1, height: 1, terrain: [["grass"]] },
+        },
+        entities: {
+          player: {
+            id: "player",
+            type: "actor",
+            role: "human",
+            mapId: "farm",
+            position: { x: 0, y: 0 },
+            facing,
+            sleeping: false,
+            activeIntent: working ? "operation-1" : null,
+            selectedSlot: 1,
+            inventory: [{ itemId: "axe", quantity: 1 }],
+          },
+          robot: {
+            id: "robot",
+            type: "actor",
+            role: "robot",
+            mapId: "away",
+            position: { x: 0, y: 0 },
+            sleeping: true,
+            activeIntent: null,
+            selectedSlot: 1,
+            inventory: [],
+          },
+        },
+      },
+    };
+    const context = {
+      canvas: { width: 48, height: 48 },
+      clearRect() {},
+      fillRect() {},
+      strokeRect() {},
+      drawImage(image) { images.push(image.id); },
+      save() {},
+      restore() {},
+      translate() {},
+      rotate() {},
+      scale() {},
+    };
+    const sprites = { frames: {
+      "terrain.grass": { image: { id: "terrain" } },
+      "actor.farmhand_b.south": { image: { id: "actor" } },
+      "actor.farmhand_b.raised": { image: { id: "actor" } },
+      "item.axe": { image: { id: "item" } },
+    } };
+
+    renderGame(context, state, { sprites });
+    return images;
+  }
+
+  assert.deepEqual(drawOrder("north"), ["item", "actor"]);
+  assert.deepEqual(drawOrder("south"), ["actor", "item"]);
+  assert.deepEqual(drawOrder("north", true), ["item", "actor"]);
+  assert.deepEqual(drawOrder("south", true), ["actor", "item"]);
 });
 
 test("completed transitions render at the authoritative tile", () => {
