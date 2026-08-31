@@ -11,8 +11,8 @@ Vibe Farmer is an entry for the [OpenAI WebMCP Challenge](https://openai.com/web
 The first executable slice demonstrates the shared control contract:
 
 - Deterministic A* movement for both actors.
-- Player left-click and robot `move_to` use the same intent.
-- Player Shift-click and robot `interact_at` path adjacent to a target and use one item.
+- Player clicks resolve to the same `move_to` or `interact_at` intents available to the robot.
+- Player Shift-click/right-click inspects without acting; robot inspection uses `inspect_game`.
 - Player hotbar slots use keys `1` through `0`.
 - Robot actions may identify the same owned item by slot or stable item ID.
 - Neither actor receives bulk gameplay shortcuts.
@@ -46,14 +46,14 @@ npm test
 
 | Input | Action |
 | --- | --- |
-| Left-click | Walk to a reachable tile |
-| Shift-click | Walk adjacent to the target and use the selected item once |
+| Left-click | Use the selected item on a valid target, harvest a mature crop, or walk to open ground |
+| Shift-click / Right-click | Inspect a tile without acting |
 | Arrow keys / WASD | Move one tile |
 | `1`-`0` | Select one of ten inventory slots |
 | Space / E | Use the selected item on the faced tile |
 | Escape | Close the frontmost open window |
 
-Moving the pointer across the farm highlights one adjacent action tile in that direction. While the pointer remains over the farm, Space or E uses that tile; leaving the farm returns keyboard actions to the actor's saved facing direction. Idle farmhands raise their full-size selected item above their head, with a subtle directional offset matching the action tile. During use, the item remains full-sized as it descends through a quarter-turn matching its mirrored orientation.
+Plain clicks prioritize portals, mature crops, and valid selected-item uses before ordinary movement. Occupied or blocked tiles with no meaningful selected-item action open Object Inspector instead. Moving the pointer across the farm highlights one adjacent action tile in that direction. While the pointer remains over the farm, Space or E uses that tile; leaving the farm returns keyboard actions to the actor's saved facing direction. Idle farmhands raise their full-size selected item above their head, with a subtle directional offset matching the action tile. During use, the item remains full-sized as it descends through a quarter-turn matching its mirrored orientation.
 
 Interact with a mature crop to harvest it regardless of the selected hotbar item.
 Crop tiles are walkable. Hoeing a stage-0 crop refunds its seed; hoeing a later crop destroys it.

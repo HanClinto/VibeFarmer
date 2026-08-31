@@ -704,8 +704,9 @@ marketWindow.addEventListener("click", (event) => {
     itemId: button.dataset.itemId,
     quantity: 1,
   });
-  marketStatus.textContent = result.code;
-  refresh(result.success ? result.code : `Cannot trade: ${result.code}`);
+  const message = result.success ? result.code : actionFailureMessage(result.code);
+  marketStatus.textContent = message;
+  refresh(message);
 });
 
 document.querySelector("#inspector-button").addEventListener("click", () => {
@@ -735,9 +736,10 @@ storageWindow.addEventListener("click", (event) => {
     itemId: button.dataset.itemId,
     quantity,
   });
-  storageStatus.textContent = result.code;
+  const message = result.success ? result.code : actionFailureMessage(result.code);
+  storageStatus.textContent = message;
   storageSignature = null;
-  refresh(result.success ? result.code : `Cannot transfer: ${result.code}`);
+  refresh(message);
 });
 
 document.querySelector(".speed-controls").addEventListener("click", (event) => {
@@ -752,7 +754,7 @@ document.querySelector(".speed-controls").addEventListener("click", (event) => {
 });
 
 document.querySelector("#help-button").addEventListener("click", () => {
-  window.alert("Left-click to walk. Use Arrow keys or WASD to step. Shift-click a target, or press Space/E to use the selected item on the faced tile. Keys 1-0 select inventory slots.");
+  window.alert("Click a valid target to use the selected item, or click open ground to walk. Shift-click or right-click any tile to inspect it. Arrow keys or WASD move one step; Space/E uses the highlighted adjacent tile. Keys 1-0 select inventory slots.");
 });
 
 refresh();
