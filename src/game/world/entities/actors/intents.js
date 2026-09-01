@@ -127,6 +127,11 @@ export function submitInteractAt(state, actorId, target, selector = {}) {
   const route = interactionRoute(state, actorId, target);
   if (!route) return outcome(false, "INTERACTION_UNREACHABLE");
 
+  if (validation.slot) {
+    getActor(state, actorId).selectedSlot = validation.slot;
+    selector = { ...selector, itemId: validation.item.itemId };
+  }
+
   return createOperation(state, actorId, {
     type: "interact_at",
     target: { ...target },

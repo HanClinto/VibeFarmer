@@ -15,6 +15,7 @@ The first executable slice demonstrates the shared control contract:
 - Player Shift-click/right-click inspects without acting; robot inspection uses `inspect_game`.
 - Player hotbar slots use keys `1` through `0`.
 - Robot actions may identify the same owned item by slot or stable item ID.
+- Accepted item jobs select that item's slot and keep it selected after work completes.
 - Neither actor receives bulk gameplay shortcuts.
 
 The broader MVP is specified in [docs/plans/mvp-plan.md](docs/plans/mvp-plan.md).

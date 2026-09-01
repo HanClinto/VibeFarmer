@@ -151,6 +151,61 @@ test("interact_at uses an adjacent target without walking away first", () => {
   assert.equal(state.world.entities["tree-1"].hitPoints, GAME_CONFIG.treeHitPoints - 1);
 });
 
+test("item jobs select and retain the robot inventory slot they use", () => {
+  const state = createGameState();
+  const robot = state.world.entities.robot;
+  robot.sleeping = false;
+  state.world.terrain[2][2] = "tilled";
+  const controller = createController(state);
+
+  const watering = controller.submit({
+    type: "interact_at",
+    actorId: "robot",
+    target: { x: 2, y: 2 },
+    item: { itemId: "watering_can" },
+  });
+  assert.equal(watering.success, true);
+  assert.equal(robot.selectedSlot, 3);
+  assert.deepEqual(state.operations[watering.operationId].command.item, {
+    itemId: "watering_can",
+  });
+  runToCompletion(controller, watering.operationId);
+  assert.equal(robot.selectedSlot, 3);
+
+  const planting = controller.submit({
+    type: "interact_at",
+    actorId: "robot",
+    target: { x: 2, y: 2 },
+    item: { itemId: "turnip_seeds" },
+  });
+  assert.equal(planting.success, true);
+  assert.equal(robot.selectedSlot, 4);
+  assert.deepEqual(state.operations[planting.operationId].command.item, {
+    itemId: "turnip_seeds",
+  });
+  runToCompletion(controller, planting.operationId);
+  assert.equal(robot.selectedSlot, 4);
+});
+
+test("rejected item jobs preserve the robot selected slot", () => {
+  const state = createGameState();
+  const robot = state.world.entities.robot;
+  robot.sleeping = false;
+  robot.selectedSlot = 2;
+  const controller = createController(state);
+
+  const rejected = controller.submit({
+    type: "interact_at",
+    actorId: "robot",
+    target: { x: 2, y: 2 },
+    item: { itemId: "watering_can" },
+  });
+
+  assert.equal(rejected.success, false);
+  assert.equal(rejected.code, "INVALID_WATER_TARGET");
+  assert.equal(robot.selectedSlot, 2);
+});
+
 test("mature crops harvest before held-item use for either actor", () => {
   for (const [actorId, heldItem] of [
     ["player", { itemId: "axe", quantity: 1 }],
