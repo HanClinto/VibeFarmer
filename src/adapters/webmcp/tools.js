@@ -30,10 +30,8 @@ function marketInventory() {
   };
 }
 
-export function inspectMarket(controller) {
-  const state = controller.getSnapshot();
-  const robot = state.world.entities.robot;
-  const ungrouped = Object.values(state.world.entities)
+function groupMarkets(entities) {
+  const ungrouped = entities
     .filter((entity) => entity.type === "market")
     .sort((first, second) => first.id.localeCompare(second.id));
   const marketGroups = [];
@@ -58,11 +56,20 @@ export function inspectMarket(controller) {
       tiles: group.map((entity) => ({ ...entity.position })),
     });
   }
-  const markets = marketGroups
+  return marketGroups
     .sort((first, second) => first.id.localeCompare(second.id))
     .map((market) => ({
       ...market,
       tiles: market.tiles.sort((first, second) => first.y - second.y || first.x - second.x),
+    }));
+}
+
+export function inspectMarket(controller) {
+  const state = controller.getSnapshot();
+  const robot = state.world.entities.robot;
+  const markets = groupMarkets(Object.values(state.world.entities))
+    .map((market) => ({
+      ...market,
       canTrade: market.mapId === robot.mapId && market.tiles.some(
         (position) => Math.abs(position.x - robot.position.x)
           + Math.abs(position.y - robot.position.y) === 1,
@@ -73,6 +80,36 @@ export function inspectMarket(controller) {
     markets,
     inventory: marketInventory(),
   });
+}
+
+function worldCounts(map, entities) {
+  const plants = entities.filter((entity) => entity.type === "plant");
+  const watered = plants.filter(
+    (plant) => map.terrain[plant.position.y][plant.position.x] === "wet_tilled",
+  ).length;
+  const harvestReady = plants.filter(
+    (plant) => plant.growthStage >= plant.matureStage,
+  ).length;
+  function count(type) {
+    return entities.filter((entity) => entity.type === type).length;
+  }
+  return {
+    mapId: map.id,
+    trees: count("tree"),
+    rocks: count("rock"),
+    chests: count("chest"),
+    markets: groupMarkets(entities).length,
+    rechargeStations: count("recharge_station"),
+    beds: count("bed"),
+    portals: count("portal"),
+    crops: {
+      total: plants.length,
+      growing: plants.length - harvestReady,
+      harvestReady,
+      watered,
+      dry: plants.length - watered,
+    },
+  };
 }
 
 const DEFAULT_INSPECTION_TYPES = Object.freeze([
@@ -334,6 +371,7 @@ export function inspectGame(controller, {
     money: state.money,
     robot: robotState(state),
     map: { id: selectedMapId, width: map.width, height: map.height },
+    worldCounts: worldCounts(map, mapEntities),
     view: {
       center,
       radius: boundedRadius,
@@ -386,7 +424,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     {
       name: "inspect_game",
       title: "Inspect game",
-      description: "Inspect the robot and a compact ASCII area around it by default. Optionally choose a map, center, radius, entity types, bounded history, or detailed mode with full-map counts and terrain. Use inspect_market only when planning trade. Player inventory is private.",
+      description: "Inspect the robot, curated selected-map counts, and a compact ASCII area around it by default. Optionally choose a map, center, radius, entity types, bounded history, or detailed mode with raw counts and terrain. Use inspect_market only when planning trade. Player inventory is private.",
       inputSchema: {
         type: "object",
         properties: {

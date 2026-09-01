@@ -73,7 +73,7 @@ test("unsupported browsers retain locally invokable tool definitions", async () 
   assert.equal(registration.tools.length, 10);
 });
 
-test("world inspection exposes local robot context without market listings", () => {
+test("world inspection exposes local context and curated counts without market listings", () => {
   const inspected = inspectGame(createController(createGameState()));
   const player = inspected.entities.find((entity) => entity.id === "player");
   const robot = inspected.entities.find((entity) => entity.id === "robot");
@@ -81,6 +81,17 @@ test("world inspection exposes local robot context without market listings", () 
   assert.equal("market" in inspected, false);
   assert.equal("entityCounts" in inspected, false);
   assert.equal("cropCounts" in inspected, false);
+  assert.deepEqual(inspected.worldCounts, {
+    mapId: "farm",
+    trees: 0,
+    rocks: 0,
+    chests: 0,
+    markets: 0,
+    rechargeStations: 0,
+    beds: 0,
+    portals: 0,
+    crops: { total: 0, growing: 0, harvestReady: 0, watered: 0, dry: 0 },
+  });
   assert.equal("inventory" in player, false);
   assert.ok(Array.isArray(robot.inventory));
   assert.equal("terrain" in inspected, false);
@@ -139,6 +150,9 @@ test("compact inspection filters a bounded area by entity type", () => {
   assert.ok(inspected.entities.length > 0);
   assert.ok(inspected.entities.every((entity) => entity.type === "tree"));
   assert.equal(inspected.view.ascii.split("\n").length, 7);
+  assert.equal(inspected.worldCounts.trees, 20);
+  assert.equal(inspected.worldCounts.markets, 1);
+  assert.equal("decorations" in inspected.worldCounts, false);
 });
 
 test("compact entities retain metadata needed for ordinary planning", () => {
@@ -188,6 +202,13 @@ test("ASCII and sparse plant records distinguish moisture and harvest readiness"
   assert.match(inspected.view.legend.entities, /g dry growing crop/);
   assert.equal(inspected.entities.find((entity) => entity.id === "dry-growing").watered, false);
   assert.equal(inspected.entities.find((entity) => entity.id === "wet-growing").watered, true);
+  assert.deepEqual(inspected.worldCounts.crops, {
+    total: 4,
+    growing: 2,
+    harvestReady: 2,
+    watered: 2,
+    dry: 2,
+  });
 });
 
 test("detailed inspection opts into terrain, all selected-map entities, and bounded history", () => {
