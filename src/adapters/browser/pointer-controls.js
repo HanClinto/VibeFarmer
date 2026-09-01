@@ -49,6 +49,14 @@ export function actionForCanvasClick(state, target, { shiftKey = false } = {}) {
   }
 
   const player = state.world.entities.player;
+  const chest = entities.find((entity) => entity.type === "chest");
+  if (chest
+    && player.mapId === chest.mapId
+    && Math.abs(player.position.x - chest.position.x)
+      + Math.abs(player.position.y - chest.position.y) === 1) {
+    return { kind: "storage", entityId: chest.id };
+  }
+
   const harvest = validateHarvest(state, "player", target, { requireAdjacent: false });
   if (harvest.success || harvest.code === "INVENTORY_FULL") {
     return {

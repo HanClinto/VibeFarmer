@@ -20,9 +20,39 @@ test("ordinary portal clicks move while occupied fallback tiles inspect", () => 
       target: { mapId: "farm", x: 3, y: 4 },
     },
   });
-  assert.deepEqual(actionForCanvasClick(state, { mapId: "farm", x: 4, y: 5 }), {
+  assert.deepEqual(actionForCanvasClick(state, { mapId: "farm", x: 14, y: 3 }), {
     kind: "inspect",
-    target: { mapId: "farm", x: 4, y: 5 },
+    target: { mapId: "farm", x: 14, y: 3 },
+  });
+});
+
+test("adjacent chest clicks open storage while distant, modified, and bed clicks inspect", () => {
+  const state = createFarmState();
+  const player = state.world.entities.player;
+  const chestTarget = { mapId: "farm", x: 4, y: 5 };
+  player.position = { x: 4, y: 4 };
+
+  assert.deepEqual(actionForCanvasClick(state, chestTarget), {
+    kind: "storage",
+    entityId: "chest-1",
+  });
+  assert.deepEqual(actionForCanvasClick(state, chestTarget, { shiftKey: true }), {
+    kind: "inspect",
+    target: chestTarget,
+  });
+
+  player.position = { x: 6, y: 5 };
+  assert.deepEqual(actionForCanvasClick(state, chestTarget), {
+    kind: "inspect",
+    target: chestTarget,
+  });
+
+  player.mapId = "farmhouse";
+  player.position = { x: 1, y: 3 };
+  const bedTarget = { mapId: "farmhouse", x: 1, y: 2 };
+  assert.deepEqual(actionForCanvasClick(state, bedTarget), {
+    kind: "inspect",
+    target: bedTarget,
   });
 });
 
@@ -66,9 +96,9 @@ test("plain click prioritizes harvest, valid ground use, movement, then inspecti
 
   player.selectedSlot = 1;
   assert.equal(actionForCanvasClick(state, { mapId: "farm", x: 6, y: 6 }).command.type, "move_to");
-  assert.deepEqual(actionForCanvasClick(state, { mapId: "farm", x: 4, y: 5 }), {
+  assert.deepEqual(actionForCanvasClick(state, { mapId: "farm", x: 14, y: 3 }), {
     kind: "inspect",
-    target: { mapId: "farm", x: 4, y: 5 },
+    target: { mapId: "farm", x: 14, y: 3 },
   });
 });
 

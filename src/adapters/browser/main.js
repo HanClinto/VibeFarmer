@@ -578,6 +578,10 @@ canvas.addEventListener("click", (event) => {
     objectInspectorDialog.open();
     return;
   }
+  if (action.kind === "storage") {
+    openStorage(action.entityId);
+    return;
+  }
   submit(action.command);
 });
 
