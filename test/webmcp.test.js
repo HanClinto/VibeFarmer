@@ -3,7 +3,11 @@ import test from "node:test";
 
 import { createController } from "../src/application/controller.js";
 import { registerWebMcp } from "../src/adapters/webmcp/adapter.js";
-import { createWebMcpTools, inspectGame } from "../src/adapters/webmcp/tools.js";
+import {
+  createWebMcpTools,
+  inspectGame,
+  inspectMarket,
+} from "../src/adapters/webmcp/tools.js";
 import { createGameState } from "../src/game/state.js";
 import { createFarmState } from "../src/game/farm.js";
 import { createChest } from "../src/game/world/entities/containers/chests.js";
@@ -42,6 +46,7 @@ test("registerWebMcp registers the compact primitive surface", async () => {
   assert.equal(registration.supported, true);
   assert.deepEqual(names, [
     "inspect_game",
+    "inspect_market",
     "move_to",
     "interact_at",
     "select_slot",
@@ -55,7 +60,7 @@ test("registerWebMcp registers the compact primitive surface", async () => {
   assert.ok(registered.every(({ options }) => options.signal instanceof AbortSignal));
   const buyTool = registered.find(({ tool }) => tool.name === "buy_item").tool;
   assert.equal(buyTool.title, "Buy one item");
-  assert.match(buyTool.description, /inspect_game/);
+  assert.match(buyTool.description, /inspect_market/);
   assert.deepEqual(
     buyTool.inputSchema.properties.itemId.enum,
     Object.values(ITEM_TYPES).filter((item) => item.buyPrice).map((item) => item.id),
@@ -65,17 +70,32 @@ test("registerWebMcp registers the compact primitive surface", async () => {
 test("unsupported browsers retain locally invokable tool definitions", async () => {
   const registration = await registerWebMcp(null, createController(createGameState()));
   assert.equal(registration.supported, false);
-  assert.equal(registration.tools.length, 9);
+  assert.equal(registration.tools.length, 10);
 });
 
-test("inspection exposes robot inventory but not player inventory", () => {
+test("world inspection exposes local robot context without market listings", () => {
   const inspected = inspectGame(createController(createGameState()));
   const player = inspected.entities.find((entity) => entity.id === "player");
   const robot = inspected.entities.find((entity) => entity.id === "robot");
 
+  assert.equal("market" in inspected, false);
+  assert.equal("entityCounts" in inspected, false);
+  assert.equal("cropCounts" in inspected, false);
   assert.equal("inventory" in player, false);
   assert.ok(Array.isArray(robot.inventory));
-  assert.deepEqual(inspected.market.buy, Object.values(ITEM_TYPES)
+  assert.equal("terrain" in inspected, false);
+  assert.match(inspected.view.ascii, /R/);
+  assert.match(inspected.view.legend.terrain, /W watered/);
+});
+
+test("market inspection returns listings, locations, access, and shared money on demand", () => {
+  const state = createFarmState();
+  const controller = createController(state);
+  const inspected = inspectMarket(controller);
+
+  assert.equal(inspected.code, "MARKET_INSPECTED");
+  assert.equal(inspected.money, state.money);
+  assert.deepEqual(inspected.inventory.buy, Object.values(ITEM_TYPES)
     .filter((item) => item.buyPrice)
     .map((item) => ({
       itemId: item.id,
@@ -83,9 +103,26 @@ test("inspection exposes robot inventory but not player inventory", () => {
       category: item.category,
       price: item.buyPrice,
     })));
-  assert.equal("terrain" in inspected, false);
-  assert.match(inspected.view.ascii, /R/);
-  assert.match(inspected.view.legend.terrain, /W watered/);
+  assert.equal(inspected.markets.length, 1);
+  assert.deepEqual(inspected.markets[0].tiles, [
+    { x: 18, y: 11 },
+    { x: 19, y: 11 },
+    { x: 20, y: 11 },
+  ]);
+  assert.equal(inspected.markets[0].canTrade, false);
+  state.world.entities.robot.position = { x: 18, y: 12 };
+  assert.equal(inspectMarket(controller).markets[0].canTrade, true);
+});
+
+test("default world inspection omits the on-demand market payload", () => {
+  const controller = createController(createFarmState());
+  const world = inspectGame(controller);
+  const market = inspectMarket(controller);
+  const worldJson = JSON.stringify(world);
+  const legacyJson = JSON.stringify({ ...world, market: market.inventory });
+
+  assert.equal(worldJson.includes('"inventory":{"buy"'), false);
+  assert.ok(worldJson.length < legacyJson.length * 0.8);
 });
 
 test("compact inspection filters a bounded area by entity type", () => {
@@ -166,6 +203,8 @@ test("detailed inspection opts into terrain, all selected-map entities, and boun
   });
 
   assert.ok(Array.isArray(detailed.terrain));
+  assert.ok(detailed.entityCounts.tree > 0);
+  assert.deepEqual(detailed.cropCounts, {});
   assert.ok(detailed.entities.some((entity) => entity.type === "decoration"));
   assert.equal(detailed.history.length, 1);
   assert.ok(JSON.stringify(compact).length < JSON.stringify(detailed).length * 0.6);

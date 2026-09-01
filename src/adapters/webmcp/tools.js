@@ -30,6 +30,51 @@ function marketInventory() {
   };
 }
 
+export function inspectMarket(controller) {
+  const state = controller.getSnapshot();
+  const robot = state.world.entities.robot;
+  const ungrouped = Object.values(state.world.entities)
+    .filter((entity) => entity.type === "market")
+    .sort((first, second) => first.id.localeCompare(second.id));
+  const marketGroups = [];
+  while (ungrouped.length > 0) {
+    const first = ungrouped.shift();
+    const group = [first];
+    for (let index = ungrouped.length - 1; index >= 0; index -= 1) {
+      const candidate = ungrouped[index];
+      if (candidate.mapId !== first.mapId || !group.some(
+        (member) => Math.abs(member.position.x - candidate.position.x)
+          + Math.abs(member.position.y - candidate.position.y) === 1,
+      )) continue;
+      group.push(candidate);
+      ungrouped.splice(index, 1);
+      index = ungrouped.length;
+    }
+    marketGroups.push({
+      id: first.id,
+      name: "Farm Market",
+      mapId: first.mapId,
+      entityIds: group.map((entity) => entity.id).sort(),
+      tiles: group.map((entity) => ({ ...entity.position })),
+    });
+  }
+  const markets = marketGroups
+    .sort((first, second) => first.id.localeCompare(second.id))
+    .map((market) => ({
+      ...market,
+      tiles: market.tiles.sort((first, second) => first.y - second.y || first.x - second.x),
+      canTrade: market.mapId === robot.mapId && market.tiles.some(
+        (position) => Math.abs(position.x - robot.position.x)
+          + Math.abs(position.y - robot.position.y) === 1,
+      ),
+    }));
+  return result(true, "MARKET_INSPECTED", {
+    money: state.money,
+    markets,
+    inventory: marketInventory(),
+  });
+}
+
 const DEFAULT_INSPECTION_TYPES = Object.freeze([
   "actor",
   "bed",
@@ -287,11 +332,8 @@ export function inspectGame(controller, {
     tick: state.tick,
     day: state.day,
     money: state.money,
-    market: marketInventory(),
     robot: robotState(state),
     map: { id: selectedMapId, width: map.width, height: map.height },
-    entityCounts,
-    cropCounts,
     view: {
       center,
       radius: boundedRadius,
@@ -306,7 +348,7 @@ export function inspectGame(controller, {
     },
     entities: entities.map((entity) => publicEntity(entity, robot, map)),
     operations: mode === "detailed" ? Object.values(state.operations) : activeOperations,
-    ...(mode === "detailed" ? { terrain: map.terrain } : {}),
+    ...(mode === "detailed" ? { entityCounts, cropCounts, terrain: map.terrain } : {}),
     ...(includeHistory ? { history: state.history.slice(-historyLimit) } : {}),
   });
 }
@@ -344,7 +386,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     {
       name: "inspect_game",
       title: "Inspect game",
-      description: "Inspect the robot, current market inventory and prices, and a compact ASCII area around the robot by default. Optionally choose a map, center, radius, entity types, bounded history, or detailed mode with the full terrain matrix. Player inventory is private.",
+      description: "Inspect the robot and a compact ASCII area around it by default. Optionally choose a map, center, radius, entity types, bounded history, or detailed mode with full-map counts and terrain. Use inspect_market only when planning trade. Player inventory is private.",
       inputSchema: {
         type: "object",
         properties: {
@@ -367,6 +409,16 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
       annotations: { readOnlyHint: true },
       execute(input) {
         return Promise.resolve(inspectGame(controller, input));
+      },
+    },
+    {
+      name: "inspect_market",
+      title: "Inspect market",
+      description: "Inspect shared money, market locations and access, and current buy and sell listings. Use this only when planning a trade.",
+      inputSchema: { type: "object", additionalProperties: false },
+      annotations: { readOnlyHint: true },
+      execute() {
+        return Promise.resolve(inspectMarket(controller));
       },
     },
     {
@@ -440,7 +492,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     {
       name: "buy_item",
       title: "Buy one item",
-      description: "Buy exactly one currently stocked market item for the robot while it is adjacent to the shared-money farm market. Call inspect_game to list item IDs and current prices.",
+      description: "Buy exactly one currently stocked market item for the robot while it is adjacent to the shared-money farm market. Call inspect_market to list item IDs and current prices.",
       inputSchema: {
         type: "object",
         properties: { itemId: { type: "string", enum: BUY_ITEM_IDS } },
