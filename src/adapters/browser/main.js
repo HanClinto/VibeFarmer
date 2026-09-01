@@ -32,9 +32,12 @@ import { applyMoneyCheat } from "./development-cheats.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
 import { inspectGame } from "../webmcp/tools.js";
 import { actionFailureMessage, TIRED_CUE_DURATION_MS } from "./action-feedback.js";
+import { canvasSizeForStage } from "./game-window.js";
 
 const canvas = document.querySelector("#game-canvas");
 const context = canvas.getContext("2d");
+const canvasStage = document.querySelector(".canvas-stage");
+const gameWindow = document.querySelector(".game-window");
 const hotbar = document.querySelector("#hotbar");
 const contextualActionsRoot = document.querySelector("#contextual-actions");
 const staminaValue = document.querySelector("#stamina-value");
@@ -93,6 +96,7 @@ makeWindowDraggable(actionLogWindow);
 makeWindowDraggable(objectInspectorWindow);
 makeWindowDraggable(daySummaryWindow);
 makeWindowDraggable(sleepAnywayWindow);
+makeWindowDraggable(gameWindow);
 
 const persistence = createPersistence(window.localStorage);
 const restoredSave = persistence.load();
@@ -516,6 +520,19 @@ function refresh(message) {
   sleepWaitFlow?.sync();
   if (!sleepAnywayWindow.hidden) updateSleepAnywayWindow();
 }
+
+const defaultCanvasSize = { width: canvas.width, height: canvas.height };
+const gameResizeObserver = new ResizeObserver(() => {
+  const { width, height } = canvasSizeForStage({
+    width: canvasStage.clientWidth,
+    height: canvasStage.clientHeight,
+  }, defaultCanvasSize);
+  if (canvas.width === width && canvas.height === height) return;
+  canvas.width = width;
+  canvas.height = height;
+  refresh();
+});
+gameResizeObserver.observe(canvasStage);
 
 function runImmediate(command) {
   const result = controller.execute({ source: "human-ui", ...command });

@@ -57,6 +57,8 @@ npm test
 
 Plain clicks prioritize portals, mature crops, adjacent chests, and valid selected-item uses before ordinary movement. Clicking an adjacent chest opens Storage directly; beds remain inspect-first so sleeping requires an explicit action. Clicking a new destination or pressing a fresh movement direction interrupts the current walk, but does not interrupt active tool work. Occupied or blocked tiles with no meaningful selected-item action open Object Inspector instead. Moving the pointer across the farm highlights one adjacent action tile in that direction. While the pointer remains over the farm, Space or E uses that tile; leaving the farm returns keyboard actions to the actor's saved facing direction. Idle farmhands raise their full-size selected item above their head, with a subtle directional offset matching the action tile. During use, the item remains full-sized as it descends through a quarter-turn matching its mirrored orientation. North-facing held and active items render behind the farmhand; other directions render in front.
 
+Drag the Vibe Farmer title bar to move the main window. Its bottom-right resize handle expands the game viewport while preserving the default 598x666 window as the minimum size and keeping world tiles at their original scale.
+
 Object Inspector includes a compact Actions section. It treats an owned item in any slot as available and mentions its slot; current selection is shown only as a convenience. These human-facing hints do not add action metadata to the default WebMCP inspection payload.
 
 Interact with a mature crop to harvest it regardless of the selected hotbar item.
