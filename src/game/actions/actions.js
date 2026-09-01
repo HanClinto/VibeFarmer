@@ -4,6 +4,7 @@ import { dispatchLifecycleEvent } from "../events.js";
 import {
   addItem,
   canAddItem,
+  findItemSlot,
   getAddableQuantity,
   getItemQuantity,
   removeItem,
@@ -338,6 +339,7 @@ export function harvest(state, actorId, target) {
   ({ target } = validation);
   const { actor, plant, definition, quantity } = validation;
   addItem(actor.inventory, definition.produceItemId, quantity);
+  actor.selectedSlot = findItemSlot(actor.inventory, definition.produceItemId) + 1;
   plant.harvestCount += 1;
   if (definition.regrowDays) {
     plant.growthStage = plant.matureStage - definition.regrowDays;

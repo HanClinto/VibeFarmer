@@ -16,6 +16,7 @@ The first executable slice demonstrates the shared control contract:
 - Player hotbar slots use keys `1` through `0`.
 - Robot actions may identify the same owned item by slot or stable item ID.
 - Accepted item jobs select that item's slot and keep it selected after work completes.
+- Successful harvests leave the harvested produce selected.
 - Neither actor receives bulk gameplay shortcuts.
 
 The broader MVP is specified in [docs/plans/mvp-plan.md](docs/plans/mvp-plan.md).

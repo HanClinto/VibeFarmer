@@ -237,6 +237,7 @@ test("mature crops harvest before held-item use for either actor", () => {
     runToCompletion(controller, submission.operationId);
     assert.equal(state.world.entities[plant.id], undefined);
     assert.deepEqual(actor.inventory[4], heldItem);
+    assert.equal(actor.inventory[actor.selectedSlot - 1].itemId, "turnip");
     assert.ok(actor.inventory.some(
       (stack) => stack?.itemId === "turnip" && stack.quantity === 1,
     ));
