@@ -76,6 +76,8 @@ Robot Inspector derives its MCP view from the registered WebMCP definitions and 
 
 `inspect_game` defaults to a compact coordinate-labeled ASCII view around the robot, nearby entity records, robot state, active operations, and curated selected-map counts for useful objects and crop readiness. Agents may choose another map/center/radius, filter entity types, request bounded history, or opt into `mode: "detailed"` for raw entity/type counts and the full selected-map terrain matrix. Market listings and prices are omitted from world inspection; `inspect_market` returns them on demand with the shared wallet, storefront access tiles, and current trade proximity.
 
+`find_entities` returns up to ten matching entities on the robot's current map, ordered deterministically by Manhattan distance from the robot. It supports crop type, growth state, and watered filters without returning an ASCII map or unrelated game state. The distance is a lightweight estimate rather than a promise of route reachability; `move_to` and `interact_at` remain authoritative.
+
 Compact crop symbols encode both growth and moisture: `g` dry growing, `G` watered growing, `h` dry harvest-ready, and `H` watered harvest-ready. Sparse plant records also include an explicit `watered` boolean.
 Inspector invocation records are collapsible, and the separate resizable Action Log compares player and robot controller commands with their resulting game events in parallel columns.
 

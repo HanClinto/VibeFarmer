@@ -14,6 +14,7 @@ function sampleInput(tool) {
   const samples = {
     inspect_game: { mode: "compact", radius: 6, includeHistory: false },
     inspect_market: {},
+    find_entities: { entityType: "plant", watered: false, maxResults: 5 },
     move_to: { x: 12, y: 12 },
     interact_at: { x: 8, y: 2, itemId: "axe" },
     select_slot: { slot: 1 },

@@ -167,6 +167,9 @@ function recoverableNextActions(output) {
   if (["ITEM_NOT_FOUND", "INVALID_INVENTORY_SLOT"].includes(output.code)) {
     return ["inspect_game", "select_slot"];
   }
+  if (["DESTINATION_UNREACHABLE", "INTERACTION_UNREACHABLE"].includes(output.code)) {
+    return ["find_entities", "inspect_game", "move_to"];
+  }
   return ["inspect_game", "move_to"];
 }
 
@@ -261,6 +264,69 @@ function publicEntity(entity, robot, map) {
     }
   }
   return base;
+}
+
+function manhattanDistance(first, second) {
+  return Math.abs(first.x - second.x) + Math.abs(first.y - second.y);
+}
+
+export function findEntities(controller, {
+  entityType,
+  cropType,
+  cropState,
+  watered,
+  maxResults = 5,
+} = {}) {
+  const state = controller.getSnapshot();
+  const robot = state.world.entities.robot;
+  const selectedMapId = robot.mapId;
+  const map = state.world.maps[selectedMapId];
+  const origin = robot.position;
+  const boundedMaxResults = Math.min(10, Math.max(1, maxResults));
+  const mapEntities = Object.values(state.world.entities)
+    .filter((entity) => entity.mapId === selectedMapId);
+  const candidates = entityType === "market"
+    ? groupMarkets(mapEntities).map((market) => ({
+      ...market,
+      type: "market",
+      position: market.tiles.reduce((nearest, position) => (
+        manhattanDistance(origin, position) < manhattanDistance(origin, nearest)
+          ? position
+          : nearest
+      )),
+    }))
+    : mapEntities.filter((entity) => entity.type === entityType);
+  const matches = candidates
+    .filter((entity) => cropType === undefined || entity.cropType === cropType)
+    .filter((entity) => cropState === undefined || (cropState === "harvest_ready"
+      ? entity.growthStage >= entity.matureStage
+      : entity.growthStage < entity.matureStage))
+    .filter((entity) => watered === undefined || (entity.type === "plant"
+      && (map.terrain[entity.position.y][entity.position.x] === "wet_tilled") === watered))
+    .map((entity) => {
+      const projected = publicEntity(entity, robot, map);
+      if (entity.tiles) projected.tiles = entity.tiles;
+      if (entity.entityIds) projected.entityIds = entity.entityIds;
+      return {
+        ...projected,
+        manhattanDistance: manhattanDistance(origin, entity.position),
+      };
+    })
+    .sort((first, second) => first.manhattanDistance - second.manhattanDistance
+      || first.id.localeCompare(second.id));
+  return result(true, "ENTITIES_FOUND", {
+    query: {
+      entityType,
+      mapId: selectedMapId,
+      ...(cropType === undefined ? {} : { cropType }),
+      ...(cropState === undefined ? {} : { cropState }),
+      ...(watered === undefined ? {} : { watered }),
+      maxResults: boundedMaxResults,
+    },
+    origin: { mapId: selectedMapId, position: { ...origin } },
+    totalMatches: matches.length,
+    matches: matches.slice(0, boundedMaxResults),
+  });
 }
 
 function entitySymbol(entity, map) {
@@ -424,7 +490,7 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
     {
       name: "inspect_game",
       title: "Inspect game",
-      description: "Inspect the robot, curated selected-map counts, and a compact ASCII area around it by default. Optionally choose a map, center, radius, entity types, bounded history, or detailed mode with raw counts and terrain. Use inspect_market only when planning trade. Player inventory is private.",
+      description: "Inspect the robot, curated selected-map counts, and a compact ASCII area around it by default. Optionally choose a map, center, radius, entity types, bounded history, or detailed mode with raw counts and terrain. Use find_entities for bounded nonlocal discovery and inspect_market only when planning trade. Player inventory is private.",
       inputSchema: {
         type: "object",
         properties: {
@@ -457,6 +523,30 @@ export function createWebMcpTools(controller, { onInvocation = () => {} } = {}) 
       annotations: { readOnlyHint: true },
       execute() {
         return Promise.resolve(inspectMarket(controller));
+      },
+    },
+    {
+      name: "find_entities",
+      title: "Find entities",
+      description: "Find a bounded list of entities on the robot's current map, sorted by Manhattan distance. Distance is an estimate and does not guarantee a navigable route. Optional crop filters apply to plants.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          entityType: {
+            type: "string",
+            enum: ["actor", "bed", "chest", "market", "plant", "portal", "recharge_station", "rock", "tree"],
+          },
+          cropType: { type: "string", enum: Object.keys(CROP_TYPES) },
+          cropState: { type: "string", enum: ["growing", "harvest_ready"] },
+          watered: { type: "boolean" },
+          maxResults: { type: "integer", minimum: 1, maximum: 10, default: 5 },
+        },
+        required: ["entityType"],
+        additionalProperties: false,
+      },
+      annotations: { readOnlyHint: true },
+      execute(input) {
+        return Promise.resolve(findEntities(controller, input));
       },
     },
     {

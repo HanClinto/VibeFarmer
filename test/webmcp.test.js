@@ -5,6 +5,7 @@ import { createController } from "../src/application/controller.js";
 import { registerWebMcp } from "../src/adapters/webmcp/adapter.js";
 import {
   createWebMcpTools,
+  findEntities,
   inspectGame,
   inspectMarket,
 } from "../src/adapters/webmcp/tools.js";
@@ -47,6 +48,7 @@ test("registerWebMcp registers the compact primitive surface", async () => {
   assert.deepEqual(names, [
     "inspect_game",
     "inspect_market",
+    "find_entities",
     "move_to",
     "interact_at",
     "select_slot",
@@ -70,7 +72,7 @@ test("registerWebMcp registers the compact primitive surface", async () => {
 test("unsupported browsers retain locally invokable tool definitions", async () => {
   const registration = await registerWebMcp(null, createController(createGameState()));
   assert.equal(registration.supported, false);
-  assert.equal(registration.tools.length, 10);
+  assert.equal(registration.tools.length, 11);
 });
 
 test("world inspection exposes local context and curated counts without market listings", () => {
@@ -153,6 +155,80 @@ test("compact inspection filters a bounded area by entity type", () => {
   assert.equal(inspected.worldCounts.trees, 20);
   assert.equal(inspected.worldCounts.markets, 1);
   assert.equal("decorations" in inspected.worldCounts, false);
+});
+
+test("entity search returns bounded nearest matches with deterministic Manhattan sorting", () => {
+  const state = createFarmState();
+  const robot = state.world.entities.robot;
+  robot.position = { x: 9, y: 4 };
+  const found = findEntities(createController(state), {
+    entityType: "tree",
+    maxResults: 3,
+  });
+
+  assert.equal(found.code, "ENTITIES_FOUND");
+  assert.equal(found.totalMatches, 20);
+  assert.equal(found.matches.length, 3);
+  assert.deepEqual(found.origin, { mapId: "farm", position: { x: 9, y: 4 } });
+  assert.deepEqual(found.matches.map(({ id, manhattanDistance }) => ({
+    id,
+    manhattanDistance,
+  })), [
+    { id: "tree-10", manhattanDistance: 2 },
+    { id: "tree-9", manhattanDistance: 4 },
+    { id: "tree-15", manhattanDistance: 5 },
+  ]);
+});
+
+test("entity search filters plants by crop, growth state, and water", () => {
+  const state = createFarmState();
+  const crops = [
+    { id: "dry-growing", x: 7, terrain: "tilled", mature: false },
+    { id: "wet-growing", x: 8, terrain: "wet_tilled", mature: false },
+    { id: "dry-ready", x: 9, terrain: "tilled", mature: true },
+    { id: "wet-ready", x: 10, terrain: "wet_tilled", mature: true },
+  ];
+  for (const crop of crops) {
+    state.world.maps.farm.terrain[8][crop.x] = crop.terrain;
+    const plant = createPlant({
+      id: crop.id,
+      cropType: "turnip",
+      position: { x: crop.x, y: 8 },
+    });
+    if (crop.mature) plant.growthStage = plant.matureStage;
+    addWorldEntity(state.world, plant);
+  }
+
+  const found = findEntities(createController(state), {
+    entityType: "plant",
+    cropType: "turnip",
+    cropState: "harvest_ready",
+    watered: false,
+    maxResults: 10,
+  });
+
+  assert.equal(found.totalMatches, 1);
+  assert.equal(found.matches[0].id, "dry-ready");
+  assert.equal(found.matches[0].watered, false);
+});
+
+test("registered entity search exposes bounded filters and one logical market", async () => {
+  const state = createFarmState();
+  state.world.entities.robot.position = { x: 18, y: 12 };
+  const tool = toolByName(createWebMcpTools(createController(state)), "find_entities");
+  const found = await tool.execute({ entityType: "market", maxResults: 1 });
+
+  assert.deepEqual(tool.inputSchema.required, ["entityType"]);
+  assert.equal(tool.inputSchema.properties.maxResults.maximum, 10);
+  assert.equal(found.totalMatches, 1);
+  assert.equal(found.matches[0].name, "Farm Market");
+  assert.deepEqual(found.matches[0].position, { x: 18, y: 11 });
+  assert.deepEqual(found.matches[0].tiles, [
+    { x: 18, y: 11 },
+    { x: 19, y: 11 },
+    { x: 20, y: 11 },
+  ]);
+  assert.equal(found.matches[0].manhattanDistance, 1);
 });
 
 test("compact entities retain metadata needed for ordinary planning", () => {
@@ -264,6 +340,18 @@ test("move_to stays pending until simulation ticks complete", async () => {
   assert.deepEqual(result.robot.position, { x: 2, y: 3 });
   assert.equal("player" in result, false);
   assert.ok(result.recoverableNextActions.includes("interact_at"));
+});
+
+test("unreachable movement recommends another bounded entity search", async () => {
+  const tools = createWebMcpTools(createController(createFarmState()));
+  const result = await toolByName(tools, "move_to").execute({ x: 16, y: 3 });
+
+  assert.equal(result.code, "DESTINATION_UNREACHABLE");
+  assert.deepEqual(result.recoverableNextActions, [
+    "find_entities",
+    "inspect_game",
+    "move_to",
+  ]);
 });
 
 test("paused WebMCP operations remain pending and resume as the same operation", async () => {

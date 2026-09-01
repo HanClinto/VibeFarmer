@@ -47,7 +47,7 @@ Status meanings:
 | 33 | Met | Catch-up is clamped and deterministically tested. |
 | 34 | Partial | Controls, hotbar, contextual market/storage, daily summary, route feedback, and modeless windows exist; planned input/UI module split and player cancellation/replacement remain. |
 | 35 | Met | Versioned autosave, confirmed reset, active-operation interruption, corrupt-save fallback, explicit outdated-development-save reset, and future-version preservation are implemented. Pre-1.0 backward migration is intentionally out of scope. |
-| 36 | Partial | Ten focused primitive tools exist; world and market inspection are separate, movement, interaction, transfer, trade, and sleep enforce shared spatial rules, and an explicit wake tool remains absent. |
+| 36 | Partial | Eleven focused primitive tools exist; local world inspection, bounded entity search, and market inspection are separate, movement, interaction, transfer, trade, and sleep enforce shared spatial rules, and an explicit wake tool remains absent. |
 | 37 | Partial | Movement/interaction await simulation and support abort. Select, trade, transfer, and sleep mutate immediately and ignore abort. |
 | 38 | Partial | Paused intents wait and abandoned calls continue; immediate mutators still execute while paused. |
 | 39 | Met | `interact_at` accepts slot/item ID and returns structured operation/item/path/change/robot/recovery context without player inventory. |
