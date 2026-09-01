@@ -35,6 +35,55 @@ export function createController(initialState) {
     if (state.history.length > 200) state.history.shift();
   }
 
+  function interruptMovement(actorId) {
+    const actor = state.world.entities[actorId];
+    const operation = actor?.activeIntent ? state.operations[actor.activeIntent] : null;
+    if (!operation) return null;
+    if (operation.command.type !== "move_to") {
+      return outcome(false, "ACTOR_BUSY", { operationId: operation.operationId });
+    }
+
+    operation.status = "cancelled";
+    operation.completedTick = state.tick;
+    operation.result = outcome(false, "INTENT_REPLACED", {
+      operationId: operation.operationId,
+    });
+    actor.activeIntent = null;
+    state.history.push({
+      type: "intent_cancelled",
+      operationId: operation.operationId,
+      actorId,
+      tick: state.tick,
+      code: "INTENT_REPLACED",
+    });
+    if (state.history.length > 200) state.history.shift();
+    const resolve = completions.get(operation.operationId);
+    if (resolve) {
+      completions.delete(operation.operationId);
+      resolve(operation.result);
+    }
+    return operation.operationId;
+  }
+
+  function submitIntent(command) {
+    let result;
+    if (command.type === "move_to") {
+      result = submitMoveTo(state, command.actorId, command.target);
+    } else if (command.type === "interact_at") {
+      result = submitInteractAt(state, command.actorId, command.target, command.item ?? {});
+    } else {
+      return publish(outcome(false, "UNKNOWN_INTENT", { commandType: command.type }));
+    }
+    publish(result);
+    if (!result.success) return result;
+    if (!ticksEnabled) state.operations[result.operationId].status = "waiting_for_ticks";
+
+    const completion = new Promise((resolve) => {
+      completions.set(result.operationId, resolve);
+    });
+    return { ...result, completion };
+  }
+
   return {
     getSnapshot() {
       return state;
@@ -70,22 +119,20 @@ export function createController(initialState) {
 
     submit(command) {
       recordCommand(command);
-      let result;
-      if (command.type === "move_to") {
-        result = submitMoveTo(state, command.actorId, command.target);
-      } else if (command.type === "interact_at") {
-        result = submitInteractAt(state, command.actorId, command.target, command.item ?? {});
-      } else {
-        return publish(outcome(false, "UNKNOWN_INTENT", { commandType: command.type }));
-      }
-      publish(result);
-      if (!result.success) return result;
-      if (!ticksEnabled) state.operations[result.operationId].status = "waiting_for_ticks";
+      return submitIntent(command);
+    },
 
-      const completion = new Promise((resolve) => {
-        completions.set(result.operationId, resolve);
-      });
-      return { ...result, completion };
+    replaceMovement(command) {
+      recordCommand(command);
+      if (command.type !== "move_to") {
+        return publish(outcome(false, "MOVEMENT_REPLACEMENT_REQUIRED"));
+      }
+      const interrupted = interruptMovement(command.actorId);
+      if (interrupted?.success === false) return publish(interrupted);
+      const submission = submitIntent(command);
+      return interrupted && submission.success
+        ? { ...submission, replacedOperationId: interrupted }
+        : submission;
     },
 
     tick(count = 1) {

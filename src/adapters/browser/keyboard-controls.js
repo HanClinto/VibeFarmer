@@ -25,9 +25,9 @@ export function isMovementKey(key) {
   return normalizedMovementKey(key) !== null;
 }
 
-export function createHeldMovementController({ getPlayer, submit }) {
+export function createHeldMovementController({ getPlayer, submit, replace = submit }) {
   const heldKeys = [];
-  let movementInFlight = false;
+  let activeCompletion = null;
 
   function release(key) {
     const normalizedKey = normalizedMovementKey(key);
@@ -37,25 +37,36 @@ export function createHeldMovementController({ getPlayer, submit }) {
     return true;
   }
 
-  function pump() {
-    if (movementInFlight || heldKeys.length === 0) return;
-    const command = commandForGameplayKey(heldKeys.at(-1), getPlayer());
-    const submission = submit(command);
-    if (!submission?.success || !submission.completion) return;
-    movementInFlight = true;
+  function start(command, submitCommand) {
+    const submission = submitCommand(command);
+    if (!submission?.success || !submission.completion) return submission;
+    activeCompletion = submission.completion;
     submission.completion.finally(() => {
-      movementInFlight = false;
+      if (activeCompletion !== submission.completion) return;
+      activeCompletion = null;
       queueMicrotask(pump);
     });
+    return submission;
+  }
+
+  function pump() {
+    if (activeCompletion || heldKeys.length === 0) return;
+    const command = commandForGameplayKey(heldKeys.at(-1), getPlayer());
+    start(command, submit);
   }
 
   return {
     press(key) {
       const normalizedKey = normalizedMovementKey(key);
       if (!normalizedKey) return false;
+      const newlyPressed = !heldKeys.includes(normalizedKey);
       release(normalizedKey);
       heldKeys.push(normalizedKey);
-      pump();
+      if (newlyPressed) {
+        start(commandForGameplayKey(normalizedKey, getPlayer()), replace);
+      } else {
+        pump();
+      }
       return true;
     },
     release,

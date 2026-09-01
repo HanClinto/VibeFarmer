@@ -531,13 +531,17 @@ function showIntentFailure(result, actorId, prefix = "") {
 }
 
 function submit(command) {
-  const submission = controller.submit({ source: "human-ui", ...command });
+  const sourcedCommand = { source: "human-ui", ...command };
+  const submission = command.type === "move_to" && command.actorId === "player"
+    ? controller.replaceMovement(sourcedCommand)
+    : controller.submit(sourcedCommand);
   if (!submission.success) {
     showIntentFailure(submission, command.actorId);
     return submission;
   }
   refresh(`Running ${submission.operationId}`);
   submission.completion.then((result) => {
+    if (result.code === "INTENT_REPLACED") return;
     if (result.success) refresh(result.code);
     else showIntentFailure(result, command.actorId, "Stopped: ");
   });

@@ -49,7 +49,7 @@ test("unrelated keys do not create gameplay commands", () => {
   assert.equal(commandForGameplayKey("Tab", player()), null);
 });
 
-test("held movement submits one step at a time and follows the latest direction", async () => {
+test("holding one movement key submits one step at a time", async () => {
   const currentPlayer = player();
   const submissions = [];
   const resolvers = [];
@@ -64,7 +64,6 @@ test("held movement submits one step at a time and follows the latest direction"
 
   heldMovement.press("d");
   heldMovement.press("d");
-  heldMovement.press("w");
   assert.equal(submissions.length, 1);
   assert.deepEqual(submissions[0].target, { x: 5, y: 3 });
 
@@ -73,12 +72,45 @@ test("held movement submits one step at a time and follows the latest direction"
   await Promise.resolve();
   await Promise.resolve();
   assert.equal(submissions.length, 2);
-  assert.deepEqual(submissions[1].target, { x: 5, y: 2 });
+  assert.deepEqual(submissions[1].target, { x: 6, y: 3 });
 
-  heldMovement.release("w");
   heldMovement.release("d");
   resolvers.shift()({ success: true });
   await Promise.resolve();
   await Promise.resolve();
   assert.equal(submissions.length, 2);
+});
+
+test("a fresh direction replaces movement already in flight", async () => {
+  const currentPlayer = player();
+  const submissions = [];
+  const replacements = [];
+  const resolvers = [];
+  function resultFor(command, commands) {
+    commands.push(command);
+    const completion = new Promise((resolve) => resolvers.push(resolve));
+    return { success: true, completion };
+  }
+  const heldMovement = createHeldMovementController({
+    getPlayer: () => currentPlayer,
+    submit: (command) => resultFor(command, submissions),
+    replace: (command) => resultFor(command, replacements),
+  });
+
+  heldMovement.press("d");
+  heldMovement.press("d");
+  heldMovement.press("w");
+
+  assert.equal(submissions.length, 0);
+  assert.deepEqual(replacements.map(({ target }) => target), [
+    { x: 5, y: 3 },
+    { x: 4, y: 2 },
+  ]);
+
+  currentPlayer.position = { x: 4, y: 2 };
+  resolvers.at(-1)({ success: true });
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(submissions.length, 1);
+  assert.deepEqual(submissions[0].target, { x: 4, y: 1 });
 });

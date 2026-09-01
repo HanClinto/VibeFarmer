@@ -78,6 +78,53 @@ test("completion waits for ticks and cancellation settles at a tick boundary", a
   assert.equal(controller.getSnapshot().world.entities.robot.activeIntent, null);
 });
 
+test("movement replacement interrupts a route and starts from the current tile", async () => {
+  const controller = createController(createGameState());
+  const first = controller.submit({
+    type: "move_to",
+    actorId: "player",
+    target: { x: 4, y: 3 },
+  });
+  controller.tick();
+  assert.deepEqual(controller.getSnapshot().world.entities.player.position, { x: 1, y: 2 });
+
+  const replacement = controller.replaceMovement({
+    type: "move_to",
+    actorId: "player",
+    target: { x: 2, y: 2 },
+  });
+
+  assert.equal(replacement.success, true);
+  assert.equal(replacement.replacedOperationId, first.operationId);
+  assert.equal((await first.completion).code, "INTENT_REPLACED");
+  assert.equal(controller.getSnapshot().operations[first.operationId].status, "cancelled");
+  controller.tick(2);
+  assert.equal((await replacement.completion).code, "DESTINATION_REACHED");
+  assert.deepEqual(controller.getSnapshot().world.entities.player.position, { x: 2, y: 2 });
+});
+
+test("movement replacement does not interrupt active interaction work", () => {
+  const state = createGameState();
+  state.world.entities.player.inventory[0] = { itemId: "hoe", quantity: 1 };
+  const controller = createController(state);
+  const interaction = controller.submit({
+    type: "interact_at",
+    actorId: "player",
+    target: { x: 1, y: 2 },
+  });
+
+  const replacement = controller.replaceMovement({
+    type: "move_to",
+    actorId: "player",
+    target: { x: 2, y: 1 },
+  });
+
+  assert.equal(interaction.success, true);
+  assert.equal(replacement.success, false);
+  assert.equal(replacement.code, "ACTOR_BUSY");
+  assert.equal(state.world.entities.player.activeIntent, interaction.operationId);
+});
+
 test("paused submissions wait visibly without advancing until ticks resume", async () => {
   const controller = createController(createGameState());
   controller.setTicksEnabled(false);
