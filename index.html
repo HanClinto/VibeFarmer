@@ -46,6 +46,43 @@
           </p>
         </div>
       </section>
+      <section id="help-window" class="window help-window" role="dialog" aria-label="Help and WebMCP guide" tabindex="-1" hidden>
+        <div class="title-bar">
+          <div class="title-bar-text">Vibe Farmer Help</div>
+          <div class="title-bar-controls">
+            <button type="button" aria-label="Close" id="help-close-button"></button>
+          </div>
+        </div>
+        <div class="window-body help-body">
+          <section>
+            <h2>OpenAI WebMCP Challenge</h2>
+            <p>Vibe Farmer is a challenge entry about human-agent collaboration on the open web. You and an AI-controlled robot share one farm, one economy, and the same basic actions.</p>
+            <p><a href="https://openai.com/webmcp-challenge/" target="_blank" rel="noreferrer">About the challenge</a></p>
+          </section>
+          <section>
+            <h2>WebMCP</h2>
+            <p>WebMCP lets a compatible browser expose website-defined tools to an AI agent. Here, those tools let an agent inspect the farm and control the robot with visible, single-step actions.</p>
+            <p id="webmcp-help-status" class="webmcp-help-status" data-state="checking" aria-live="polite"><strong>Status:</strong> Checking this browser...</p>
+            <div id="webmcp-setup-help" hidden>
+              <p>To use the robot with an agent, open this page in the ChatGPT app's WebMCP-capable browser, or in a WebMCP-enabled version of Chrome. You can still play normally and test every robot tool in Robot Inspector without WebMCP.</p>
+            </div>
+            <ol>
+              <li>Open this page in a WebMCP-capable browser.</li>
+              <li>Ask the browser's agent to inspect the game and help run the farm.</li>
+              <li>Open <strong>Robot Inspector</strong> to see its tools, view, operations, and logs.</li>
+            </ol>
+          </section>
+          <section>
+            <h2>Play</h2>
+            <p>Click open ground to walk, or click a valid target to use the selected item. Shift-click or right-click a tile to inspect it.</p>
+            <dl class="help-controls">
+              <dt>Move</dt><dd>Arrow keys or WASD</dd>
+              <dt>Use</dt><dd>Space or E</dd>
+              <dt>Select</dt><dd>Keys 1-0</dd>
+            </dl>
+          </section>
+        </div>
+      </section>
       <section id="market-window" class="window market-window" role="dialog" aria-label="Farm market" tabindex="-1" hidden>
         <div class="title-bar">
           <div class="title-bar-text">Farm Market</div>

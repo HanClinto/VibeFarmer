@@ -207,6 +207,82 @@ canvas {
   transform: translate(-50%, -50%);
 }
 
+.help-window {
+  position: fixed;
+  z-index: 30;
+  top: 50%;
+  left: 50%;
+  width: 520px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 32px);
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+}
+
+.help-window > .title-bar {
+  cursor: move;
+  touch-action: none;
+  user-select: none;
+}
+
+.help-body {
+  display: grid;
+  max-height: calc(100vh - 70px);
+  gap: 10px;
+  overflow: auto;
+}
+
+.help-body section {
+  padding-bottom: 8px;
+  border-bottom: 1px solid #808080;
+}
+
+.help-body section:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.help-body h2 {
+  margin: 0 0 5px;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.help-body p,
+.help-body ol {
+  margin: 4px 0;
+  line-height: 1.35;
+}
+
+.webmcp-help-status {
+  padding: 6px;
+  border: 1px inset #fff;
+  background: #fff;
+}
+
+.webmcp-help-status[data-state="enabled"] {
+  background: #d9f2d0;
+}
+
+.webmcp-help-status[data-state="error"] {
+  background: #fff0c8;
+}
+
+.help-controls {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 3px 8px;
+  margin: 6px 0 0;
+}
+
+.help-controls dt {
+  font-weight: 700;
+}
+
+.help-controls dd {
+  margin: 0;
+}
+
 .sleep-anyway-window {
   position: fixed;
   z-index: 35;

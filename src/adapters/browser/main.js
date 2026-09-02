@@ -30,7 +30,7 @@ import { createGameAudio } from "./audio.js";
 import { createSleepWaitFlow } from "./sleep-wait.js";
 import { applyMoneyCheat } from "./development-cheats.js";
 import { registerWebMcp } from "../webmcp/adapter.js";
-import { inspectGame } from "../webmcp/tools.js";
+import { createWebMcpTools, inspectGame } from "../webmcp/tools.js";
 import { actionFailureMessage, TIRED_CUE_DURATION_MS } from "./action-feedback.js";
 import { canvasSizeForStage } from "./game-window.js";
 
@@ -57,6 +57,9 @@ const storageTargetName = document.querySelector("#storage-target-name");
 const storagePlayerItems = document.querySelector("#storage-player-items");
 const storageTargetItems = document.querySelector("#storage-target-items");
 const storageStatus = document.querySelector("#storage-status");
+const helpWindow = document.querySelector("#help-window");
+const webMcpHelpStatus = document.querySelector("#webmcp-help-status");
+const webMcpSetupHelp = document.querySelector("#webmcp-setup-help");
 const inspectorWindow = document.querySelector("#inspector-window");
 const actionLogWindow = document.querySelector("#action-log-window");
 const objectInspectorWindow = document.querySelector("#object-inspector-window");
@@ -91,6 +94,7 @@ marketSellItems.replaceChildren(...listings.sell.map((item) => marketButton(item
 
 makeWindowDraggable(marketWindow);
 makeWindowDraggable(storageWindow);
+makeWindowDraggable(helpWindow);
 makeWindowDraggable(inspectorWindow);
 makeWindowDraggable(actionLogWindow);
 makeWindowDraggable(objectInspectorWindow);
@@ -141,6 +145,11 @@ const objectInspector = createObjectInspector({
   openStorage,
   openMarket,
   sleepAtBed: sleepPlayer,
+});
+const helpDialog = windowManager.register({
+  windowElement: helpWindow,
+  launcher: document.querySelector("#help-button"),
+  closeButton: document.querySelector("#help-close-button"),
 });
 const marketDialog = windowManager.register({
   windowElement: marketWindow,
@@ -272,7 +281,16 @@ controller.subscribe(async ({ state, result }) => {
 });
 window.addEventListener("beforeunload", () => persistence.flush(controller.getSnapshot()));
 persistence.scheduleSave(controller.getSnapshot());
-registerWebMcp(document.modelContext, controller, {
+function updateWebMcpHelp(state, message) {
+  webMcpHelpStatus.dataset.state = state;
+  webMcpHelpStatus.replaceChildren();
+  const label = document.createElement("strong");
+  label.textContent = "Status: ";
+  webMcpHelpStatus.append(label, message);
+  webMcpSetupHelp.hidden = state === "enabled";
+}
+
+const webMcpOptions = {
   onInvocation(record) {
     const index = invocationLog.findIndex(
       (existing) => existing.invocationId === record.invocationId,
@@ -281,7 +299,13 @@ registerWebMcp(document.modelContext, controller, {
     else invocationLog[index] = record;
     inspector?.refresh(true);
   },
-}).then(({ supported, tools }) => {
+};
+
+registerWebMcp(document.modelContext, controller, webMcpOptions).then(({ supported, tools }) => {
+  updateWebMcpHelp(
+    supported ? "enabled" : "unavailable",
+    supported ? "WebMCP enabled; robot tools registered." : "WebMCP not detected in this browser.",
+  );
   document.querySelector("#robot-demo-button").title = supported
     ? "WebMCP tools registered"
     : "WebMCP unavailable; this button uses the same controller locally";
@@ -291,6 +315,22 @@ registerWebMcp(document.modelContext, controller, {
     tools,
     invocationLog,
     webMcpSupported: supported,
+    sprites,
+    getTickProgress: () => tickProgress,
+    inspectRobot: () => inspectGame(controller),
+  });
+}).catch((error) => {
+  console.error("WebMCP registration failed", error);
+  const tools = createWebMcpTools(controller, webMcpOptions);
+  updateWebMcpHelp("error", "WebMCP was detected, but robot tools could not be registered.");
+  document.querySelector("#robot-demo-button").title =
+    "WebMCP registration failed; this button uses the same controller locally";
+  inspector = createInspector({
+    root: inspectorWindow,
+    controller,
+    tools,
+    invocationLog,
+    webMcpSupported: false,
     sprites,
     getTickProgress: () => tickProgress,
     inspectRobot: () => inspectGame(controller),
@@ -779,7 +819,7 @@ document.querySelector(".speed-controls").addEventListener("click", (event) => {
 });
 
 document.querySelector("#help-button").addEventListener("click", () => {
-  window.alert("Click a valid target to use the selected item, or click open ground to walk. Shift-click or right-click any tile to inspect it. Arrow keys or WASD move one step; Space/E uses the highlighted adjacent tile. Keys 1-0 select inventory slots.");
+  helpDialog.open();
 });
 
 refresh();
