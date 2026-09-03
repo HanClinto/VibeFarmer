@@ -46,6 +46,26 @@
           </p>
         </div>
       </section>
+      <section id="sign-window" class="window sign-window" role="dialog" aria-labelledby="sign-window-title" tabindex="-1" hidden>
+        <div class="title-bar">
+          <div class="title-bar-text" id="sign-window-title">Wooden Sign</div>
+          <div class="title-bar-controls">
+            <button type="button" aria-label="Close" id="sign-window-close-button"></button>
+          </div>
+        </div>
+        <div class="window-body sign-window-body">
+          <div id="sign-message-view" class="sign-message-view" role="button" tabindex="0" aria-label="Sign message; click to edit" title="Click to edit"></div>
+          <form id="sign-editor" class="sign-editor" hidden>
+            <label for="sign-markdown-input">Sign message (Markdown)</label>
+            <textarea id="sign-markdown-input" rows="10" maxlength="2000"></textarea>
+            <p id="sign-editor-status" class="sign-editor-status" aria-live="polite"></p>
+            <div class="sign-editor-actions">
+              <button type="button" id="sign-edit-cancel-button">Cancel</button>
+              <button type="submit">Save</button>
+            </div>
+          </form>
+        </div>
+      </section>
       <section id="webmcp-warning-window" class="window webmcp-warning-window" role="alertdialog" aria-labelledby="webmcp-warning-title" aria-describedby="webmcp-warning-message" tabindex="-1" hidden>
         <div class="title-bar">
           <div class="title-bar-text" id="webmcp-warning-title">WebMCP Not Connected</div>

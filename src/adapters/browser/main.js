@@ -33,6 +33,7 @@ import { registerWebMcp } from "../webmcp/adapter.js";
 import { createWebMcpTools, inspectGame } from "../webmcp/tools.js";
 import { actionFailureMessage, TIRED_CUE_DURATION_MS } from "./action-feedback.js";
 import { canvasSizeForStage } from "./game-window.js";
+import { createSignWindow } from "./sign-window.js";
 
 const canvas = document.querySelector("#game-canvas");
 const context = canvas.getContext("2d");
@@ -57,6 +58,7 @@ const storageTargetName = document.querySelector("#storage-target-name");
 const storagePlayerItems = document.querySelector("#storage-player-items");
 const storageTargetItems = document.querySelector("#storage-target-items");
 const storageStatus = document.querySelector("#storage-status");
+const signWindow = document.querySelector("#sign-window");
 const webMcpWarningWindow = document.querySelector("#webmcp-warning-window");
 const helpWindow = document.querySelector("#help-window");
 const webMcpHelpStatus = document.querySelector("#webmcp-help-status");
@@ -95,6 +97,7 @@ marketSellItems.replaceChildren(...listings.sell.map((item) => marketButton(item
 
 makeWindowDraggable(marketWindow);
 makeWindowDraggable(storageWindow);
+makeWindowDraggable(signWindow);
 makeWindowDraggable(webMcpWarningWindow);
 makeWindowDraggable(helpWindow);
 makeWindowDraggable(inspectorWindow);
@@ -113,6 +116,17 @@ let activeStorageTargetId = null;
 let contextualActionsSignature = null;
 let marketSignature = null;
 const actionLog = createActionLog({ root: actionLogWindow, controller });
+const signView = createSignWindow({
+  root: signWindow,
+  controller,
+  onUpdated: () => refresh("Sign updated"),
+});
+
+function openSign(entityId) {
+  objectInspectorDialog.close();
+  signView.select(entityId);
+  signDialog.open();
+}
 
 function openStorage(entityId) {
   activeStorageTargetId = entityId;
@@ -152,6 +166,12 @@ const helpDialog = windowManager.register({
   windowElement: helpWindow,
   launcher: document.querySelector("#help-button"),
   closeButton: document.querySelector("#help-close-button"),
+});
+const signDialog = windowManager.register({
+  windowElement: signWindow,
+  launcher: canvas,
+  closeButton: document.querySelector("#sign-window-close-button"),
+  onOpen: () => signView.refresh(),
 });
 const webMcpWarningDialog = windowManager.register({
   windowElement: webMcpWarningWindow,
@@ -645,6 +665,10 @@ canvas.addEventListener("click", (event) => {
   }
   if (action.kind === "storage") {
     openStorage(action.entityId);
+    return;
+  }
+  if (action.kind === "sign") {
+    openSign(action.entityId);
     return;
   }
   submit(action.command);

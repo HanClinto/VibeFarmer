@@ -3,7 +3,7 @@ import { createGameState } from "./state.js";
 import { createChest } from "./world/entities/containers/chests.js";
 import { addWorldEntity, addWorldMap, createWorld } from "./world/world.js";
 
-export const FARM_DEFINITION_VERSION = 9;
+export const FARM_DEFINITION_VERSION = 10;
 
 function decoration(id, spriteId, x, y, { blocking = true, name, type = "decoration" } = {}) {
   return {
@@ -18,6 +18,13 @@ function decoration(id, spriteId, x, y, { blocking = true, name, type = "decorat
 
 function interiorDecoration(id, spriteId, x, y, options) {
   return { ...decoration(id, spriteId, x, y, options), mapId: "farmhouse" };
+}
+
+function sign(id, name, x, y, markdown) {
+  return {
+    ...decoration(id, "building.sign", x, y, { name, type: "sign" }),
+    markdown,
+  };
 }
 
 function paintRectangle(world, terrainType, left, top, width, height) {
@@ -62,6 +69,27 @@ function canonicalDecorations() {
     }));
   }
   entities.push(
+    sign(
+      "sign-farmhouse",
+      "Welcome Home",
+      2,
+      5,
+      "# Welcome Home\n\nStep through the door to enter your farmhouse. When your **stamina is low**, sleep in your bed to end the day and wake up refreshed.",
+    ),
+    sign(
+      "sign-robot",
+      "Meet Your Farmhand",
+      7,
+      5,
+      "# Meet Your Farmhand\n\nThe robot can work independently while you tend another part of the farm.\n\n- Open this game in a **WebMCP-enabled browser**.\n- Ask your AI agent to inspect the farm and give the robot instructions.\n- Follow its work in **Robot Inspector**.",
+    ),
+    sign(
+      "sign-market",
+      "Farm Market",
+      17,
+      11,
+      "# Farm Market\n\nStand beside the produce stalls to trade.\n\n- **Buy** seeds using your shared money.\n- **Sell** harvested crops and logs.\n- Player and robot use the same wallet.",
+    ),
     decoration("market-corn-crate", "entity.produce_corn", 18, 11, {
       name: "Corn crate",
       type: "market",

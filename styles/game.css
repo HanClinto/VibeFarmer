@@ -207,6 +207,108 @@ canvas {
   transform: translate(-50%, -50%);
 }
 
+.sign-window {
+  position: fixed;
+  z-index: 25;
+  top: 50%;
+  left: 50%;
+  width: 430px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 32px);
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+}
+
+.sign-window > .title-bar {
+  cursor: move;
+  touch-action: none;
+  user-select: none;
+}
+
+.sign-window-body {
+  max-height: calc(100vh - 70px);
+  overflow: auto;
+}
+
+.sign-message-view {
+  min-height: 190px;
+  padding: 18px 22px;
+  border: 3px double #6b4a24;
+  outline: 1px solid #31200e;
+  background-color: #f5df9c;
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0 15px, rgba(92, 57, 18, 0.08) 16px),
+    linear-gradient(90deg, rgba(112, 72, 24, 0.12), transparent 12%, transparent 88%, rgba(112, 72, 24, 0.12));
+  color: #2b1a0c;
+  cursor: text;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.sign-message-view:focus {
+  outline: 2px dotted #000;
+  outline-offset: -6px;
+}
+
+.sign-message-view h1,
+.sign-message-view h2,
+.sign-message-view h3 {
+  margin: 0 0 8px;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+.sign-message-view h1 {
+  font-size: 22px;
+}
+
+.sign-message-view h2 {
+  font-size: 18px;
+}
+
+.sign-message-view h3 {
+  font-size: 15px;
+}
+
+.sign-message-view p,
+.sign-message-view ul {
+  margin: 7px 0;
+}
+
+.sign-message-view code {
+  padding: 0 2px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.sign-editor {
+  display: grid;
+  gap: 7px;
+}
+
+.sign-editor[hidden],
+.sign-message-view[hidden] {
+  display: none;
+}
+
+.sign-editor textarea {
+  width: 100%;
+  min-height: 190px;
+  resize: vertical;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+.sign-editor-status {
+  min-height: 14px;
+  margin: 0;
+}
+
+.sign-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .webmcp-warning-window {
   position: fixed;
   z-index: 45;

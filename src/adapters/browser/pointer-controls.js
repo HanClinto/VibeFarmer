@@ -49,6 +49,9 @@ export function actionForCanvasClick(state, target, { shiftKey = false } = {}) {
   }
 
   const player = state.world.entities.player;
+  const sign = entities.find((entity) => entity.type === "sign");
+  if (sign) return { kind: "sign", entityId: sign.id };
+
   const chest = entities.find((entity) => entity.type === "chest");
   if (chest
     && player.mapId === chest.mapId

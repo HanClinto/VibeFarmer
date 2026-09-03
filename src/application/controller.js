@@ -6,6 +6,7 @@ import {
   sleepActor,
   transferItem,
 } from "../game/actions/actions.js";
+import { updateSign } from "../game/actions/signs.js";
 import { isOperationTerminal, tick as tickGame } from "../game/simulation.js";
 import { submitInteractAt, submitMoveTo } from "../game/world/entities/actors/intents.js";
 
@@ -110,6 +111,9 @@ export function createController(initialState) {
           break;
         case "transfer_item":
           result = transferItem(state, command.actorId, command);
+          break;
+        case "update_sign":
+          result = updateSign(state, command.entityId, command.markdown);
           break;
         default:
           result = outcome(false, "UNKNOWN_COMMAND", { commandType: command.type });

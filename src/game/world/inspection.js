@@ -85,6 +85,13 @@ function inspectEntity(viewer, entity, terrainType) {
       canTrade: isAdjacent(getEntityLocation(viewer), getEntityLocation(entity)),
     };
   }
+  if (entity.type === "sign") {
+    return {
+      ...base,
+      name: entity.name ?? "Wooden Sign",
+      markdown: entity.markdown ?? "",
+    };
+  }
   if (entity.type === "bed") {
     return {
       ...base,
