@@ -46,6 +46,31 @@
           </p>
         </div>
       </section>
+      <section id="webmcp-warning-window" class="window webmcp-warning-window" role="alertdialog" aria-labelledby="webmcp-warning-title" aria-describedby="webmcp-warning-message" tabindex="-1" hidden>
+        <div class="title-bar">
+          <div class="title-bar-text" id="webmcp-warning-title">WebMCP Not Connected</div>
+          <div class="title-bar-controls">
+            <button type="button" aria-label="Close" id="webmcp-warning-close-button"></button>
+          </div>
+        </div>
+        <div class="window-body webmcp-warning-body">
+          <div class="webmcp-warning-message">
+            <span class="warning-triangle" aria-hidden="true"><span>!</span></span>
+            <div>
+              <p id="webmcp-warning-message"><strong>This game is designed for a WebMCP-enabled browser.</strong></p>
+              <p>You can still play normally, but an AI agent cannot connect to and control your robot here.</p>
+              <p class="webmcp-warning-links">
+                <a href="https://openai.com/chatgpt/desktop/" target="_blank" rel="noreferrer">Get ChatGPT for desktop</a>
+                <a href="https://www.google.com/chrome/" target="_blank" rel="noreferrer">Get Google Chrome</a>
+              </p>
+            </div>
+          </div>
+          <div class="webmcp-warning-actions">
+            <button type="button" id="webmcp-warning-help-button">Connection instructions</button>
+            <button type="button" id="webmcp-warning-ok-button" autofocus>Continue without WebMCP</button>
+          </div>
+        </div>
+      </section>
       <section id="help-window" class="window help-window" role="dialog" aria-label="Help and WebMCP guide" tabindex="-1" hidden>
         <div class="title-bar">
           <div class="title-bar-text">Vibe Farmer Help</div>
@@ -64,7 +89,8 @@
             <p>WebMCP lets a compatible browser expose website-defined tools to an AI agent. Here, those tools let an agent inspect the farm and control the robot with visible, single-step actions.</p>
             <p id="webmcp-help-status" class="webmcp-help-status" data-state="checking" aria-live="polite"><strong>Status:</strong> Checking this browser...</p>
             <div id="webmcp-setup-help" hidden>
-              <p>To use the robot with an agent, open this page in the ChatGPT app's WebMCP-capable browser, or in a WebMCP-enabled version of Chrome. You can still play normally and test every robot tool in Robot Inspector without WebMCP.</p>
+              <p>Open this page in the <a href="https://openai.com/chatgpt/desktop/" target="_blank" rel="noreferrer">ChatGPT desktop app</a> and use its in-app browser, which supports WebMCP. Alternatively, install <a href="https://www.google.com/chrome/" target="_blank" rel="noreferrer">Google Chrome 149 or later</a>, enable <strong>WebMCP for testing</strong> at <code>chrome://flags/#enable-webmcp-testing</code>, and restart Chrome.</p>
+              <p>You can still play normally and test every robot tool in Robot Inspector without WebMCP.</p>
             </div>
             <ol>
               <li>Open this page in a WebMCP-capable browser.</li>

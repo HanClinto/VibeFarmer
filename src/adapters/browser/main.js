@@ -57,6 +57,7 @@ const storageTargetName = document.querySelector("#storage-target-name");
 const storagePlayerItems = document.querySelector("#storage-player-items");
 const storageTargetItems = document.querySelector("#storage-target-items");
 const storageStatus = document.querySelector("#storage-status");
+const webMcpWarningWindow = document.querySelector("#webmcp-warning-window");
 const helpWindow = document.querySelector("#help-window");
 const webMcpHelpStatus = document.querySelector("#webmcp-help-status");
 const webMcpSetupHelp = document.querySelector("#webmcp-setup-help");
@@ -94,6 +95,7 @@ marketSellItems.replaceChildren(...listings.sell.map((item) => marketButton(item
 
 makeWindowDraggable(marketWindow);
 makeWindowDraggable(storageWindow);
+makeWindowDraggable(webMcpWarningWindow);
 makeWindowDraggable(helpWindow);
 makeWindowDraggable(inspectorWindow);
 makeWindowDraggable(actionLogWindow);
@@ -150,6 +152,10 @@ const helpDialog = windowManager.register({
   windowElement: helpWindow,
   launcher: document.querySelector("#help-button"),
   closeButton: document.querySelector("#help-close-button"),
+});
+const webMcpWarningDialog = windowManager.register({
+  windowElement: webMcpWarningWindow,
+  closeButton: document.querySelector("#webmcp-warning-close-button"),
 });
 const marketDialog = windowManager.register({
   windowElement: marketWindow,
@@ -319,6 +325,7 @@ registerWebMcp(document.modelContext, controller, webMcpOptions).then(({ support
     getTickProgress: () => tickProgress,
     inspectRobot: () => inspectGame(controller),
   });
+  if (!supported) webMcpWarningDialog.open();
 }).catch((error) => {
   console.error("WebMCP registration failed", error);
   const tools = createWebMcpTools(controller, webMcpOptions);
@@ -335,6 +342,7 @@ registerWebMcp(document.modelContext, controller, webMcpOptions).then(({ support
     getTickProgress: () => tickProgress,
     inspectRobot: () => inspectGame(controller),
   });
+  webMcpWarningDialog.open();
 });
 
 function updateHotbar(state) {
@@ -820,6 +828,15 @@ document.querySelector(".speed-controls").addEventListener("click", (event) => {
 
 document.querySelector("#help-button").addEventListener("click", () => {
   helpDialog.open();
+});
+
+document.querySelector("#webmcp-warning-help-button").addEventListener("click", () => {
+  webMcpWarningDialog.close();
+  helpDialog.open();
+});
+
+document.querySelector("#webmcp-warning-ok-button").addEventListener("click", () => {
+  webMcpWarningDialog.close();
 });
 
 refresh();
